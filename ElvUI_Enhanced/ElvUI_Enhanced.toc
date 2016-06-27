@@ -1,0 +1,33 @@
+## Interface: 60200
+## Title: |cff1784d1ElvUI|r Enhanced (WOD)
+## Author: Feraldin, Instant
+## X-Credits: Tristimdorio (Omega1970), Azilroka, Lockslap, Sortokk, Repooc, moresunders
+## Version: 3.1.0-beta5
+## Notes: Plugin-Enhancements for |cff1784d1ElvUI|r.
+## X-Category: Plugins
+## URL: http://wow.curseforge.com/addons/elvui-enhanced-mod-wod/
+## X-Website: http://wow.curseforge.com/addons/elvui-enhanced-mod-wod/
+## RequiredDeps: ElvUI
+## DefaultState: Enabled
+## X-Curse-Packaged-Version: 3.1.0-beta5
+## X-Curse-Project-Name: ElvUI Still Enhanced (WOD)
+## X-Curse-Project-ID: elvui-enhanced-mod-wod
+## X-Curse-Repository-ID: wow/elvui-enhanced-mod-wod/mainline
+
+## OptionalDeps: LibBalancePowerTracker-1.1, LibRangeCheck-2.0
+## X-Embeds: LibBalancePowerTracker-1.1, LibRangeCheck-2.0
+
+## X-Localizations: enUS, enGB, deDE, frFR, esES, esMX, zhCN, zhTW, koKR, ruRU
+## X-CompatibleLocales: enUS, enGB, deDE, frFR, esES, esMX, zhCN, zhTW, koKR, ruRU
+
+developer\load_developer.xml
+
+#@no-lib-strip@
+libs\load_libs.xml
+#@end-no-lib-strip@
+
+locales\load_locales.xml
+media\load_media.xml
+config\load_config.xml
+modules\load_modules.xml
+ElvUI_Enhanced.lua
