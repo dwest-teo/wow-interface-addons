@@ -1,0 +1,135 @@
+------------------------------------------------------------------------
+r13713 | funkydude | 2016-01-17 15:19:11 +0000 (Sun, 17 Jan 2016) | 1 line
+Changed paths:
+   A /tags/r13713-release (from /trunk:13712)
+
+Tagging as r13713-release
+------------------------------------------------------------------------
+r13712 | funkydude | 2016-01-17 14:53:01 +0000 (Sun, 17 Jan 2016) | 1 line
+Changed paths:
+   M /trunk/Core/BossPrototype.lua
+   M /trunk/Core/Constants.lua
+   M /trunk/Loader.lua
+
+Remove Gladiator checks in Legion
+------------------------------------------------------------------------
+r13711 | elvador | 2016-01-17 14:38:35 +0000 (Sun, 17 Jan 2016) | 1 line
+Changed paths:
+   M /trunk/Core/BossPrototype.lua
+
+Another legion hack (glyphs are gone)
+------------------------------------------------------------------------
+r13710 | funkydude | 2016-01-17 14:27:51 +0000 (Sun, 17 Jan 2016) | 1 line
+Changed paths:
+   M /trunk/Options/Options.lua
+
+Options: Fix bosses button on Legion.
+------------------------------------------------------------------------
+r13709 | funkydude | 2016-01-17 14:14:55 +0000 (Sun, 17 Jan 2016) | 1 line
+Changed paths:
+   M /trunk/Options/Options.lua
+
+Options: fix typo
+------------------------------------------------------------------------
+r13708 | funkydude | 2016-01-17 14:10:33 +0000 (Sun, 17 Jan 2016) | 1 line
+Changed paths:
+   M /trunk/Options/Options.lua
+
+Options: Use a custom name temporarily for the nightmare raid.
+------------------------------------------------------------------------
+r13707 | funkydude | 2016-01-17 13:59:40 +0000 (Sun, 17 Jan 2016) | 1 line
+Changed paths:
+   M /trunk/Options/Options.lua
+
+Options: Another legion loading workaround
+------------------------------------------------------------------------
+r13706 | funkydude | 2016-01-17 13:43:20 +0000 (Sun, 17 Jan 2016) | 1 line
+Changed paths:
+   M /trunk/Core/Constants.lua
+   M /trunk/Options/Options.lua
+
+Legion seems to be returning integer ids for textures instead of string texture paths, add support for it.
+------------------------------------------------------------------------
+r13705 | funkydude | 2016-01-17 12:27:17 +0000 (Sun, 17 Jan 2016) | 1 line
+Changed paths:
+   M /trunk/Core/Core.lua
+
+Core: Another Legion workaround
+------------------------------------------------------------------------
+r13704 | nebula169 | 2016-01-17 03:29:37 +0000 (Sun, 17 Jan 2016) | 1 line
+Changed paths:
+   M /trunk/Nightmare/BigWigs_Nightmare.toc
+
+Nightmare: Bump TOC
+------------------------------------------------------------------------
+r13703 | nebula169 | 2016-01-17 03:28:34 +0000 (Sun, 17 Jan 2016) | 1 line
+Changed paths:
+   M /trunk/Loader.lua
+   M /trunk/Nightmare/Dragons.lua
+   M /trunk/Nightmare/Nythendra.lua
+   M /trunk/Nightmare/Ursoc.lua
+   M /trunk/Nightmare/Xavius.lua
+
+Nightmare: NewLocale -> GetLocale
+------------------------------------------------------------------------
+r13702 | funkydude | 2016-01-16 23:45:14 +0000 (Sat, 16 Jan 2016) | 1 line
+Changed paths:
+   M /trunk/Loader.lua
+
+Loader: Minor Legion loading workaround
+------------------------------------------------------------------------
+r13701 | elvador | 2016-01-16 22:13:14 +0000 (Sat, 16 Jan 2016) | 1 line
+Changed paths:
+   M /trunk/Nightmare/Ursoc.lua
+
+Ursoc: Initial alpha module
+------------------------------------------------------------------------
+r13700 | nebula169 | 2016-01-16 20:04:15 +0000 (Sat, 16 Jan 2016) | 1 line
+Changed paths:
+   M /trunk/.pkgmeta
+   M /trunk/Loader.lua
+   A /trunk/Nightmare
+   A /trunk/Nightmare/BigWigs_Nightmare.toc
+   A /trunk/Nightmare/Dragons.lua
+   A /trunk/Nightmare/Locales
+   A /trunk/Nightmare/Locales/deDE.lua
+   A /trunk/Nightmare/Locales/esES.lua
+   A /trunk/Nightmare/Locales/frFR.lua
+   A /trunk/Nightmare/Locales/itIT.lua
+   A /trunk/Nightmare/Locales/koKR.lua
+   A /trunk/Nightmare/Locales/ptBR.lua
+   A /trunk/Nightmare/Locales/ruRU.lua
+   A /trunk/Nightmare/Locales/zhCN.lua
+   A /trunk/Nightmare/Locales/zhTW.lua
+   A /trunk/Nightmare/Nythendra.lua
+   A /trunk/Nightmare/Ursoc.lua
+   A /trunk/Nightmare/Xavius.lua
+   A /trunk/Nightmare/locales.xml
+   A /trunk/Nightmare/modules.xml
+   M /trunk/Options/Options.lua
+   M /trunk/modules.xml
+
+Add Legion Nightmare Raid modules
+------------------------------------------------------------------------
+r13699 | elvador | 2016-01-16 19:45:49 +0000 (Sat, 16 Jan 2016) | 1 line
+Changed paths:
+   M /trunk/Plugins/Flash.lua
+   M /trunk/Plugins/Messages.lua
+
+Change animations to use SetFromAlpha and SetToAlpha instead of SetChange
+------------------------------------------------------------------------
+r13698 | Wetxius | 2015-12-24 12:07:36 +0000 (Thu, 24 Dec 2015) | 1 line
+Changed paths:
+   M /trunk/HellfireCitadel/BigWigs_HellfireCitadel.toc
+
+ruRU update.
+------------------------------------------------------------------------
+r13697 | funkydude | 2015-12-11 13:00:05 +0000 (Fri, 11 Dec 2015) | 1 line
+Changed paths:
+   M /trunk/BigWigs.toc
+   M /trunk/Core/Core.lua
+   M /trunk/Loader.lua
+   M /trunk/Plugins/Statistics.lua
+
+Statistics: Fix kill messages for times < 1 sec.
+------------------------------------------------------------------------

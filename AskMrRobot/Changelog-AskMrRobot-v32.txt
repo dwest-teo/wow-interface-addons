@@ -1,8 +1,0 @@
-2016-04-05  yellowfive  <yellowfive>
-
-[a892c863c86a] [v32]
-* AskMrRobot-Serializer/AskMrRobot-Serializer.lua, AskMrRobot.toc, Core.lua, ui/AmrUiDropDown.lua:
-
-fixed chat message in LFR/BGs, minor layering issue with dropdowns
-
-

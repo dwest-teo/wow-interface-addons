@@ -1,0 +1,12 @@
+tag v6.2.01
+002485a1173561ca0ab7884bc7969b77c12e8ad9
+funkydude <none>
+2015-06-24 02:27:46 +0100
+
+Tagging as v6.2.01
+
+
+--------------------
+
+funkydude:
+	- toc bump
