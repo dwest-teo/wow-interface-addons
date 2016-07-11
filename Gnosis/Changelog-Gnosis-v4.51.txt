@@ -1,8 +1,0 @@
-2015-07-22  elchefe  <elchefe>
-
-[57a61256e603] [v4.51]
-* Timers.lua:
-
-resource : altpower related fix caused by an undocumented change to UnitAlternatePowerInfo()
-
-
