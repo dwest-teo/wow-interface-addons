@@ -4,6 +4,10 @@
 ## Notes: Provides enhanced spell range checking functionality
 ## Author: Cybeloras of Aerie Peak
 ## X-Category: Library
+## X-Curse-Packaged-Version: r15
+## X-Curse-Project-Name: LibSpellRange-1.0
+## X-Curse-Project-ID: libspellrange-1-0
+## X-Curse-Repository-ID: wow/libspellrange-1-0/mainline
 
 libs\LibStub\LibStub.lua
 

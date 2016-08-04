@@ -54,7 +54,7 @@ function AB:UpdatePet(event, unit)
 		button.tooltipSubtext = subtext;
 
 		if isActive and name ~= "PET_ACTION_FOLLOW" then
-			--button:GetCheckedTexture():SetTexture(1, 1, 1)
+			--button:GetCheckedTexture():SetColorTexture(1, 1, 1)
 			button:SetChecked(true);
 
 			if IsPetAttackAction(i) then
@@ -133,7 +133,7 @@ function AB:PositionAndSizeBarPet()
 		bar:SetAlpha(bar.db.alpha);
 		E:EnableMover(bar.mover:GetName())
 	else
-		bar:SetScale(0.000001);
+		bar:SetScale(0.0001);
 		bar:SetAlpha(0);
 		E:DisableMover(bar.mover:GetName())
 	end
@@ -220,7 +220,7 @@ function AB:PositionAndSizeBarPet()
 		end
 
 		if i > numButtons then
-			button:SetScale(0.000001);
+			button:SetScale(0.0001);
 			button:SetAlpha(0);
 		else
 			button:SetScale(1);

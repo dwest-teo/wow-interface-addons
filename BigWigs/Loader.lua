@@ -10,43 +10,43 @@ public.isLegion = isLegion
 -- Generate our version variables
 --
 
-local REPO = "REPO"
-local ALPHA = "ALPHA"
-local RELEASE = "RELEASE"
-local BIGWIGS_RELEASE_TYPE, MY_BIGWIGS_REVISION, BIGWIGS_RELEASE_STRING
+local BIGWIGS_RELEASE_STRING = ""
+-- Grab the release string from the TOC file.
+local BIGWIGS_VERSION = tonumber(GetAddOnMetadata("BigWigs", "Version")) or 0
+local versionQueryString, versionResponseString = "Q:%d-%s", "V:%d-%s"
 
 do
-	-- START: MAGIC WOWACE VOODOO VERSION STUFF
+	-- START: MAGIC PACKAGER VOODOO VERSION STUFF
+	local REPO = "REPO"
+	local ALPHA = "ALPHA"
+	local RELEASE = "RELEASE"
+
 	local releaseType = RELEASE
-	local myRevision = 1
+	local myGitHash = "13780" -- The ZIP packager will replace this with the Git hash. -- XXX @project-abbreviated-hash@
 	local releaseString = ""
 	--[===[@alpha@
 	-- The following code will only be present in alpha ZIPs.
 	releaseType = ALPHA
 	--@end-alpha@]===]
 
-	-- This will (in ZIPs), be replaced by the highest revision number in the source tree.
-	myRevision = tonumber("13712")
-
-	-- If myRevision ends up NOT being a number, it means we're running a SVN copy.
-	if type(myRevision) ~= "number" then
-		myRevision = -1
+	-- If we find "@" then we're running from Git directly.
+	if myGitHash:find("@", nil, true) then
+		myGitHash = "repo"
 		releaseType = REPO
 	end
 
-	-- Then build the release string, which we can add to the interface option panel.
-	local majorVersion = GetAddOnMetadata("BigWigs", "Version") or "4.?"
 	if releaseType == REPO then
-		releaseString = L.sourceCheckout:format(majorVersion)
+		releaseString = L.sourceCheckout:format(BIGWIGS_VERSION)
 	elseif releaseType == RELEASE then
-		releaseString = L.officialRelease:format(majorVersion, myRevision)
+		releaseString = L.officialRelease:format(BIGWIGS_VERSION, myGitHash)
 	elseif releaseType == ALPHA then
-		releaseString = L.alphaRelease:format(majorVersion, myRevision)
+		releaseString = L.alphaRelease:format(BIGWIGS_VERSION, myGitHash)
 	end
-	BIGWIGS_RELEASE_TYPE = releaseType
-	MY_BIGWIGS_REVISION = myRevision
 	BIGWIGS_RELEASE_STRING = releaseString
-	-- END: MAGIC WOWACE VOODOO VERSION STUFF
+	-- Format is "V:version-hash"
+	versionQueryString = versionQueryString:format(BIGWIGS_VERSION, myGitHash)
+	versionResponseString = versionResponseString:format(BIGWIGS_VERSION, myGitHash)
+	-- END: MAGIC PACKAGER VOODOO VERSION STUFF
 end
 
 -----------------------------------------------------------------------
@@ -73,18 +73,10 @@ public.CTimerAfter = CTimerAfter
 public.CTimerNewTicker = CTimerNewTicker
 
 -- Version
-local usersAlpha = {}
-local usersRelease = {}
+local usersHash = {}
+local usersVersion = {}
 local usersDBM = {}
--- Only set highestReleaseRevision if we're actually using a release of BigWigs.
--- If we set this as an alpha user we will alert release users with out-of-date warnings
--- and class them as out-of-date in /bwv (if our alpha version is higher). But they may be
--- using the latest available release version of BigWigs. This method ensures they are
--- classed as up-to-date in /bwv if they use the latest available release of BigWigs
--- even if our alpha is revisions ahead.
-local highestReleaseRevision = BIGWIGS_RELEASE_TYPE == RELEASE and MY_BIGWIGS_REVISION or -1
--- The highestAlphaRevision is so we can alert old alpha users (we didn't previously)
-local highestAlphaRevision = BIGWIGS_RELEASE_TYPE == ALPHA and MY_BIGWIGS_REVISION or -1
+local highestFoundVersion = BIGWIGS_VERSION
 
 -- Loading
 local loadOnCoreEnabled = {} -- BigWigs modulepacks that should load when a hostile zone is entered or the core is manually enabled, this would be the default plugins Bars, Messages etc
@@ -97,7 +89,7 @@ local fakeWorldZones = { -- Fake world zones used for world boss translations an
 	[466]=true, -- Outland
 	[862]=true, -- Pandaria
 	[962]=true, -- Draenor
-	--[000]=isLegion or nil, -- Legion -- XXX LEGION (main continent map area id)
+	--[000]=true, -- Legion -- XXX LEGION (main continent map area id)
 }
 
 do
@@ -106,7 +98,7 @@ do
 	local wotlk = "BigWigs_WrathOfTheLichKing"
 	local cata = "BigWigs_Cataclysm"
 	local mop = "BigWigs_MistsOfPandaria"
-	local wod = isLegion and "BigWigs_WarlordsOfDraenor" -- XXX LEGION
+	local wod = "BigWigs_WarlordsOfDraenor"
 	local lw = "LittleWigs"
 
 	local tbl = {
@@ -140,7 +132,7 @@ end
 -- GLOBALS: GetAddOnMetadata, GetLocale, GetNumGroupMembers, GetRealmName, GetSpecialization, GetSpecializationRole, GetSpellInfo, GetTime, GRAY_FONT_COLOR, InCombatLockdown
 -- GLOBALS: InterfaceOptionsFrameOkay, IsAddOnLoaded, IsAltKeyDown, IsControlKeyDown, IsEncounterInProgress, IsInGroup, IsInRaid, IsLoggedIn, IsPartyLFG, IsSpellKnown, LFGDungeonReadyPopup
 -- GLOBALS: LibStub, LoadAddOn, message, PlaySoundFile, print, RAID_CLASS_COLORS, RaidNotice_AddMessage, RaidWarningFrame, RegisterAddonMessagePrefix, RolePollPopup, select, strsplit
--- GLOBALS: tostring, tremove, type, UnitAffectingCombat, UnitClass, UnitGroupRolesAssigned, UnitIsDeadOrGhost, UnitName, UnitSetRole, unpack, SLASH_BigWigs1, SLASH_BigWigs2
+-- GLOBALS: tostring, tremove, type, UnitAffectingCombat, UnitClass, UnitGroupRolesAssigned, UnitIsConnected, UnitIsDeadOrGhost, UnitName, UnitSetRole, unpack, SLASH_BigWigs1, SLASH_BigWigs2
 -- GLOBALS: SLASH_BigWigsVersion1, UnitBuff, wipe, WorldMapFrame
 
 -----------------------------------------------------------------------
@@ -217,22 +209,11 @@ end
 
 tooltipFunctions[#tooltipFunctions+1] = function(tt)
 	local add, i = nil, 0
-	for player, version in next, usersRelease do
+	for player, version in next, usersVersion do
 		i = i + 1
-		if version < highestReleaseRevision then
+		if version < highestFoundVersion then
 			add = true
 			break
-		end
-	end
-	if not add then
-		for player, version in next, usersAlpha do
-			i = i + 1
-			-- If this person's alpha version isn't SVN (-1) and it's lower than the highest found release version minus 1 because
-			-- of tagging, or it's lower than the highest found alpha version (with a 10 revision leeway) then that person is out-of-date
-			if version ~= -1 and (version < (highestReleaseRevision - 1) or version < (highestAlphaRevision - 10)) then
-				add = true
-				break
-			end
 		end
 	end
 	if not add and i ~= GetNumGroupMembers() then
@@ -316,7 +297,7 @@ do
 			local zone = tonumber(rawZone:trim())
 			if zone then
 				-- register the zone for enabling.
-				local instanceId = fakeWorldZones[zone] and zone or zone == 1520 and zone or GetAreaMapInfo(zone) -- XXX legion temp hack for no map id
+				local instanceId = fakeWorldZones[zone] and zone or GetAreaMapInfo(zone)
 				if instanceId then -- Protect live client from beta client ids
 					enableZones[instanceId] = true
 
@@ -391,7 +372,7 @@ do
 
 	local num = tonumber(GetCVar("Sound_NumChannels")) or 0
 	if num < 64 then
-		SetCVar("Sound_NumChannels", 64) -- XXX temp until Blizz stops screwing with us
+		SetCVar("Sound_NumChannels", 64) -- Blizzard keeps screwing with addon sound priority so we force this minimum
 	end
 end
 
@@ -404,13 +385,6 @@ function mod:ADDON_LOADED(addon)
 
 	-- Role Updating
 	bwFrame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-	-- XXX LEGION: We can remove all these Gladiator Stance special cases, it's gone in Legion
-	if not isLegion then
-		local _, class = UnitClass("player")
-		if class == "WARRIOR" then -- Handle Gladiator Stance
-			bwFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
-		end
-	end
 	RolePollPopup:UnregisterEvent("ROLE_POLL_BEGIN")
 
 	bwFrame:RegisterEvent("CHAT_MSG_ADDON")
@@ -565,11 +539,11 @@ do
 
 	local L = GetLocale()
 	if L == "ptBR" then
-		delayedMessages[#delayedMessages+1] = "We *really* need help translating Big Wigs! Think you can help us? Please check out our translator website: goo.gl/nwR5cy"
+		--delayedMessages[#delayedMessages+1] = "We *really* need help translating Big Wigs! Think you can help us? Please check out our translator website: goo.gl/nwR5cy"
 	elseif L == "zhTW" then
 		--delayedMessages[#delayedMessages+1] = "Think you can translate Big Wigs into Traditional Chinese (zhTW)? Check out our easy translator tool: goo.gl/nwR5cy"
 	elseif L == "itIT" then
-		delayedMessages[#delayedMessages+1] = "Think you can translate Big Wigs into Italian (itIT)? Check out our easy translator tool: goo.gl/nwR5cy"
+		--delayedMessages[#delayedMessages+1] = "Think you can translate Big Wigs into Italian (itIT)? Check out our easy translator tool: goo.gl/nwR5cy"
 	elseif L == "koKR" then
 		--delayedMessages[#delayedMessages+1] = "Think you can translate Big Wigs into Korean (koKR)? Check out our easy translator tool: goo.gl/nwR5cy"
 	end
@@ -592,8 +566,8 @@ end
 
 do
 	-- This is a crapfest mainly because DBM's actual handling of versions is a crapfest, I'll try explain how this works...
-	local DBMdotRevision = "14720" -- The changing version of the local client, changes with every alpha revision using an SVN keyword.
-	local DBMdotDisplayVersion = "6.2.17" -- Same as above but is changed between alpha and release cycles e.g. "N.N.N" for a release and "N.N.N alpha" for the alpha duration
+	local DBMdotRevision = "15061" -- The changing version of the local client, changes with every alpha revision using an SVN keyword.
+	local DBMdotDisplayVersion = "7.0.0" -- Same as above but is changed between alpha and release cycles e.g. "N.N.N" for a release and "N.N.N alpha" for the alpha duration
 	local DBMdotReleaseRevision = DBMdotRevision -- This is manually changed by them every release, they use it to track the highest release version, a new DBM release is the only time it will change.
 
 	local timer, prevUpgradedUser = nil, nil
@@ -702,10 +676,6 @@ function mod:ACTIVE_TALENT_GROUP_CHANGED()
 		local tree = GetSpecialization()
 		if not tree then return end -- No spec selected
 
-		local role = GetSpecializationRole(tree)
-		if not isLegion and IsSpellKnown(152276) and UnitBuff("player", (GetSpellInfo(156291))) then -- Gladiator Stance XXX legion
-			role = "DAMAGER"
-		end
 		if UnitGroupRolesAssigned("player") ~= role then
 			if InCombatLockdown() or UnitAffectingCombat("player") then
 				bwFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
@@ -715,7 +685,6 @@ function mod:ACTIVE_TALENT_GROUP_CHANGED()
 		end
 	end
 end
-mod.UPDATE_SHAPESHIFT_FORM = mod.ACTIVE_TALENT_GROUP_CHANGED
 
 -- Merged LFG_ProposalTime addon by Freebaser
 do
@@ -785,10 +754,10 @@ function mod:CHAT_MSG_ADDON(prefix, msg, channel, sender)
 	elseif prefix == "BigWigs" then
 		local bwPrefix, bwMsg = msg:match("^(%u-):(.+)")
 		sender = Ambiguate(sender, "none")
-		if bwPrefix == "VR" or bwPrefix == "VRA" or bwPrefix == "VQ" or bwPrefix == "VQA" then
+		if bwPrefix == "V" or bwPrefix == "Q" then
 			self:VersionCheck(bwPrefix, bwMsg, sender)
 		elseif bwPrefix then
-			if msg == "T:BWPull" or msg == "T:BWBreak" then loadAndEnableCore() end
+			if msg == "T:BWPull" or msg == "T:BWBreak" then loadAndEnableCore() end -- Force enable the core when receiving a break/pull timer.
 			public:SendMessage("BigWigs_AddonMessage", bwPrefix, bwMsg, sender)
 		end
 	elseif prefix == "D4" then
@@ -806,35 +775,35 @@ do
 	local timer = nil
 	local function sendMsg()
 		if IsInGroup() then
-			SendAddonMessage("BigWigs", (BIGWIGS_RELEASE_TYPE == RELEASE and "VR:%d" or "VRA:%d"):format(MY_BIGWIGS_REVISION), IsInGroup(2) and "INSTANCE_CHAT" or "RAID") -- LE_PARTY_CATEGORY_INSTANCE = 2
+			SendAddonMessage("BigWigs", versionResponseString, IsInGroup(2) and "INSTANCE_CHAT" or "RAID") -- LE_PARTY_CATEGORY_INSTANCE = 2
 		end
 		timer = nil
 	end
 
 	local hasWarned, hasReallyWarned, hasExtremelyWarned = nil, nil, nil
-	local function printOutOfDate(tbl, isAlpha)
+	local function printOutOfDate(tbl)
 		if hasExtremelyWarned then return end
 		local warnedOutOfDate, warnedReallyOutOfDate, warnedExtremelyOutOfDate = 0, 0, 0
 		for k,v in next, tbl do
-			if (v-isAlpha) > MY_BIGWIGS_REVISION then
+			if v > BIGWIGS_VERSION then
 				warnedOutOfDate = warnedOutOfDate + 1
 				if warnedOutOfDate > 1 and not hasWarned then
 					hasWarned = true
-					sysprint(isAlpha == 10 and L.alphaOutdated or L.newReleaseAvailable)
+					sysprint(L.getNewRelease)
 				end
-				if ((v-isAlpha) - MY_BIGWIGS_REVISION) > 80 then
+				if (v - 1) > BIGWIGS_VERSION then -- 2+ releases
 					warnedReallyOutOfDate = warnedReallyOutOfDate + 1
 					if warnedReallyOutOfDate > 1 and not hasReallyWarned then
 						hasReallyWarned = true
-						sysprint(L.extremelyOutdated)
-						RaidNotice_AddMessage(RaidWarningFrame, L.extremelyOutdated, {r=1,g=1,b=1})
+						sysprint(L.warnTwoReleases)
+						RaidNotice_AddMessage(RaidWarningFrame, L.warnTwoReleases, {r=1,g=1,b=1})
 					end
-					if ((v-isAlpha) - MY_BIGWIGS_REVISION) > 150 then
+					if (v - 2) > BIGWIGS_VERSION then -- Currently at 3+ releases since it's a quiet period, always adjust this higher for busy periods.
 						warnedExtremelyOutOfDate = warnedExtremelyOutOfDate + 1
 						if warnedExtremelyOutOfDate > 1 and not hasExtremelyWarned then
 							hasExtremelyWarned = true
-							sysprint(L.severelyOutdated)
-							message(L.severelyOutdated)
+							sysprint(L.warnSeveralReleases)
+							message(L.warnSeveralReleases)
 						end
 					end
 				end
@@ -842,34 +811,21 @@ do
 		end
 	end
 
-	function mod:VersionCheck(prefix, message, sender)
-		if prefix == "VR" or prefix == "VQ" then
-			if prefix == "VQ" then
-				if timer then timer:Cancel() end
-				timer = CTimerNewTicker(3, sendMsg, 1)
-			end
-			message = tonumber(message)
-			-- The > 15k check is a hack for now until I find out what addon is sending a stupidly large version (20032). This is probably being done to farm BW versions, when a version of 0 should be used.
-			if not message or message == 0 or message > 15000 then return end -- Allow addons to query Big Wigs versions by using a version of 0, but don't add them to the user list.
-			usersRelease[sender] = message
-			usersAlpha[sender] = nil
-			if message > highestReleaseRevision then highestReleaseRevision = message end
-			if MY_BIGWIGS_REVISION ~= -1 and message > MY_BIGWIGS_REVISION then
-				printOutOfDate(usersRelease, 0)
-			end
-		elseif prefix == "VRA" or prefix == "VQA" then
-			if prefix == "VQA" then
-				if timer then timer:Cancel() end
-				timer = CTimerNewTicker(3, sendMsg, 1)
-			end
-			message = tonumber(message)
-			-- The > 15k check is a hack for now until I find out what addon is sending a stupidly large version (20032). This is probably being done to farm BW versions, when a version of 0 should be used.
-			if not message or message == 0 or message > 15000 then return end -- Allow addons to query Big Wigs versions by using a version of 0, but don't add them to the user list.
-			usersAlpha[sender] = message
-			usersRelease[sender] = nil
-			if message > highestAlphaRevision then highestAlphaRevision = message end
-			if BIGWIGS_RELEASE_TYPE == ALPHA and MY_BIGWIGS_REVISION ~= -1 and (message-10) > MY_BIGWIGS_REVISION then
-				printOutOfDate(usersAlpha, 10)
+	function mod:VersionCheck(prefix, msg, sender)
+		if prefix == "Q" then
+			if timer then timer:Cancel() end
+			timer = CTimerNewTicker(3, sendMsg, 1)
+		end
+		if prefix == "V" or prefix == "Q" then -- V = version response, Q = version query
+			local verString, hash = msg:match("^(%d+)%-(.+)$")
+			local version = tonumber(verString)
+			if version and version > 0 then -- Allow addons to query Big Wigs versions by using a version of 0, but don't add them to the user list.
+				usersVersion[sender] = version
+				usersHash[sender] = hash
+				if version > highestFoundVersion then highestFoundVersion = version end
+				if version > BIGWIGS_VERSION then
+					printOutOfDate(usersVersion)
+				end
 			end
 		end
 	end
@@ -998,14 +954,14 @@ do
 		local groupType = (IsInGroup(2) and 3) or (IsInRaid() and 2) or (IsInGroup() and 1) -- LE_PARTY_CATEGORY_INSTANCE = 2
 		if (not grouped and groupType) or (grouped and groupType and grouped ~= groupType) then
 			grouped = groupType
-			SendAddonMessage("BigWigs", (BIGWIGS_RELEASE_TYPE == RELEASE and "VQ:%d" or "VQA:%d"):format(MY_BIGWIGS_REVISION), groupType == 3 and "INSTANCE_CHAT" or "RAID")
+			SendAddonMessage("BigWigs", versionQueryString, groupType == 3 and "INSTANCE_CHAT" or "RAID")
 			SendAddonMessage("D4", "H\t", groupType == 3 and "INSTANCE_CHAT" or "RAID") -- Also request DBM versions
 			self:ZONE_CHANGED_NEW_AREA()
 			self:ACTIVE_TALENT_GROUP_CHANGED() -- Force role check
 		elseif grouped and not groupType then
 			grouped = nil
-			wipe(usersRelease)
-			wipe(usersAlpha)
+			wipe(usersVersion)
+			wipe(usersHash)
 			self:ZONE_CHANGED_NEW_AREA()
 		end
 	end
@@ -1016,7 +972,7 @@ function mod:BigWigs_BossModuleRegistered(_, _, module)
 		enableZones[module.zoneId] = "world"
 		worldBosses[module.worldBoss] = module.zoneId
 	else
-		enableZones[module.zoneId == 1520 and module.zoneId or GetAreaMapInfo(module.zoneId)] = true -- XXX legion temp hack for no map id
+		enableZones[GetAreaMapInfo(module.zoneId)] = true
 	end
 
 	local id = module.otherMenu or module.zoneId
@@ -1032,7 +988,7 @@ function mod:BigWigs_CoreEnabled()
 	-- Send a version query on enable, should fix issues with joining a group then zoning into an instance,
 	-- which kills your ability to receive addon comms during the loading process.
 	if IsInGroup() then
-		SendAddonMessage("BigWigs", (BIGWIGS_RELEASE_TYPE == RELEASE and "VQ:%d" or "VQA:%d"):format(MY_BIGWIGS_REVISION), IsInGroup(2) and "INSTANCE_CHAT" or "RAID")
+		SendAddonMessage("BigWigs", versionQueryString, IsInGroup(2) and "INSTANCE_CHAT" or "RAID")
 		SendAddonMessage("D4", "H\t", IsInGroup(2) and "INSTANCE_CHAT" or "RAID") -- Also request DBM versions
 	end
 
@@ -1145,13 +1101,11 @@ SlashCmdList.BigWigsVersion = function()
 		return
 	end
 
-	local function coloredNameVersion(name, version, alpha)
-		if version == -1 then
-			version = "|cFFCCCCCC(SVN)|r"
-		elseif not version then
+	local function coloredNameVersion(name, version, hash)
+		if not version then
 			version = ""
 		else
-			version = ("|cFFCCCCCC(%s%s)|r"):format(version, alpha and "-alpha" or "")
+			version = ("|cFFCCCCCC(%s%s)|r"):format(version, hash and "-"..hash or "")
 		end
 
 		local _, class = UnitClass(name)
@@ -1181,20 +1135,11 @@ SlashCmdList.BigWigsVersion = function()
 
 	for i, player in next, m do
 		local usesBossMod = nil
-		if usersRelease[player] then
-			if usersRelease[player] < highestReleaseRevision then
-				ugly[#ugly + 1] = coloredNameVersion(player, usersRelease[player])
+		if usersVersion[player] then
+			if usersVersion[player] < highestFoundVersion then
+				ugly[#ugly + 1] = coloredNameVersion(player, usersVersion[player], usersHash[player])
 			else
-				good[#good + 1] = coloredNameVersion(player, usersRelease[player])
-			end
-			usesBossMod = true
-		elseif usersAlpha[player] then
-			-- If this person's alpha version isn't SVN (-1) and it's higher or the same as the highest found release version minus 1 because
-			-- of tagging, or it's higher or the same as the highest found alpha version (with a 10 revision leeway) then that person's good
-			if (usersAlpha[player] >= (highestReleaseRevision - 1) and usersAlpha[player] >= (highestAlphaRevision - 10)) or usersAlpha[player] == -1 then
-				good[#good + 1] = coloredNameVersion(player, usersAlpha[player], ALPHA)
-			else
-				ugly[#ugly + 1] = coloredNameVersion(player, usersAlpha[player], ALPHA)
+				good[#good + 1] = coloredNameVersion(player, usersVersion[player], usersHash[player])
 			end
 			usesBossMod = true
 		end
@@ -1214,4 +1159,3 @@ SlashCmdList.BigWigsVersion = function()
 end
 
 BigWigsLoader = public -- Set global
-

@@ -169,34 +169,38 @@ local function modify(parent, region, data)
         end
 
         if(data.sort == "ascending") then
-            table.sort(region.controlledRegions, function(a, b)
-                return (
-                    a.region
-                    and a.region.expirationTime
-                    and a.region.expirationTime > 0
-                    and a.region.expirationTime
-                    or math.huge
-                ) < (
-                    b.region
-                    and b.region.expirationTime
-                    and b.region.expirationTime > 0
-                    and b.region.expirationTime
-                    or math.huge
-                )
+          table.sort(region.controlledRegions, function(a, b)
+            return (
+                a.region
+                    and a.region.state
+                    and a.region.state.expirationTime
+                    and a.region.state.expirationTime > 0
+                    and a.region.state.expirationTime
+                or math.huge
+            ) < (
+                b.region
+                    and b.region.state
+                    and b.region.state.expirationTime
+                    and b.region.state.expirationTime > 0
+                    and b.region.state.expirationTime
+                or math.huge
+              )
             end);
         elseif(data.sort == "descending") then
             table.sort(region.controlledRegions, function(a, b)
                 return (
                     a.region
-                    and a.region.expirationTime
-                    and a.region.expirationTime > 0
-                    and a.region.expirationTime
+                    and a.region.state
+                    and a.region.state.expirationTime
+                    and a.region.state.expirationTime > 0
+                    and a.region.state.expirationTime
                     or math.huge
                 ) > (
                     b.region
-                    and b.region.expirationTime
-                    and b.region.expirationTime > 0
-                    and b.region.expirationTime
+                    and b.region.state
+                    and b.region.state.expirationTime
+                    and b.region.state.expirationTime > 0
+                    and b.region.state.expirationTime
                     or math.huge
                 )
             end);
@@ -207,15 +211,17 @@ local function modify(parent, region, data)
                 if (data.sortHybridTable and data.sortHybridTable[a.dataIndex]) then
                     aTime = a.dataIndex - 1000;
                 else
-                    aTime = a.region and a.region.expirationTime and a.region.expirationTime > 0
-                        and a.region.expirationTime or math.huge
+                    aTime = a.region and a.region.state
+                        and a.region.state.expirationTime and a.region.state.expirationTime > 0
+                        and a.region.state.expirationTime or math.huge
                 end;
 
                 if (data.sortHybridTable and data.sortHybridTable[b.dataIndex]) then
                     bTime = b.dataIndex - 1000;
                 else
-                    bTime = b.region and b.region.expirationTime and b.region.expirationTime > 0
-                        and b.region.expirationTime or math.huge
+                    bTime = b.region and b.region.state
+                        and b.region.state.expirationTime and b.region.state.expirationTime > 0
+                        and b.region.state.expirationTime or math.huge
                 end
                 return (
                     (aTime) > (bTime)
@@ -231,7 +237,7 @@ local function modify(parent, region, data)
                 return (
                     (
                         a.dataIndex == b.dataIndex
-                        and (a.region.index or 0) < (b.region.index or 0)
+                        and (a.region.state.index or 0) < (b.region.state.index or 0)
                     )
                     or (a.dataIndex or 0) < (b.dataIndex or 0)
                 )
@@ -246,10 +252,16 @@ local function modify(parent, region, data)
                 region.trays[regionData.key] = CreateFrame("Frame", nil, region);
             end
             if(regionData.data and regionData.region) then
-                region.trays[regionData.key]:SetWidth(regionData.data.width);
-                region.trays[regionData.key]:SetHeight(regionData.data.height);
-                regionData.region:ClearAllPoints();
-                regionData.region:SetPoint(selfPoint, region.trays[regionData.key], selfPoint);
+                local tray = region.trays[regionData.key];
+                tray:SetWidth(regionData.data.width);
+                tray:SetHeight(regionData.data.height);
+
+                if (tray.region ~= regionData.region or tray.selfPoint ~= selfPoint) then
+                    regionData.region:ClearAllPoints();
+                    regionData.region:SetPoint(selfPoint, region.trays[regionData.key], selfPoint);
+                    tray.region = regionData.region;
+                    tray.selfPoint = selfPoint;
+                end
             end
         end
     end
@@ -433,8 +445,6 @@ local function modify(parent, region, data)
                     end
                     region.trays[regionData.key]:ClearAllPoints();
                     region.trays[regionData.key]:SetPoint(selfPoint, region, selfPoint, xOffset, yOffset);
-                    childRegion:ClearAllPoints();
-                    childRegion:SetPoint(selfPoint, region.trays[regionData.key], selfPoint);
                     if(data.grow == "RIGHT") then
                         xOffset = xOffset + (childData.width + data.space);
                         yOffset = yOffset + data.stagger;
@@ -475,8 +485,6 @@ local function modify(parent, region, data)
 
                     region.trays[regionData.key]:ClearAllPoints();
                     region.trays[regionData.key]:SetPoint(selfPoint, region, selfPoint, hiddenXOffset, hiddenYOffset);
-                    childRegion:ClearAllPoints();
-                    childRegion:SetPoint(selfPoint, region.trays[regionData.key], selfPoint);
                 end
             end
         end
@@ -484,7 +492,27 @@ local function modify(parent, region, data)
         region:DoResize();
     end
 
+    function region:Suspend()
+      self.suspended = (self.suspended or 0) + 1;
+    end
+
+    function region:Resume()
+      self.suspended = self.suspended - 1;
+      if (self.suspended < 0) then
+        self.suspended = 0; -- Should never happen
+      end
+      if (self.suspended == 0 and self.needToControlChildren) then
+        self:ControlChildren();
+        self.needToControlChildren = false;
+      end
+    end
+
     function region:ControlChildren()
+        if(self.suspended and self.suspended > 0) then
+          self.needToControlChildren = true;
+          return;
+        end
+
         if(data.animate) then
             WeakAuras.pending_controls[data.id] = region;
         else
@@ -599,14 +627,7 @@ local function modify(parent, region, data)
         for i=1,#region.controlledRegions do
             local childRegion = region.controlledRegions[i].region
             if(childRegion) then
-                if frameLevel >= 100 then
-                    frameLevel = 100
-                else
-                    frameLevel = frameLevel + 1
-                end
-                -- Try to fix #358 with info from http://wow.curseforge.com/addons/droodfocus/tickets/14
-                -- by setting SetFrameLevel() twice.
-                childRegion:SetFrameLevel(frameLevel)
+                frameLevel = frameLevel + 1
                 childRegion:SetFrameLevel(frameLevel)
             end
         end

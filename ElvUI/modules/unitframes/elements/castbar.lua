@@ -75,7 +75,7 @@ function UF:Construct_Castbar(frame, direction, moverName)
 
 	local button = CreateFrame("Frame", nil, castbar)
 	local holder = CreateFrame('Frame', nil, castbar)
-	button:SetTemplate("Default", nil, nil, self.thinBorders and not E.global.tukuiMode)
+	button:SetTemplate("Default", nil, nil, self.thinBorders)
 
 	castbar.Holder = holder
 	--these are placeholder so the mover can be created.. it will be changed.
@@ -88,7 +88,7 @@ function UF:Construct_Castbar(frame, direction, moverName)
 	end
 
 	local icon = button:CreateTexture(nil, "ARTWORK")
-	local offset = (not E.global.tukuiMode and frame.BORDER or E.Border) --use frame.BORDER since it may be different from E.Border due to forced thin borders
+	local offset = frame.BORDER --use frame.BORDER since it may be different from E.Border due to forced thin borders
 	icon:SetInside(nil, offset, offset)
 	icon:SetTexCoord(unpack(E.TexCoords))
 	icon.bg = button
@@ -100,6 +100,7 @@ function UF:Construct_Castbar(frame, direction, moverName)
 end
 
 function UF:Configure_Castbar(frame)
+	if not frame.VARIABLES_SET then return end
 	local castbar = frame.Castbar
 	local db = frame.db
 	castbar:Width(db.castbar.width - ((frame.BORDER+frame.SPACING)*2))
@@ -122,7 +123,7 @@ function UF:Configure_Castbar(frame)
 	--Icon
 	if db.castbar.icon then
 		castbar.Icon = castbar.ButtonIcon
-		if(not db.castbar.iconAttached) or E.global.tukuiMode then
+		if (not db.castbar.iconAttached) then
 			castbar.Icon.bg:Size(db.castbar.iconSize)
 		else
 			if (db.castbar.insideInfoPanel and frame.USE_INFO_PANEL) then
@@ -147,8 +148,8 @@ function UF:Configure_Castbar(frame)
 	end
 
 	castbar:ClearAllPoints()
-	if (db.castbar.insideInfoPanel and frame.USE_INFO_PANEL) or E.global.tukuiMode then
-		if(not db.castbar.iconAttached) or E.global.tukuiMode then
+	if (db.castbar.insideInfoPanel and frame.USE_INFO_PANEL) then
+		if (not db.castbar.iconAttached) then
 			castbar:SetInside(frame.InfoPanel, 0, 0)
 		else
 			local iconWidth = db.castbar.icon and (castbar.Icon.bg:GetWidth() - frame.BORDER) or 0
@@ -188,14 +189,7 @@ function UF:Configure_Castbar(frame)
 		end
 	end
 
-	if E.global.tukuiMode and db.castbar.icon then
-		castbar.Icon.bg:ClearAllPoints()
-		if(frame.ORIENTATION == "LEFT") then
-			castbar.Icon.bg:Point("RIGHT", frame, "LEFT", -10, 0)
-		else
-			castbar.Icon.bg:Point("LEFT", frame, "RIGHT", 10, 0)
-		end
-	elseif not db.castbar.iconAttached and db.castbar.icon then
+	if not db.castbar.iconAttached and db.castbar.icon then
 		local attachPoint = db.castbar.iconAttachedTo == "Frame" and frame or frame.Castbar
 		local anchorPoint = db.castbar.iconPosition
 		castbar.Icon.bg:ClearAllPoints()
@@ -419,7 +413,7 @@ function UF:PostCastStart(unit, name, rank, castid)
 	self:SetStatusBarColor(r, g, b)
 	UF:ToggleTransparentStatusBar(UF.db.colors.transparentCastbar, self, self.bg, nil, true)
 	if self.bg:IsShown() then
-		self.bg:SetTexture(r * 0.25, g * 0.25, b * 0.25)
+		self.bg:SetColorTexture(r * 0.25, g * 0.25, b * 0.25)
 
 		local _, _, _, alpha = self.backdrop:GetBackdropColor()
 		self.backdrop:SetBackdropColor(r * 0.58, g * 0.58, b * 0.58, alpha)
@@ -520,7 +514,7 @@ function UF:PostCastInterruptible(unit)
 
 	UF:ToggleTransparentStatusBar(UF.db.colors.transparentCastbar, self, self.bg, nil, true)
 	if self.bg:IsShown() then
-		self.bg:SetTexture(r * 0.25, g * 0.25, b * 0.25)
+		self.bg:SetColorTexture(r * 0.25, g * 0.25, b * 0.25)
 
 		local _, _, _, alpha = self.backdrop:GetBackdropColor()
 		self.backdrop:SetBackdropColor(r * 0.58, g * 0.58, b * 0.58, alpha)

@@ -1,5 +1,6 @@
 local E, L, V, P, G = unpack(ElvUI); --Inport: Engine, Locales, PrivateDB, ProfileDB, GlobalDB
 local UF = E:GetModule('UnitFrames');
+local NP = E:GetModule("NamePlates")
 local _, ns = ...
 local ElvUF = ns.oUF
 
@@ -218,12 +219,11 @@ local function GetOptionsTable_AuraBars(friendlyOnly, updateFunc, groupName)
 			name = L["Block Non-Dispellable Auras"],
 			desc = L["Don't display auras that cannot be purged or dispelled by your class."],
 		}
-		config.args.filters.args.noConsolidated = {
+		--[[config.args.filters.args.selfBuffs = {
 			order = 14,
 			type = 'toggle',
-			name = L["Block Raid Buffs"],
-			desc = L["Don't display raid buffs such as Blessing of Kings or Mark of the Wild."],
-		}
+			name = L["Allow Self Buffs"],
+		}]]
 		config.args.filters.args.useFilter = {
 			order = 16,
 			name = L["Additional Filter"],
@@ -359,30 +359,30 @@ local function GetOptionsTable_AuraBars(friendlyOnly, updateFunc, groupName)
 				}
 			},
 		}
-		config.args.filters.args.noConsolidated = {
+		--[[config.args.filters.args.selfBuffs = {
 			order = 14,
 			guiInline = true,
 			type = 'group',
-			name = L["Block Raid Buffs"],
+			name = L["Allow Self-Buffs"],
 			args = {
 				friendly = {
 					order = 2,
 					type = 'toggle',
 					name = L["Friendly"],
-					desc = L["If the unit is friendly to you."].." "..L["Don't display raid buffs such as Blessing of Kings or Mark of the Wild."],
-					get = function(info) return E.db.unitframe.units[groupName]['aurabar'].noConsolidated.friendly end,
-					set = function(info, value) E.db.unitframe.units[groupName]['aurabar'].noConsolidated.friendly = value; updateFunc(UF, groupName) end,
+					desc = L["If the unit is friendly to you."].." "..L["Display self-buffs"],
+					get = function(info) return E.db.unitframe.units[groupName]['aurabar'].selfBuffs.friendly end,
+					set = function(info, value) E.db.unitframe.units[groupName]['aurabar'].selfBuffs.friendly = value; updateFunc(UF, groupName) end,
 				},
 				enemy = {
 					order = 3,
 					type = 'toggle',
 					name = L["Enemy"],
-					desc = L["If the unit is an enemy to you."].." "..L["Don't display raid buffs such as Blessing of Kings or Mark of the Wild."],
-					get = function(info) return E.db.unitframe.units[groupName]['aurabar'].noConsolidated.enemy end,
-					set = function(info, value) E.db.unitframe.units[groupName]['aurabar'].noConsolidated.enemy = value; updateFunc(UF, groupName) end,
+					desc = L["If the unit is an enemy to you."].." "..L["Display self-buffs"],
+					get = function(info) return E.db.unitframe.units[groupName]['aurabar'].selfBuffs.enemy end,
+					set = function(info, value) E.db.unitframe.units[groupName]['aurabar'].selfBuffs.enemy = value; updateFunc(UF, groupName) end,
 				}
 			},
-		}
+		}]]
 		config.args.filters.args.useFilter = {
 			order = 16,
 			name = L["Additional Filter"],
@@ -466,7 +466,7 @@ local function GetOptionsTable_Auras(friendlyUnitOnly, auraType, isGroupFrame, u
 				order = 9,
 				name = L["Font Size"],
 				type = "range",
-				min = 6, max = 22, step = 1,
+				min = 6, max = 212, step = 1,
 			},
 			clickThrough = {
 				order = 15,
@@ -531,7 +531,7 @@ local function GetOptionsTable_Auras(friendlyUnitOnly, auraType, isGroupFrame, u
 			order = 10,
 			name = L["Count Font Size"],
 			type = "range",
-			min = 6, max = 22, step = 1,
+			min = 6, max = 212, step = 1,
 		}
 	end
 
@@ -566,15 +566,6 @@ local function GetOptionsTable_Auras(friendlyUnitOnly, auraType, isGroupFrame, u
 			name = L["Block Non-Dispellable Auras"],
 			desc = L["Don't display auras that cannot be purged or dispelled by your class."],
 		}
-
-		if auraType == 'buffs' then
-			config.args.filters.args.noConsolidated = {
-				order = 14,
-				type = 'toggle',
-				name = L["Block Raid Buffs"],
-				desc = L["Don't display raid buffs such as Blessing of Kings or Mark of the Wild."],
-			}
-		end
 
 		config.args.filters.args.bossAuras = {
 			order = 15,
@@ -719,32 +710,6 @@ local function GetOptionsTable_Auras(friendlyUnitOnly, auraType, isGroupFrame, u
 				}
 			},
 		}
-		if auraType == 'buffs' then
-			config.args.filters.args.noConsolidated = {
-				order = 14,
-				guiInline = true,
-				type = 'group',
-				name = L["Block Raid Buffs"],
-				args = {
-					friendly = {
-						order = 2,
-						type = 'toggle',
-						name = L["Friendly"],
-						desc = L["If the unit is friendly to you."].." "..L["Don't display raid buffs such as Blessing of Kings or Mark of the Wild."],
-						get = function(info) return E.db.unitframe.units[groupName][auraType].noConsolidated.friendly end,
-						set = function(info, value) E.db.unitframe.units[groupName][auraType].noConsolidated.friendly = value; updateFunc(UF, groupName, numUnits) end,
-					},
-					enemy = {
-						order = 3,
-						type = 'toggle',
-						name = L["Enemy"],
-						desc = L["If the unit is an enemy to you."].." "..L["Don't display raid buffs such as Blessing of Kings or Mark of the Wild."],
-						get = function(info) return E.db.unitframe.units[groupName][auraType].noConsolidated.enemy end,
-						set = function(info, value) E.db.unitframe.units[groupName][auraType].noConsolidated.enemy = value; updateFunc(UF, groupName, numUnits) end,
-					}
-				},
-			}
-		end
 
 		config.args.filters.args.bossAuras = {
 			order = 15,
@@ -1073,7 +1038,7 @@ local function GetOptionsTable_Health(isGroupFrame, updateFunc, groupName, numUn
 		config.args.orientation = {
 			type = 'select',
 			order = 3,
-			name = L["Orientation"],
+			name = L["Statusbar Fill Orientation"],
 			desc = L["Direction the health bar moves when gaining/losing health."],
 			values = {
 				['HORIZONTAL'] = L["Horizontal"],
@@ -1372,7 +1337,7 @@ local function GetOptionsTable_Power(hasDetatchOption, updateFunc, groupName, nu
 			},
 			width = {
 				type = 'select',
-				order = 1,
+				order = 3,
 				name = L["Style"],
 				values = fillValues,
 				set = function(info, value)
@@ -1419,18 +1384,18 @@ local function GetOptionsTable_Power(hasDetatchOption, updateFunc, groupName, nu
 			height = {
 				type = 'range',
 				name = L["Height"],
-				order = 2,
+				order = 4,
 				min = ((E.db.unitframe.thinBorders or E.PixelMode) and 3 or 7), max = 50, step = 1,
 			},
 			offset = {
 				type = 'range',
 				name = L["Offset"],
 				desc = L["Offset of the powerbar to the healthbar, set to 0 to disable."],
-				order = 3,
+				order = 5,
 				min = 0, max = 20, step = 1,
 			},
 			configureButton = {
-				order = 4,
+				order = 6,
 				name = L["Coloring"],
 				desc = L["This opens the UnitFrames Color settings. These settings affect all unitframes."],
 				type = 'execute',
@@ -1438,19 +1403,19 @@ local function GetOptionsTable_Power(hasDetatchOption, updateFunc, groupName, nu
 			},
 			position = {
 				type = 'select',
-				order = 5,
+				order = 7,
 				name = L["Text Position"],
 				values = positionValues,
 			},
 			xOffset = {
-				order = 6,
+				order = 8,
 				type = 'range',
 				name = L["Text xOffset"],
 				desc = L["Offset position for text."],
 				min = -300, max = 300, step = 1,
 			},
 			yOffset = {
-				order = 7,
+				order = 9,
 				type = 'range',
 				name = L["Text yOffset"],
 				desc = L["Offset position for text."],
@@ -1458,7 +1423,7 @@ local function GetOptionsTable_Power(hasDetatchOption, updateFunc, groupName, nu
 			},
 			attachTextTo = {
 				type = 'select',
-				order = 8,
+				order = 10,
 				name = L["Attach Text To"],
 				values = {
 					['Health'] = L["Health"],
@@ -1473,19 +1438,19 @@ local function GetOptionsTable_Power(hasDetatchOption, updateFunc, groupName, nu
 	if hasDetatchOption then
 			config.args.detachFromFrame = {
 				type = 'toggle',
-				order = 9,
+				order = 11,
 				name = L["Detach From Frame"],
 			}
 			config.args.detachedWidth = {
 				type = 'range',
-				order = 10,
+				order = 12,
 				name = L["Detached Width"],
 				disabled = function() return not E.db.unitframe.units[groupName].power.detachFromFrame end,
 				min = 15, max = 450, step = 1,
 			}
 			config.args.parent = {
 				type = 'select',
-				order = 11,
+				order = 13,
 				name = L["Parent"],
 				desc = L["Choose UIPARENT to prevent it from hiding with the unitframe."],
 				disabled = function() return not E.db.unitframe.units[groupName].power.detachFromFrame end,
@@ -1541,16 +1506,6 @@ local function GetOptionsTable_Power(hasDetatchOption, updateFunc, groupName, nu
 				},
 			},
 		}
-	end
-
-	if groupName == 'player' and E.myclass == 'DRUID' then
-		config.args.druidMana = {
-			type = 'toggle',
-			order = 12,
-			name = L["Druid Mana"],
-			desc = L["Display druid mana bar when in cat or bear form and when mana is not 100%."]
-		}
-
 	end
 
 	return config
@@ -1644,7 +1599,7 @@ local function GetOptionsTable_RaidDebuff(updateFunc, groupName)
 				order = 5,
 				type = 'range',
 				name = L["Font Size"],
-				min = 7, max = 22, step = 1,
+				min = 7, max = 212, step = 1,
 			},
 			fontOutline = {
 				order = 6,
@@ -1864,7 +1819,7 @@ function UF:CreateCustomTextGroup(unit, objectName)
 				order = 3,
 				name = L["Font Size"],
 				type = "range",
-				min = 4, max = 32, step = 1,
+				min = 4, max = 212, step = 1,
 			},
 			fontOutline = {
 				order = 4,
@@ -2097,7 +2052,7 @@ E.Options.args.unitframe = {
 							name = L["Font Size"],
 							desc = L["Set the font size for unitframes."],
 							type = "range",
-							min = 4, max = 22, step = 1,
+							min = 4, max = 212, step = 1,
 							set = function(info, value) E.db.unitframe[ info[#info] ] = value; UF:Update_FontStrings() end,
 						},
 						fontOutline = {
@@ -2240,6 +2195,7 @@ E.Options.args.unitframe = {
 								local t = E.db.unitframe.colors.power[ info[#info] ]
 								t.r, t.g, t.b = r, g, b
 								UF:Update_AllFrames()
+								NP:ConfigureAll()
 							end,
 							args = {
 								powerclass = {
@@ -2282,6 +2238,31 @@ E.Options.args.unitframe = {
 									order = 6,
 									name = RUNIC_POWER,
 									type = 'color',
+								},
+								PAIN = {
+									order = 7,
+									name = PAIN,
+									type = 'color',									
+								},
+								FURY = {
+									order = 7,
+									name = FURY,
+									type = 'color',									
+								},								
+								LUNAR_POWER = {
+									order = 8,
+									name = LUNAR_POWER,
+									type = 'color'									
+								},
+								INSANITY = {
+									order = 9,
+									name = INSANITY,
+									type = 'color'
+								},
+								MAELSTROM = {
+									order = 10,
+									name = MAELSTROM,
+									type = 'color'									
 								},
 							},
 						},
@@ -2541,7 +2522,6 @@ E.Options.args.unitframe.args.player = {
 			set = function(info, value)
 				E.db.unitframe.units['player'][ info[#info] ] = value;
 				UF:CreateAndUpdateUF('player');
-				LibStub("LibBodyguard-1.0"):UpdateSettings();
 				if value == true and E.db.unitframe.units.player.combatfade then
 					ElvUF_Pet:SetParent(ElvUF_Player)
 				else
@@ -2577,7 +2557,6 @@ E.Options.args.unitframe.args.player = {
 			set = function(info, value)
 				E.db.unitframe.units['player'][ info[#info] ] = value;
 				UF:CreateAndUpdateUF('player');
-				LibStub("LibBodyguard-1.0"):UpdateSettings();
 				if value == true and E.db.unitframe.units.player.enable then
 					ElvUF_Pet:SetParent(ElvUF_Player)
 				else
@@ -2678,7 +2657,9 @@ E.Options.args.unitframe.args.player = {
 					type = 'range',
 					order = 2,
 					name = L["Height"],
-					min = ((E.db.unitframe.thinBorders or E.PixelMode) and 3 or 7), max = 30, step = 1,
+					min = ((E.db.unitframe.thinBorders or E.PixelMode) and 3 or 7),
+					max = (E.db.unitframe.units['player']['classbar'].detachFromFrame and 300 or 30),
+					step = 1,
 				},
 				fill = {
 					type = 'select',
@@ -2689,32 +2670,98 @@ E.Options.args.unitframe.args.player = {
 						['spaced'] = L["Spaced"],
 					},
 				},
-				detachFromFrame = {
-					type = 'toggle',
-					order = 4,
-					name = L["Detach From Frame"],
-				},
-				detachedWidth = {
-					type = 'range',
-					order = 5,
-					name = L["Detached Width"],
-					disabled = function() return not E.db.unitframe.units['player']['classbar'].detachFromFrame end,
-					min = 15, max = 800, step = 1,
-				},
 				autoHide = {
-					order = 6,
+					order = 4,
 					type = 'toggle',
 					name = L["Auto-Hide"],
 				},
+				additionalPowerText = {
+					order = 5,
+					type = "toggle",
+					name = L["Additional Power Text"],
+				},
+				detachFromFrame = {
+					type = 'toggle',
+					order = 7,
+					name = L["Detach From Frame"],
+					set = function(info, value)
+						if value == true then
+							E.Options.args.unitframe.args.player.args.classbar.args.height.max = 300
+						else
+							E.Options.args.unitframe.args.player.args.classbar.args.height.max = 30
+						end
+						E.db.unitframe.units['player']['classbar'][ info[#info] ] = value;
+						UF:CreateAndUpdateUF('player')
+					end,
+				},
+				verticalOrientation = {
+					order = 8,
+					type = "toggle",
+					name = L["Vertical Orientation"],
+					disabled = function() return not E.db.unitframe.units['player']['classbar'].detachFromFrame end,
+				},
+				detachedWidth = {
+					type = 'range',
+					order = 9,
+					name = L["Detached Width"],
+					disabled = function() return not E.db.unitframe.units['player']['classbar'].detachFromFrame end,
+					min = ((E.db.unitframe.thinBorders or E.PixelMode) and 3 or 7), max = 800, step = 1,
+				},
 				parent = {
 					type = 'select',
-					order = 7,
+					order = 10,
 					name = L["Parent"],
 					desc = L["Choose UIPARENT to prevent it from hiding with the unitframe."],
 					disabled = function() return not E.db.unitframe.units['player']['classbar'].detachFromFrame end,
 					values = {
 						["FRAME"] = "FRAME",
 						["UIPARENT"] = "UIPARENT",
+					},
+				},
+				strataAndLevel = {
+					order = 20,
+					type = "group",
+					name = L["Strata and Level"],
+					get = function(info) return E.db.unitframe.units['player']['classbar']["strataAndLevel"][ info[#info] ] end,
+					set = function(info, value) E.db.unitframe.units['player']['classbar']["strataAndLevel"][ info[#info] ] = value; UF:CreateAndUpdateUF('player') end,
+					guiInline = true,
+					disabled = function() return not E.db.unitframe.units['player']['classbar'].detachFromFrame end,
+					hidden = function() return not E.db.unitframe.units['player']['classbar'].detachFromFrame end,
+					args = {
+						useCustomStrata = {
+							order = 1,
+							type = "toggle",
+							name = L["Use Custom Strata"],
+						},
+						frameStrata = {
+							order = 2,
+							type = "select",
+							name = L["Frame Strata"],
+							values = {
+								["BACKGROUND"] = "BACKGROUND",
+								["LOW"] = "LOW",
+								["MEDIUM"] = "MEDIUM",
+								["HIGH"] = "HIGH",
+								["DIALOG"] = "DIALOG",
+								["TOOLTIP"] = "TOOLTIP",
+							},
+						},
+						spacer = {
+							order = 3,
+							type = "description",
+							name = "",
+						},
+						useCustomLevel = {
+							order = 4,
+							type = "toggle",
+							name = L["Use Custom Level"],
+						},
+						frameLevel = {
+							order = 5,
+							type = "range",
+							name = L["Frame Level"],
+							min = 0, max = 128, step = 1,
+						},
 					},
 				},
 			},
@@ -2876,7 +2923,7 @@ E.Options.args.unitframe.args.target = {
 			order = 13,
 			type = "select",
 			name = L["Frame Orientation"],
-			desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+			desc = L["Set the orientation of the UnitFrame."],
 			values = {
 				--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 				["LEFT"] = L["Left"],
@@ -2893,52 +2940,6 @@ E.Options.args.unitframe.args.target = {
 				['USE_DEFAULT'] = L["Use Default"],
 				['FORCE_ON'] = L["Force On"],
 				['FORCE_OFF'] = L["Force Off"],
-			},
-		},
-		combobar = {
-			order = 800,
-			type = 'group',
-			name = L["Combobar"],
-			get = function(info) return E.db.unitframe.units['target']['combobar'][ info[#info] ] end,
-			set = function(info, value) E.db.unitframe.units['target']['combobar'][ info[#info] ] = value; UF:CreateAndUpdateUF('target') end,
-			args = {
-				enable = {
-					type = 'toggle',
-					order = 1,
-					name = L["Enable"],
-				},
-				height = {
-					type = 'range',
-					order = 2,
-					name = L["Height"],
-					min = ((E.db.unitframe.thinBorders or E.PixelMode) and 3 or 7), max = 15, step = 1,
-				},
-				fill = {
-					type = 'select',
-					order = 3,
-					name = L["Fill"],
-					values = {
-						['fill'] = L["Filled"],
-						['spaced'] = L["Spaced"],
-					},
-				},
-				autoHide = {
-					type = 'toggle',
-					name = L["Auto-Hide"],
-					order = 4,
-				},
-				detachFromFrame = {
-					type = 'toggle',
-					order = 5,
-					name = L["Detach From Frame"],
-				},
-				detachedWidth = {
-					type = 'range',
-					order = 6,
-					name = L["Detached Width"],
-					disabled = function() return not E.db.unitframe.units['target']['combobar'].detachFromFrame end,
-					min = 15, max = 450, step = 1,
-				},
 			},
 		},
 		customText = GetOptionsTable_CustomText(UF.CreateAndUpdateUF, 'target'),
@@ -3046,7 +3047,7 @@ E.Options.args.unitframe.args.targettarget = {
 			order = 11,
 			type = "select",
 			name = L["Frame Orientation"],
-			desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+			desc = L["Set the orientation of the UnitFrame."],
 			values = {
 				--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 				["LEFT"] = L["Left"],
@@ -3167,7 +3168,7 @@ E.Options.args.unitframe.args.targettargettarget = {
 			order = 11,
 			type = "select",
 			name = L["Frame Orientation"],
-			desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+			desc = L["Set the orientation of the UnitFrame."],
 			values = {
 				--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 				["LEFT"] = L["Left"],
@@ -3294,7 +3295,7 @@ E.Options.args.unitframe.args.focus = {
 			order = 12,
 			type = "select",
 			name = L["Frame Orientation"],
-			desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+			desc = L["Set the orientation of the UnitFrame."],
 			values = {
 				--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 				["LEFT"] = L["Left"],
@@ -3418,7 +3419,7 @@ E.Options.args.unitframe.args.focustarget = {
 			order = 11,
 			type = "select",
 			name = L["Frame Orientation"],
-			desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+			desc = L["Set the orientation of the UnitFrame."],
 			values = {
 				--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 				["LEFT"] = L["Left"],
@@ -3545,7 +3546,7 @@ E.Options.args.unitframe.args.pet = {
 			order = 12,
 			type = "select",
 			name = L["Frame Orientation"],
-			desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+			desc = L["Set the orientation of the UnitFrame."],
 			values = {
 				--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 				["LEFT"] = L["Left"],
@@ -3581,13 +3582,13 @@ E.Options.args.unitframe.args.pet = {
 					name = L["Size"],
 					desc = L["Size of the indicator icon."],
 					order = 3,
-					min = 4, max = 15, step = 1,
+					min = 4, max = 50, step = 1,
 				},
 				fontSize = {
 					type = 'range',
 					name = L["Font Size"],
 					order = 4,
-					min = 7, max = 22, step = 1,
+					min = 7, max = 212, step = 1,
 				},
 			},
 		},
@@ -3693,7 +3694,7 @@ E.Options.args.unitframe.args.pettarget = {
 			order = 11,
 			type = "select",
 			name = L["Frame Orientation"],
-			desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+			desc = L["Set the orientation of the UnitFrame."],
 			values = {
 				--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 				["LEFT"] = L["Left"],
@@ -3833,7 +3834,7 @@ E.Options.args.unitframe.args.boss = {
 			order = 13,
 			type = "select",
 			name = L["Frame Orientation"],
-			desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+			desc = L["Set the orientation of the UnitFrame."],
 			values = {
 				--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 				["LEFT"] = L["Left"],
@@ -3997,7 +3998,7 @@ E.Options.args.unitframe.args.arena = {
 			order = 15,
 			type = "select",
 			name = L["Frame Orientation"],
-			desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+			desc = L["Set the orientation of the UnitFrame."],
 			values = {
 				--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 				["LEFT"] = L["Left"],
@@ -4156,7 +4157,7 @@ E.Options.args.unitframe.args.party = {
 					order = 7,
 					type = "select",
 					name = L["Frame Orientation"],
-					desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+					desc = L["Set the orientation of the UnitFrame."],
 					values = {
 						--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 						["LEFT"] = L["Left"],
@@ -4353,13 +4354,13 @@ E.Options.args.unitframe.args.party = {
 					name = L["Size"],
 					desc = L["Size of the indicator icon."],
 					order = 3,
-					min = 4, max = 15, step = 1,
+					min = 4, max = 50, step = 1,
 				},
 				fontSize = {
 					type = 'range',
 					name = L["Font Size"],
 					order = 4,
-					min = 7, max = 22, step = 1,
+					min = 7, max = 212, step = 1,
 				},
 				profileSpecific = {
 					type = 'toggle',
@@ -4735,7 +4736,7 @@ E.Options.args.unitframe.args['raid'] = {
 					order = 7,
 					type = "select",
 					name = L["Frame Orientation"],
-					desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+					desc = L["Set the orientation of the UnitFrame."],
 					values = {
 						--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 						["LEFT"] = L["Left"],
@@ -4939,13 +4940,13 @@ E.Options.args.unitframe.args['raid'] = {
 					name = L["Size"],
 					desc = L["Size of the indicator icon."],
 					order = 3,
-					min = 4, max = 15, step = 1,
+					min = 4, max = 50, step = 1,
 				},
 				fontSize = {
 					type = 'range',
 					name = L["Font Size"],
 					order = 4,
-					min = 7, max = 22, step = 1,
+					min = 7, max = 212, step = 1,
 				},
 				profileSpecific = {
 					type = 'toggle',
@@ -5146,7 +5147,7 @@ E.Options.args.unitframe.args['raid40'] = {
 					order = 7,
 					type = "select",
 					name = L["Frame Orientation"],
-					desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+					desc = L["Set the orientation of the UnitFrame."],
 					values = {
 						--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 						["LEFT"] = L["Left"],
@@ -5350,13 +5351,13 @@ E.Options.args.unitframe.args['raid40'] = {
 					name = L["Size"],
 					desc = L["Size of the indicator icon."],
 					order = 3,
-					min = 4, max = 15, step = 1,
+					min = 4, max = 50, step = 1,
 				},
 				fontSize = {
 					type = 'range',
 					name = L["Font Size"],
 					order = 4,
-					min = 7, max = 22, step = 1,
+					min = 7, max = 212, step = 1,
 				},
 				profileSpecific = {
 					type = 'toggle',
@@ -5549,7 +5550,7 @@ E.Options.args.unitframe.args.raidpet = {
 					order = 7,
 					type = "select",
 					name = L["Frame Orientation"],
-					desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+					desc = L["Set the orientation of the UnitFrame."],
 					values = {
 						--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 						["LEFT"] = L["Left"],
@@ -5740,13 +5741,13 @@ E.Options.args.unitframe.args.raidpet = {
 					name = L["Size"],
 					desc = L["Size of the indicator icon."],
 					order = 3,
-					min = 4, max = 15, step = 1,
+					min = 4, max = 50, step = 1,
 				},
 				fontSize = {
 					type = 'range',
 					name = L["Font Size"],
 					order = 4,
-					min = 7, max = 22, step = 1,
+					min = 7, max = 212, step = 1,
 				},
 				configureButton = {
 					type = 'execute',
@@ -5815,7 +5816,7 @@ E.Options.args.unitframe.args.tank = {
 					order = 6,
 					type = "select",
 					name = L["Frame Orientation"],
-					desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+					desc = L["Set the orientation of the UnitFrame."],
 					values = {
 						--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 						["LEFT"] = L["Left"],
@@ -5914,13 +5915,13 @@ E.Options.args.unitframe.args.tank = {
 					name = L["Size"],
 					desc = L["Size of the indicator icon."],
 					order = 3,
-					min = 4, max = 15, step = 1,
+					min = 4, max = 50, step = 1,
 				},
 				fontSize = {
 					type = 'range',
 					name = L["Font Size"],
 					order = 4,
-					min = 7, max = 22, step = 1,
+					min = 7, max = 212, step = 1,
 				},
 				profileSpecific = {
 					type = 'toggle',
@@ -6000,7 +6001,7 @@ E.Options.args.unitframe.args.assist = {
 					order = 6,
 					type = "select",
 					name = L["Frame Orientation"],
-					desc = L["Set the orientation of the UnitFrame. If set to automatic it will adjust based on where the frame is located on the screen."],
+					desc = L["Set the orientation of the UnitFrame."],
 					values = {
 						--["AUTOMATIC"] = L["Automatic"], not sure if i will use this yet
 						["LEFT"] = L["Left"],
@@ -6099,13 +6100,13 @@ E.Options.args.unitframe.args.assist = {
 					name = L["Size"],
 					desc = L["Size of the indicator icon."],
 					order = 3,
-					min = 4, max = 15, step = 1,
+					min = 4, max = 50, step = 1,
 				},
 				fontSize = {
 					type = 'range',
 					name = L["Font Size"],
 					order = 4,
-					min = 7, max = 22, step = 1,
+					min = 7, max = 212, step = 1,
 				},
 				profileSpecific = {
 					type = 'toggle',
@@ -6124,59 +6125,6 @@ E.Options.args.unitframe.args.assist = {
 						end
 					end,
 					order = 6
-				},
-			},
-		},
-	},
-}
-
---Bodyguard Frame
-E.Options.args.unitframe.args.bodyguard = {
-	name = L["BodyGuard Frame"],
-	type = 'group',
-	order = 1400,
-	get = function(info) return E.db.unitframe.units['bodyguard'][ info[#info] ] end,
-	set = function(info, value) E.db.unitframe.units['bodyguard'][ info[#info] ] = value; LibStub("LibBodyguard-1.0"):UpdateSettings() end,
-	args = {
-		enable = {
-			type = 'toggle',
-			order = 1,
-			name = L["Enable"],
-		},
-		resetSettings = {
-			type = 'execute',
-			order = 2,
-			name = L["Restore Defaults"],
-			func = function(info, value) UF:ResetUnitSettings('bodyguard') end,
-		},
-		general = {
-			order = 3,
-			type = 'group',
-			name = L["General"],
-			guiInline = true,
-			args = {
-				width = {
-					order = 1,
-					name = L["Width"],
-					type = 'range',
-					min = 50, max = 500, step = 1,
-				},
-				height = {
-					order = 2,
-					name = L["Height"],
-					type = 'range',
-					min = 10, max = 250, step = 1,
-				},
-				colorOverride = {
-					order = 3,
-					name = L["Class Color Override"],
-					desc = L["Override the default class color setting."],
-					type = 'select',
-					values = {
-						['USE_DEFAULT'] = L["Use Default"],
-						['FORCE_ON'] = L["Force On"],
-						['FORCE_OFF'] = L["Force Off"],
-					},
 				},
 			},
 		},
@@ -6217,7 +6165,7 @@ E.Options.args.unitframe.args.general.args.allColorsGroup.args.classResourceGrou
 	width = 'full',
 }
 
-for i = 1, 5 do
+for i = 1, 3 do
 	E.Options.args.unitframe.args.general.args.allColorsGroup.args.classResourceGroup.args['combo'..i] = {
 		order = i + 2,
 		type = 'color',
@@ -6277,12 +6225,6 @@ if P.unitframe.colors.classResources[E.myclass] then
 				end,
 			}
 		end
-	elseif E.myclass == 'PRIEST' then
-		E.Options.args.unitframe.args.general.args.allColorsGroup.args.classResourceGroup.args[E.myclass] = {
-			type = 'color',
-			name = L["Shadow Orbs"],
-			order = ORDER,
-		}
 	elseif E.myclass == 'MONK' then
 		for i = 1, 6 do
 			E.Options.args.unitframe.args.general.args.allColorsGroup.args.classResourceGroup.args['resource'..i] = {
@@ -6303,77 +6245,17 @@ if P.unitframe.colors.classResources[E.myclass] then
 			}
 		end
 	elseif E.myclass == 'WARLOCK' then
-		local names = {
-			[1] = L["Affliction"],
-			[2] = L["Demonology"],
-			[3] = L["Destruction"]
+		E.Options.args.unitframe.args.general.args.allColorsGroup.args.classResourceGroup.args[E.myclass] = {
+			type = 'color',
+			name = L["Soul Shards"],
+			order = ORDER,
 		}
-		for i = 1, 3 do
-			E.Options.args.unitframe.args.general.args.allColorsGroup.args.classResourceGroup.args['resource'..i] = {
-				type = 'color',
-				name = names[i],
-				order = ORDER + i,
-				get = function(info)
-					local t = E.db.unitframe.colors.classResources.WARLOCK[i]
-					local d = P.unitframe.colors.classResources.WARLOCK[i]
-					return t.r, t.g, t.b, t.a, d.r, d.g, d.b
-				end,
-				set = function(info, r, g, b)
-					E.db.unitframe.colors.classResources.WARLOCK[i] = {}
-					local t = E.db.unitframe.colors.classResources.WARLOCK[i]
-					t.r, t.g, t.b = r, g, b
-					UF:Update_AllFrames()
-				end,
-			}
-		end
-	elseif E.myclass == 'DRUID' then
-		local names = {
-			[1] = L["Lunar"],
-			[2] = L["Solar"],
-		}
-		for i = 1, 2 do
-			E.Options.args.unitframe.args.general.args.allColorsGroup.args.classResourceGroup.args['resource'..i] = {
-				type = 'color',
-				name = names[i],
-				order = ORDER + i,
-				get = function(info)
-					local t = E.db.unitframe.colors.classResources.DRUID[i]
-					local d = P.unitframe.colors.classResources.DRUID[i]
-					return t.r, t.g, t.b, t.a, d.r, d.g, d.b
-				end,
-				set = function(info, r, g, b)
-					E.db.unitframe.colors.classResources.DRUID[i] = {}
-					local t = E.db.unitframe.colors.classResources.DRUID[i]
-					t.r, t.g, t.b = r, g, b
-					UF:Update_AllFrames()
-				end,
-			}
-		end
 	elseif E.myclass == 'DEATHKNIGHT' then
-		local names = {
-			[1] = L["Blood"],
-			[2] = L["Unholy"],
-			[3] = L["Frost"],
-			[4] = L["Death"],
+		E.Options.args.unitframe.args.general.args.allColorsGroup.args.classResourceGroup.args[E.myclass] = {
+			type = 'color',
+			name = L["Runes"],
+			order = ORDER,
 		}
-		for i = 1, 4 do
-			E.Options.args.unitframe.args.general.args.allColorsGroup.args.classResourceGroup.args['resource'..i] = {
-				type = 'color',
-				name = names[i],
-				order = ORDER + i,
-				get = function(info)
-					local t = E.db.unitframe.colors.classResources.DEATHKNIGHT[i]
-					local d = P.unitframe.colors.classResources.DEATHKNIGHT[i]
-					return t.r, t.g, t.b, t.a, d.r, d.g, d.b
-				end,
-				set = function(info, r, g, b)
-					E.db.unitframe.colors.classResources.DEATHKNIGHT[i] = {}
-					local t = E.db.unitframe.colors.classResources.DEATHKNIGHT[i]
-					t.r, t.g, t.b = r, g, b
-					UF:Update_AllFrames()
-				end,
-			}
-		end
 	end
 end
 

@@ -266,6 +266,17 @@ GTFO.SpellID["172992"] = {
 	alwaysAlert = true;
 };
 
+GTFO.SpellID["161617"] = {
+  --desc = "Iron Stomp (Smashum Grabb)";
+  sound = 3;
+};
+
+GTFO.SpellID["160664"] = {
+  --desc = "Hypnotic Gaze (Hypnocroak)";
+  applicationOnly = true;
+  sound = 3;
+};
+
 --TODO: Colossal Slam (Drov the Ruiner) - non-tank fail for front-cone damage
 --TODO: Rumbling Goren (Drov the Ruiner) - non-tank fail?
 --TODO: Savage Vines (Tarlna the Ageless) - explosion fail if not targetted

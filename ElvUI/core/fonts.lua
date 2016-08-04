@@ -8,8 +8,6 @@ local SetCVar = SetCVar
 
 --Global variables that we don't cache, list them here for the mikk's Find Globals script
 -- GLOBALS: CHAT_FONT_HEIGHTS, UNIT_NAME_FONT, DAMAGE_TEXT_FONT, STANDARD_TEXT_FONT
--- GLOBALS: InterfaceOptionsCombatTextPanelTargetDamage, InterfaceOptionsCombatTextPanelPeriodicDamage
--- GLOBALS: InterfaceOptionsCombatTextPanelPetDamage, InterfaceOptionsCombatTextPanelHealing
 -- GLOBALS: GameTooltipHeader, SystemFont_Shadow_Large_Outline, NumberFont_OutlineThick_Mono_Small
 -- GLOBALS: NumberFont_Outline_Huge, NumberFont_Outline_Large, NumberFont_Outline_Med
 -- GLOBALS: NumberFont_Shadow_Med, NumberFont_Shadow_Small, QuestFont, QuestFont_Large
@@ -39,20 +37,15 @@ function E:UpdateBlizzardFonts()
 
 	CHAT_FONT_HEIGHTS = {6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
 
-	if self.db.general.font:lower():find('pixel') then
+	if self.db.general.font == "Homespun" then
 		MONOCHROME = 'MONOCHROME'
 	end
 
 	if self.eyefinity then
-		-- damage are huge on eyefinity, so we disable it
-		InterfaceOptionsCombatTextPanelTargetDamage:Hide()
-		InterfaceOptionsCombatTextPanelPeriodicDamage:Hide()
-		InterfaceOptionsCombatTextPanelPetDamage:Hide()
-		InterfaceOptionsCombatTextPanelHealing:Hide()
-		SetCVar("CombatLogPeriodicSpells",0)
-		SetCVar("PetMeleeDamage",0)
-		SetCVar("CombatDamage",0)
-		SetCVar("CombatHealing",0)
+		SetCVar("floatingcombattextcombatlogperiodicspells",0)
+		SetCVar("floatingcombattextpetmeleedamage",0)
+		SetCVar("floatingcombattextcombatdamage",0)
+		SetCVar("floatingcombattextcombathealing",0)
 
 		-- set an invisible font for xp, honor kill, etc
 		COMBAT = [=[Interface\Addons\ElvUI\media\fonts\Invisible.ttf]=]
@@ -96,7 +89,7 @@ function E:UpdateBlizzardFonts()
 		SetFont(SubZoneTextString,					NORMAL, 25, MONOCHROME.."OUTLINE")
 		SetFont(PVPInfoTextString,					NORMAL, 22, MONOCHROME.."OUTLINE")
 		SetFont(PVPArenaTextString,					NORMAL, 22, MONOCHROME.."OUTLINE")
-		SetFont(CombatTextFont,                     COMBAT, 200, "OUTLINE") -- number here just increase the font quality.
+		SetFont(CombatTextFont,                     COMBAT, 200, MONOCHROME.."OUTLINE") -- number here just increase the font quality.
 		SetFont(FriendsFont_Normal, NORMAL, self.db.general.fontSize)
 		SetFont(FriendsFont_Small, NORMAL, self.db.general.fontSize)
 		SetFont(FriendsFont_Large, NORMAL, self.db.general.fontSize)

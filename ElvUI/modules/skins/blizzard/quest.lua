@@ -137,6 +137,8 @@ local function LoadSkin()
 	S:HandleButton(QuestFrameCompleteButton, true)
 	S:HandleButton(QuestFrameGoodbyeButton, true)
 	S:HandleButton(QuestFrameCompleteQuestButton, true)
+	S:HandleButton(QuestFrameDetailPanel.IgnoreButton, true)
+	S:HandleButton(QuestFrameDetailPanel.UnignoreButton, true) 	
 	S:HandleCloseButton(QuestFrameCloseButton, QuestFrame.backdrop)
 
 	for i=1, 6 do

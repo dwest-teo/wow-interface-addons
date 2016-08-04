@@ -47,13 +47,14 @@ function UF:Construct_PowerBar(frame, bg, text, textPos)
 end
 
 function UF:Configure_Power(frame)
+	if not frame.VARIABLES_SET then return end
 	local db = frame.db
 	local power = frame.Power
+	power.origParent = frame
 
 	if frame.USE_POWERBAR then
 		if not frame:IsElementEnabled('Power') then
 			frame:EnableElement('Power')
-
 			power:Show()
 		end
 
@@ -61,9 +62,6 @@ function UF:Configure_Power(frame)
 
 		--Text
 		local attachPoint = self:GetObjectAnchorPoint(frame, db.power.attachTextTo)
-		if(E.global.tukuiMode and frame.InfoPanel and frame.InfoPanel:IsShown()) then
-			attachPoint = frame.InfoPanel
-		end
 		power.value:ClearAllPoints()
 		power.value:Point(db.power.position, attachPoint, db.power.position, db.power.xOffset, db.power.yOffset)
 		frame:Tag(power.value, db.power.text_format)
@@ -131,13 +129,13 @@ function UF:Configure_Power(frame)
 			power:SetFrameLevel(frame:GetFrameLevel() + 3)
 		elseif frame.USE_POWERBAR_OFFSET then
 			if frame.ORIENTATION == "LEFT" then
-				power:Point("TOPRIGHT", frame.Health, "TOPRIGHT", frame.POWERBAR_OFFSET + frame.STAGGER_WIDTH, -frame.POWERBAR_OFFSET)
+				power:Point("TOPRIGHT", frame.Health, "TOPRIGHT", frame.POWERBAR_OFFSET, -frame.POWERBAR_OFFSET)
 				power:Point("BOTTOMLEFT", frame.Health, "BOTTOMLEFT", frame.POWERBAR_OFFSET, -frame.POWERBAR_OFFSET)
 			elseif frame.ORIENTATION == "MIDDLE" then
 				power:Point("TOPLEFT", frame, "TOPLEFT", frame.BORDER + frame.SPACING, -frame.POWERBAR_OFFSET -frame.CLASSBAR_YOFFSET)
 				power:Point("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -frame.BORDER - frame.SPACING, frame.BORDER)
 			else
-				power:Point("TOPLEFT", frame.Health, "TOPLEFT", -frame.POWERBAR_OFFSET - frame.STAGGER_WIDTH, -frame.POWERBAR_OFFSET)
+				power:Point("TOPLEFT", frame.Health, "TOPLEFT", -frame.POWERBAR_OFFSET, -frame.POWERBAR_OFFSET)
 				power:Point("BOTTOMRIGHT", frame.Health, "BOTTOMRIGHT", -frame.POWERBAR_OFFSET, -frame.POWERBAR_OFFSET)
 			end
 			power:SetFrameStrata("LOW")
@@ -153,13 +151,13 @@ function UF:Configure_Power(frame)
 
 			if frame.ORIENTATION == "LEFT" then
 				power:Width(frame.POWERBAR_WIDTH - frame.BORDER*2)
-				power:Point("RIGHT", frame, "BOTTOMRIGHT", -(frame.BORDER*2 + 4) -frame.STAGGER_WIDTH, ((frame.POWERBAR_HEIGHT-frame.BORDER)/2))
+				power:Point("RIGHT", frame, "BOTTOMRIGHT", -(frame.BORDER*2 + 4), ((frame.POWERBAR_HEIGHT-frame.BORDER)/2))
 			elseif frame.ORIENTATION == "RIGHT" then
 				power:Width(frame.POWERBAR_WIDTH - frame.BORDER*2)
-				power:Point("LEFT", frame, "BOTTOMLEFT", (frame.BORDER*2 + 4) +frame.STAGGER_WIDTH, ((frame.POWERBAR_HEIGHT-frame.BORDER)/2))
+				power:Point("LEFT", frame, "BOTTOMLEFT", (frame.BORDER*2 + 4), ((frame.POWERBAR_HEIGHT-frame.BORDER)/2))
 			else
 				power:Point("LEFT", frame, "BOTTOMLEFT", (frame.BORDER*2 + 4), ((frame.POWERBAR_HEIGHT-frame.BORDER)/2))
-				power:Point("RIGHT", frame, "BOTTOMRIGHT", -(frame.BORDER*2 + 4) -frame.STAGGER_WIDTH, ((frame.POWERBAR_HEIGHT-frame.BORDER)/2))
+				power:Point("RIGHT", frame, "BOTTOMRIGHT", -(frame.BORDER*2 + 4 + (frame.PVPINFO_WIDTH or 0)), ((frame.POWERBAR_HEIGHT-frame.BORDER)/2))
 			end
 
 			power:SetFrameStrata("MEDIUM")
@@ -176,7 +174,7 @@ function UF:Configure_Power(frame)
 		--Hide mover until we detach again
 		if not frame.POWERBAR_DETACHED then
 			if power.Holder and power.Holder.mover then
-				power.Holder.mover:SetScale(0.000001)
+				power.Holder.mover:SetScale(0.0001)
 				power.Holder.mover:SetAlpha(0)
 			end
 		end
@@ -201,15 +199,6 @@ function UF:Configure_Power(frame)
 		power:Hide()
 	end
 
-	if frame.DruidAltMana then
-		if db.power.druidMana then
-			frame:EnableElement('DruidAltMana')
-		else
-			frame:DisableElement('DruidAltMana')
-			frame.DruidAltMana:Hide()
-		end
-	end
-
 	--Transparency Settings
 	UF:ToggleTransparentStatusBar(UF.db.colors.transparentPower, frame.Power, frame.Power.bg)
 end
@@ -217,14 +206,14 @@ end
 local tokens = { [0] = "MANA", "RAGE", "FOCUS", "ENERGY", "RUNIC_POWER" }
 function UF:PostUpdatePower(unit, min, max)
 	local pType, _, altR, altG, altB = UnitPowerType(unit)
-	local parent = self:GetParent()
+	local parent = self.origParent or self:GetParent()
 
 	if parent.isForced then
 		min = random(1, max)
 		pType = random(0, 4)
 		self:SetValue(min)
 		local color = ElvUF['colors'].power[tokens[pType]]
-
+		
 		if not self.colorClass then
 			self:SetStatusBarColor(color[1], color[2], color[3])
 			local mu = self.bg.multiplier or 1
@@ -235,5 +224,10 @@ function UF:PostUpdatePower(unit, min, max)
 	local db = parent.db
 	if db and db.power and db.power.hideonnpc then
 		UF:PostNamePosition(parent, unit)
+	end
+
+	--Force update to AdditionalPower in order to reposition text if necessary
+	if parent:IsElementEnabled("AdditionalPower") then
+		E:Delay(0.01, parent.AdditionalPower.ForceUpdate, parent.AdditionalPower) --Delay it slightly so Power text has a chance to clear itself first
 	end
 end

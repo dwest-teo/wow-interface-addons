@@ -1,0 +1,18 @@
+tag 2.2.0.8
+69a04feab4cd750a693ba898431e3f15a037d467
+Benjamin Staneck <staneck@gmail.com>
+2016-07-24 17:48:33 +0200
+
+
+
+--------------------
+
+Infus:
+	- Fix Action Useable not showin the stacks
+	Needs to be even more similar to Cooldown Progress Spell.
+	
+	Ticket-Nr: 627
+	- Fix totem trigger again
+	I should really remember to retest things after I polished something.
+	
+	Ticket-Nr: 624

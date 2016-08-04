@@ -1,6 +1,5 @@
 local SharedMedia = LibStub("LibSharedMedia-3.0");
-local L = WeakAuras.L
-
+local L = WeakAuras.L;
 local dynamics = WeakAuras.dynamic_texts;
 
 -- GLOBALS: WeakAuras UIParent AceGUIWidgetLSMlists
@@ -10,7 +9,11 @@ local function createOptions(id, data)
         displayText = {
             type = "input",
             width = "double",
-            desc = L["Dynamic text tooltip"],
+            desc = function()
+                 local ret = L["Dynamic text tooltip"];
+                 ret = ret .. WeakAuras.GetAdditionalProperties(data);
+                 return ret
+            end,
             multiline = true,
             name = L["Display Text"],
             order = 10,
@@ -169,7 +172,7 @@ local function modifyThumbnail(parent, borderframe, data, fullModify, size)
     size = size or 28;
 
     local fontPath = SharedMedia:Fetch("font", data.font) or data.font;
-    text:SetFont(fontPath, data.fontSize <= 25 and data.fontSize or 25, data.outline and "OUTLINE" or nil);
+    text:SetFont(fontPath, data.fontSize, data.outline and "OUTLINE" or nil);
     text:SetTextHeight(data.fontSize);
     text:SetText(data.displayText);
     text:SetTextColor(data.color[1], data.color[2], data.color[3], data.color[4]);
@@ -249,4 +252,13 @@ local function createIcon()
     return thumbnail;
 end
 
-WeakAuras.RegisterRegionOptions("text", createOptions, createIcon, L["Text"], createThumbnail, modifyThumbnail, L["Shows one or more lines of text, which can include dynamic information such as progress or stacks"]);
+local templates = {
+  {
+    title = L["Default"],
+    description = L["Displays a text, works best in combination with other displays"],
+    data = {
+    };
+  }
+}
+
+WeakAuras.RegisterRegionOptions("text", createOptions, createIcon, L["Text"], createThumbnail, modifyThumbnail, L["Shows one or more lines of text, which can include dynamic information such as progress or stacks"], templates);

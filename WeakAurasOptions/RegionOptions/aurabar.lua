@@ -1,9 +1,8 @@
--- Import SM for statusbar-textures, font-styles and border-types
 local SharedMedia = LibStub("LibSharedMedia-3.0");
-
--- Import translation
 local L = WeakAuras.L;
-    
+
+-- GLOBALS: WeakAuras UIParent AceGUIWidgetLSMlists
+
 -- Create region options table
 local function createOptions(id, data)
 	-- Region options
@@ -30,7 +29,11 @@ local function createOptions(id, data)
                     return L["Top Text"];
                 end
             end,
-            desc = L["Dynamic text tooltip"],
+            desc = function()
+                 local ret = L["Dynamic text tooltip"];
+                 ret = ret .. WeakAuras.GetAdditionalProperties(data);
+                 return ret
+            end,
             order = 9
         },
         displayTextRight = {
@@ -46,7 +49,11 @@ local function createOptions(id, data)
                     return L["Bottom Text"];
                 end
             end,
-            desc = L["Dynamic text tooltip"],
+            desc = function()
+                 local ret = L["Dynamic text tooltip"];
+                 ret = ret .. WeakAuras.GetAdditionalProperties(data);
+                 return ret
+            end,
             order = 10
         },
         customTextUpdate = {
@@ -147,7 +154,7 @@ local function createOptions(id, data)
                     (
                         data.orientation:find("INVERSE")
                         and not v:find("INVERSE")
-                    ) 
+                    )
                     or (
                         v:find("INVERSE")
                         and not data.orientation:find("INVERSE")
@@ -155,7 +162,7 @@ local function createOptions(id, data)
                 ) then
                     data.icon_side = data.icon_side == "LEFT" and "RIGHT" or "LEFT";
                 end
-                
+
                 if(
                     (
                         data.orientation:find("HORIZONTAL")
@@ -170,14 +177,14 @@ local function createOptions(id, data)
                     data.width = data.height;
                     data.height = temp;
                     data.icon_side = data.icon_side == "LEFT" and "RIGHT" or "LEFT";
-                    
+
                     if(data.rotateText == "LEFT" or data.rotateText == "RIGHT") then
                         data.rotateText = "NONE";
                     elseif(data.rotateText == "NONE") then
                         data.rotateText = "LEFT"
                     end
                 end
-                
+
                 data.orientation = v;
                 WeakAuras.Add(data);
                 WeakAuras.SetThumbnail(data);
@@ -228,14 +235,10 @@ local function createOptions(id, data)
             disabled = function() return not data.icon end,
             order = 38.3,
             get = function()
-                if(data.displayIcon) then
-                    return data.displayIcon:sub(17);
-                else
-                    return nil;
-                end
+                return data.displayIcon and tostring(data.displayIcon) or "";
             end,
             set = function(info, v)
-                data.displayIcon = "Interface\\Icons\\"..v;
+                data.displayIcon = v;
                 WeakAuras.Add(data);
                 WeakAuras.SetThumbnail(data);
                 WeakAuras.SetIconNames(data);
@@ -246,7 +249,7 @@ local function createOptions(id, data)
             name = "",
             width = "half",
             hidden = function() return WeakAuras.CanHaveAuto(data) and data.auto or not data.icon; end,
-            image = function() return data.displayIcon or "", 18, 18 end,
+            image = function() return data.displayIcon and tostring(data.displayIcon) or "", 18, 18 end,
             order = 38.4
         },
         chooseIcon = {
@@ -657,13 +660,13 @@ local function createOptions(id, data)
             order = 58
         },
     };
-    
+
 	-- Positioning options
 	options = WeakAuras.AddPositionOptions(options, id, data);
-	
+
 	-- Border options
 	options = WeakAuras.AddBorderOptions(options, id, data);
-    
+
 	-- Return options
     return options;
 end
@@ -674,32 +677,32 @@ local function createThumbnail(parent, fullCreate)
     local borderframe = CreateFrame("FRAME", nil, parent);
     borderframe:SetWidth(32);
     borderframe:SetHeight(32);
-    
+
 	-- Preview border
     local border = borderframe:CreateTexture(nil, "OVERLAY");
     border:SetAllPoints(borderframe);
     border:SetTexture("Interface\\BUTTONS\\UI-Quickslot2.blp");
     border:SetTexCoord(0.2, 0.8, 0.2, 0.8);
-    
+
 	-- Main region
     local region = CreateFrame("FRAME", nil, borderframe);
     borderframe.region = region;
     region:SetWidth(32);
     region:SetHeight(32);
-    
+
 	-- Status-bar frame
     local bar = CreateFrame("FRAME", nil, region);
     borderframe.bar = bar;
-    
+
 	-- Fake status-bar
     local texture = bar:CreateTexture(nil, "OVERLAY");
     borderframe.texture = texture;
-    
+
 	-- Fake icon
     local icon = region:CreateTexture();
     borderframe.icon = icon;
     icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark");
-    
+
 	-- Return preview
     return borderframe;
 end
@@ -708,11 +711,11 @@ end
 local function modifyThumbnail(parent, borderframe, data, fullModify, width, height)
 	-- Localize
     local region, bar, texture, icon = borderframe.region, borderframe.bar, borderframe.texture, borderframe.icon;
-    
+
 	-- Defaut size
     width  = width or 26;
     height = height or 15;
-    
+
 	-- Fake orientation (main region)
     if(data.orientation:find("HORIZONTAL")) then
         region:SetWidth(width);
@@ -733,19 +736,19 @@ local function modifyThumbnail(parent, borderframe, data, fullModify, width, hei
             region:SetPoint("BOTTOM", borderframe, "BOTTOM", 0, 2);
         end
     end
-    
+
 	-- Fake bar alpha
     region:SetAlpha(data.alpha);
-    
+
 	-- Fake status-bar style
     texture:SetTexture(SharedMedia:Fetch("statusbar", data.texture));
     texture:SetVertexColor(data.barColor[1], data.barColor[2], data.barColor[3], data.barColor[4]);
-    
+
 	-- Fake icon size
     local iconsize = height;
     icon:SetWidth(iconsize);
     icon:SetHeight(iconsize);
-    
+
 	-- Fake layout variables
     local percent, length;
     if(data.icon) then
@@ -755,12 +758,12 @@ local function modifyThumbnail(parent, borderframe, data, fullModify, width, hei
         length = width;
         percent = 1 - (width / 100);
     end
-	
+
 	-- Reset region members
     icon:ClearAllPoints();
     bar:ClearAllPoints();
     texture:ClearAllPoints();
-	
+
 	-- Fake orientation (region members)
     if(data.orientation == "HORIZONTAL_INVERSE") then
         icon:SetPoint("LEFT", region, "LEFT");
@@ -811,7 +814,7 @@ local function modifyThumbnail(parent, borderframe, data, fullModify, width, hei
         texture:SetTexCoord(1, 0, percent, 0, 1, 1, percent, 1);
         texture:SetHeight(length);
     end
-    
+
 	-- Fake icon (code)
     if(data.icon) then
         function borderframe:SetIcon(path)
@@ -837,15 +840,51 @@ local function createIcon()
         alpha = 1.0,
         barColor = {1, 0, 0, 1}
     };
-    
+
 	-- Create and configure thumbnail
     local thumbnail = createThumbnail(UIParent);
     modifyThumbnail(UIParent, thumbnail, data, nil, 32, 18);
     thumbnail:SetIcon("Interface\\Icons\\INV_Sword_122");
-    
+
 	-- Return thumbnail
     return thumbnail;
 end
 
+local templates = {
+  {
+    title = L["Default"],
+    data = {
+    };
+  },
+  {
+    title = L["Horizontal Blizzard Raid Bar"],
+    data = {
+      texture = "Blizzard Raid Bar",
+      width = 200,
+      height = 15,
+    };
+  },
+  {
+    title = L["Horizontal Bar"],
+    data = {
+      width = 200,
+      height = 30,
+      barColor = { 1, 1, 0, 1}
+    }
+  },
+  {
+    title = L["Vertical Bar"],
+    data = {
+      width = 30,
+      height = 200,
+      barColor = { 0, 1, 0, 1},
+      rotateText = "LEFT",
+      orientation = "VERTICAL_INVERSE",
+      texture = "Blizzard Raid Bar",
+      icon = false
+    }
+  },
+}
+
 -- Register new region type options with WeakAuras
-WeakAuras.RegisterRegionOptions("aurabar", createOptions, createIcon, L["Progress Bar"], createThumbnail, modifyThumbnail, L["Shows a progress bar with name, timer, and icon"]);
+WeakAuras.RegisterRegionOptions("aurabar", createOptions, createIcon, L["Progress Bar"], createThumbnail, modifyThumbnail, L["Shows a progress bar with name, timer, and icon"], templates);

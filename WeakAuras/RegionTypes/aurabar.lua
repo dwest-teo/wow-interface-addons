@@ -1,5 +1,6 @@
--- Import SM for statusbar-textures, font-styles and border-types
 local SharedMedia = LibStub("LibSharedMedia-3.0");
+
+-- GLOBALS: WeakAuras
 
 -- Default settings
 local default = {
@@ -416,20 +417,11 @@ local function animRotate(object, degrees, anchor)
         group.rotate = group.rotate or group:CreateAnimation("rotation");
         local rotate = group.rotate;
 
-    -- Reset animation
-        group:Stop();
-        rotate:Stop();
-
-    -- Rotate around origin
-        if degrees ~= 0 then
-            rotate:SetOrigin(anchor, 0, 0);
-            rotate:SetDegrees(degrees);
-            rotate:SetDuration(0);
-            rotate:SetEndDelay(0.1);
-            rotate:SetScript("OnUpdate", rotate.Pause);
-            rotate:Play();
-            group:Play();
-        end
+        rotate:SetOrigin(anchor, 0, 0);
+        rotate:SetDegrees(degrees);
+        rotate:SetDuration(0.000001);
+        rotate:SetEndDelay(2147483647);
+        group:Play();
     end
 end
 WeakAuras.animRotate = animRotate;
@@ -686,7 +678,7 @@ local function UpdateText(region, data)
 
   -- Replace %-marks
   textStr = data.displayTextLeft or "";
-  textStr = WeakAuras.ReplacePlaceHolders(textStr, region.values);
+  textStr = WeakAuras.ReplacePlaceHolders(textStr, region.values, region.state);
 
   -- Update left text
   if not text.displayTextLeft or #text.displayTextLeft ~= #textStr then
@@ -699,7 +691,7 @@ local function UpdateText(region, data)
 
   -- Replace %-marks
   textStr = data.displayTextRight or "";
-  textStr = WeakAuras.ReplacePlaceHolders(textStr, region.values);
+  textStr = WeakAuras.ReplacePlaceHolders(textStr, region.values, region.state);
 
   -- Update right text
   if not timer.displayTextRight or #timer.displayTextRight ~= #textStr then
@@ -721,7 +713,7 @@ local function UpdateTime(region, data, inverse)
   -- Timing variables
   local remaining  = region.expirationTime - GetTime();
   local duration  = region.duration;
-  local progress  = duration ~= 0 and remaining / duration or 1;
+  local progress  = duration ~= 0 and remaining / duration or 0;
 
   -- Need to invert?
   if (
@@ -914,9 +906,7 @@ local function modify(parent, region, data)
   -- Update text visibility
   if data.text then
     -- Update text font
-    text:SetFont(SharedMedia:Fetch("font", data.textFont),
-                 data.textSize <= 35 and data.textSize or 35,
-                 data.textFlags and data.textFlags ~= "None" and data.textFlags);
+    text:SetFont(SharedMedia:Fetch("font", data.textFont), data.textSize, data.textFlags and data.textFlags ~= "None" and data.textFlags);
     text:SetTextHeight(data.textSize);
     text:SetTextColor(data.textColor[1], data.textColor[2], data.textColor[3], data.textColor[4]);
     text:SetWordWrap(false);
@@ -931,9 +921,7 @@ local function modify(parent, region, data)
   -- Update timer visibility
   if data.timer then
     -- Update timer font
-    timer:SetFont(SharedMedia:Fetch("font", data.timerFont),
-                  data.timerSize <= 35 and data.timerSize or 35,
-                  data.timerFlags and data.timerFlags ~= "None" and data.timerFlags);
+    timer:SetFont(SharedMedia:Fetch("font", data.timerFont), data.timerSize, data.timerFlags and data.timerFlags ~= "None" and data.timerFlags);
     timer:SetTextHeight(data.timerSize);
     timer:SetTextColor(data.timerColor[1], data.timerColor[2], data.timerColor[3], data.timerColor[4]);
     animRotate(timer, textDegrees);
@@ -979,9 +967,7 @@ local function modify(parent, region, data)
     -- Update stack text visibility
     if data.icon and data.stacks then
       -- Update stack font
-      stacks:SetFont(SharedMedia:Fetch("font", data.stacksFont),
-                     data.stacksSize <= 35 and data.stacksSize or 35,
-                     data.stacksFlags and data.stacksFlags ~= "None" and data.stacksFlags);
+      stacks:SetFont(SharedMedia:Fetch("font", data.stacksFont), data.stacksSize, data.stacksFlags and data.stacksFlags ~= "None" and data.stacksFlags);
       stacks:SetTextHeight(data.stacksSize);
       stacks:SetTextColor(data.stacksColor[1], data.stacksColor[2], data.stacksColor[3], data.stacksColor[4]);
       animRotate(stacks, textDegrees);
@@ -1012,7 +998,7 @@ local function modify(parent, region, data)
         region.tooltipFrame:SetAllPoints(icon);
         region.tooltipFrame:EnableMouse(true);
         region.tooltipFrame:SetScript("OnEnter", function()
-            WeakAuras.ShowMouseoverTooltip(data, region, region.tooltipFrame, tooltipType);
+            WeakAuras.ShowMouseoverTooltip(region, region.tooltipFrame);
         end);
         region.tooltipFrame:SetScript("OnLeave", WeakAuras.HideTooltip);
 
@@ -1033,8 +1019,9 @@ local function modify(parent, region, data)
     -- Save custom text function
         region.UpdateCustomText = function()
       -- Evaluate and update text
-            WeakAuras.ActivateAuraEnvironment(data.id);
-            local custom = customTextFunc(region.expirationTime, region.duration, values.progress, values.duration, values.name, values.icon, values.stacks);
+            WeakAuras.ActivateAuraEnvironment(region.id, region.cloneId, region.state);
+            local custom = customTextFunc(region.expirationTime, region.duration,
+              values.progress, values.duration, values.name, values.icon, values.stacks);
             WeakAuras.ActivateAuraEnvironment(nil);
             custom = WeakAuras.EnsureString(custom);
             if custom ~= values.custom then
@@ -1140,6 +1127,13 @@ local function modify(parent, region, data)
     end
 --  region:SetName("");
 
+    function region:OnUpdateHandler()
+        local value, total = self.customValueFunc(self.state.trigger);
+        value = type(value) == "number" and value or 0
+        total = type(value) == "number" and total or 0
+        UpdateValue(self, data, value, total);
+    end
+
   -- Duration update function
     function region:SetDurationInfo(duration, expirationTime, customValue, inverse)
     -- Update duration/expiration values
@@ -1152,21 +1146,15 @@ local function modify(parent, region, data)
         if customValue then
       -- Update via custom OnUpdate handler
             if type(customValue) == "function" then
-                local value, total = customValue(data.trigger);
+                local value, total = customValue(region.state.trigger);
                 value = type(value) == "number" and value or 0
                 total = type(value) == "number" and total or 0
                 if total > 0 and value < total then
-                    self.customValueFunc = customValue;
-                    self:SetScript("OnUpdate", function()
-            -- Relay
-            local value, total = self.customValueFunc(data.trigger);
-            value = type(value) == "number" and value or 0
-            total = type(value) == "number" and total or 0
-            UpdateValue(self, data, value, total);
-          end);
+                  self.customValueFunc = customValue;
+                  self:SetScript("OnUpdate", region.OnUpdateHandler);
                 else
-                    UpdateValue(self, data, duration, expirationTime);
-                    self:SetScript("OnUpdate", nil);
+                  UpdateValue(self, data, duration, expirationTime);
+                  self:SetScript("OnUpdate", nil);
                 end
       -- Remove OnUpdate handler, call update once
             else

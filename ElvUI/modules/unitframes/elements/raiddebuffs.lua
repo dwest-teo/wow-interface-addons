@@ -9,9 +9,9 @@ local CreateFrame = CreateFrame
 
 function UF:Construct_RaidDebuffs(frame)
 	local rdebuff = CreateFrame('Frame', nil, frame.RaisedElementParent)
-	rdebuff:SetTemplate("Default", nil, nil, (UF.thinBorders and not E.global.tukuiMode))
+	rdebuff:SetTemplate("Default", nil, nil, UF.thinBorders)
 
-	local offset = (UF.thinBorders and not E.global.tukuiMode) and E.mult or E.Border
+	local offset = UF.thinBorders and E.mult or E.Border
 	rdebuff.icon = rdebuff:CreateTexture(nil, 'OVERLAY')
 	rdebuff.icon:SetTexCoord(unpack(E.TexCoords))
 	rdebuff.icon:SetInside(rdebuff, offset, offset)
@@ -30,6 +30,7 @@ function UF:Construct_RaidDebuffs(frame)
 end
 
 function UF:Configure_RaidDebuffs(frame)
+	if not frame.VARIABLES_SET then return end
 	local db = frame.db
 	local rdebuffs = frame.RaidDebuffs
 	local stackColor = db.rdebuffs.stack.color

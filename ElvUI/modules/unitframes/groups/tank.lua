@@ -54,7 +54,6 @@ function UF:Update_TankHeader(header, db)
 
 	header:SetAttribute("startingIndex", -1)
 	RegisterAttributeDriver(header, 'state-visibility', 'show')
-	header.dirtyWidth, header.dirtyHeight = header:GetSize()
 	RegisterAttributeDriver(header, 'state-visibility', '[@raid1,exists] show;hide')
 	header:SetAttribute("startingIndex", 1)
 
@@ -64,10 +63,12 @@ function UF:Update_TankHeader(header, db)
 	UF:ClearChildPoints(header:GetChildren())
 	header:SetAttribute("yOffset", db.verticalSpacing)
 
+	local width, height = header:GetSize()
+	header.dirtyWidth, header.dirtyHeight = width, max(height, 2*db.height + db.verticalSpacing)
+
 	if not header.positioned then
 		header:ClearAllPoints()
 		header:Point("TOPLEFT", E.UIParent, "TOPLEFT", 4, -186)
-
 		E:CreateMover(header, header:GetName()..'Mover', L["MT Frames"], nil, nil, nil, 'ALL,RAID')
 		header.mover.positionOverride = "TOPLEFT"
 		header:SetAttribute('minHeight', header.dirtyHeight)
@@ -109,10 +110,10 @@ function UF:Update_TankFrames(frame, db)
 		frame.USE_PORTRAIT_OVERLAY = false
 		frame.PORTRAIT_WIDTH = 0
 
-		frame.CLASSBAR_WIDTH = 0
 		frame.CLASSBAR_YOFFSET = 0
-		frame.STAGGER_WIDTH = 0
 		frame.BOTTOM_OFFSET = 0
+
+		frame.VARIABLES_SET = true
 	end
 
 	if frame.isChild and frame.originalParent then

@@ -33,7 +33,7 @@ local ROLL_DISENCHANT = ROLL_DISENCHANT
 local PASS = PASS
 
 --Global variables that we don't cache, list them here for mikk's FindGlobals script
--- GLOBALS: GameTooltip, AlertFrameHolder, WorldFrame, AlertFrame_FixAnchors
+-- GLOBALS: GameTooltip, AlertFrameHolder, WorldFrame
 -- GLOBALS: MAX_PLAYER_LEVEL, UIParent
 
 local pos = 'TOP';
@@ -249,14 +249,14 @@ function M:START_LOOT_ROLL(event, rollID, time)
 	local color = ITEM_QUALITY_COLORS[quality]
 	f.fsloot:SetText(name)
 	f.status:SetStatusBarColor(color.r, color.g, color.b, .7)
-	f.status.bg:SetTexture(color.r, color.g, color.b)
+	f.status.bg:SetColorTexture(color.r, color.g, color.b)
 
 	f.status:SetMinMaxValues(0, time)
 	f.status:SetValue(time)
 
 	f:Point("CENTER", WorldFrame, "CENTER")
 	f:Show()
-	AlertFrame_FixAnchors()
+	AlertFrame:UpdateAnchors()
 
 	--Add cached roll info, if any
 	for rollID, rollTable in pairs(cachedRolls) do

@@ -27,7 +27,6 @@ local function LoadSkin()
 	WorldMapFrame.BorderFrame.Inset.backdrop:Point("BOTTOMRIGHT", WorldMapFrame.BorderFrame.Inset, "BOTTOMRIGHT", -3, 2)
 
 	S:HandleScrollBar(QuestScrollFrameScrollBar)
-	S:HandleButton(QuestScrollFrame.ViewAll)
 
 	if E.global.general.disableTutorialButtons then
 		WorldMapFrameTutorialButton:Kill()
@@ -37,7 +36,11 @@ local function LoadSkin()
 	S:HandleButton(QuestMapFrame.DetailsFrame.AbandonButton)
 	S:HandleButton(QuestMapFrame.DetailsFrame.ShareButton, true)
 	S:HandleButton(QuestMapFrame.DetailsFrame.TrackButton)
+	-- This button is flashing. Needs review
+	S:HandleButton(QuestMapFrame.DetailsFrame.CompleteQuestFrame.CompleteButton, true)
+
 	QuestMapFrame.QuestsFrame.StoryTooltip:SetTemplate("Transparent")
+	QuestMapFrame.DetailsFrame.CompleteQuestFrame:StripTextures()
 
 	S:HandleCloseButton(WorldMapFrameCloseButton)
 	S:HandleButton(WorldMapFrameSizeDownButton, true)
@@ -61,11 +64,11 @@ local function LoadSkin()
 	local rewardFrames = {
 		['MoneyFrame'] = true,
 		['XPFrame'] = true,
-		['SpellFrame'] = true,
 		['SkillPointFrame'] = true, -- this may have extra textures.. need to check on it when possible
 	}
 
 	local function HandleReward(frame)
+		if frame.backdrop then return end
 		frame.NameFrame:SetAlpha(0)
 		frame.Icon:SetTexCoord(unpack(E.TexCoords))
 		frame:CreateBackdrop()
@@ -82,7 +85,6 @@ local function LoadSkin()
 	for frame, _ in pairs(rewardFrames) do
 		HandleReward(MapQuestInfoRewardsFrame[frame])
 	end
-
 
 	hooksecurefunc('QuestInfo_GetRewardButton', function(rewardsFrame, index)
 		local button = MapQuestInfoRewardsFrame.RewardButtons[index]

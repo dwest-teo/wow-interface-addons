@@ -25,12 +25,13 @@ function UF:Construct_Portrait(frame, type)
 	portrait.PostUpdate = self.PortraitUpdate
 
 	portrait.overlay = CreateFrame("Frame", nil, frame)
-	portrait.overlay:SetFrameLevel(frame:GetFrameLevel() - 5)
+	portrait.overlay:SetFrameLevel(frame:GetFrameLevel() - 1)
 
 	return portrait
 end
 
 function UF:Configure_Portrait(frame, dontHide)
+	if not frame.VARIABLES_SET then return end
 	local db = frame.db
 	if frame.Portrait and not dontHide then
 		frame.Portrait:Hide()
@@ -111,16 +112,9 @@ function UF:PortraitUpdate(unit)
 	end
 
 	if self:GetObjectType() ~= 'Texture' then
-		local model = self:GetModel()
 		local rotation = portrait.rotation or 0
 		local camDistanceScale = portrait.camDistanceScale or 1
 		local xOffset, yOffset = (portrait.xOffset or 0), (portrait.yOffset or 0)
-
-		--[[Looks like this is no longer needed
-		if model and model.find and model:find("worgenmale") then
-			self:SetCamera(1)
-		end
-		--]]
 
 		if self:GetFacing() ~= (rotation / 60) then
 			self:SetFacing(rotation / 60)

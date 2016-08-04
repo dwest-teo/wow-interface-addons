@@ -78,6 +78,31 @@ GTFO.SpellID["101873"] = {
 	sound = 1;
 };
 
+GTFO.SpellID["210160"] = {
+  --desc = "Beaming Gaze (Inquisitor Ha'zaduum, Uldaur - Legion Event)";
+  sound = 2;
+};
+
+GTFO.SpellID["218624"] = {
+  --desc = "Blazing Hellfire (Smoldering Infernal, Dalaran - Legion Event)";
+  sound = 1;
+};
+
+GTFO.SpellID["207576"] = {
+  --desc = "Fel Fire (Dalaran - Legion Event)";
+  sound = 1;
+};
+
+GTFO.SpellID["221212"] = {
+  --desc = "Pool of Shadows (Gripping Shadows - Legion Event)";
+  sound = 1;
+};
+
+GTFO.SpellID["219118"] = {
+  --desc = "Eye of Darkness (Harbinger Faraleth - Legion Event)";
+  sound = 1;
+};
+
 -- ==============================================================================
 -- Fail alerts
 -- ==============================================================================
@@ -147,4 +172,29 @@ GTFO.SpellID["179807"] = {
 GTFO.SpellID["153310"] = {
 	--desc = "Dazing Shot (Darkmoon Faire)";
 	sound = 3;
+};
+
+GTFO.SpellID["223521"] = {
+  --desc = "Wave of Depravity (Legion Event)";
+  sound = 3;
+};
+
+GTFO.SpellID["219110"] = {
+  --desc = "Shadow Nova (Harbinger Faraleth - Legion Event)";
+  sound = 3;
+};
+
+GTFO.SpellID["219180"] = {
+  --desc = "Secrete Shadows (Harbinger Faraleth - Legion Event)";
+  sound = 3;
+};
+
+GTFO.SpellID["212437"] = {
+  --desc = "Fel Artillery (Legion Event)";
+  sound = 3;
+};
+
+GTFO.SpellID["218507"] = {
+  --desc = "Flames of Argus (Fragment of Argus)";
+  sound = 3;
 };

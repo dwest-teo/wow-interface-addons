@@ -57,6 +57,7 @@ local DEFAULT_AFK_MESSAGE = DEFAULT_AFK_MESSAGE
 local UNKNOWN = UNKNOWN
 local UNITNAME_SUMMON_TITLE17 = UNITNAME_SUMMON_TITLE17
 local ALTERNATE_POWER_INDEX = ALTERNATE_POWER_INDEX
+local SPELL_POWER_MANA = SPELL_POWER_MANA
 local SPELL_POWER_HOLY_POWER = SPELL_POWER_HOLY_POWER
 local SPELL_POWER_CHI = SPELL_POWER_CHI
 local SPELL_POWER_ECLIPSE = SPELL_POWER_ECLIPSE
@@ -74,7 +75,7 @@ local DEAD = DEAD
 local PVP = PVP
 
 --Global variables that we don't cache, list them here for mikk's FindGlobals script
--- GLOBALS: Hex
+-- GLOBALS: Hex, PowerBarColor
 
 ------------------------------------------------------------------------
 --	Tags
@@ -362,80 +363,61 @@ ElvUF.Tags.Methods['power:max'] = function(unit)
 	return E:GetFormattedText('CURRENT', max, max)
 end
 
-ElvUF.Tags.Events['mana:current'] = 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER'
+ElvUF.Tags.Methods['manacolor'] = function(unit)
+	local altR, altG, altB = PowerBarColor["MANA"]
+	local color = ElvUF['colors'].power["MANA"]
+	if color then
+		return Hex(color[1], color[2], color[3])
+	else
+		return Hex(altR, altG, altB)
+	end
+end
+
+ElvUF.Tags.Events['mana:current'] = 'UNIT_POWER_FREQUENT UNIT_MAXPOWER'
 ElvUF.Tags.Methods['mana:current'] = function(unit)
-	local pType = UnitPowerType(unit)
-	if pType == 0 then
-		local min = UnitPower(unit, pType)
-		return min == 0 and ' ' or	E:GetFormattedText('CURRENT', min, UnitPowerMax(unit, pType))
-	else
-		return ''
-	end
+	local min = UnitPower(unit, SPELL_POWER_MANA)
+
+	return min == 0 and ' ' or	E:GetFormattedText('CURRENT', min, UnitPowerMax(unit, SPELL_POWER_MANA))
 end
 
-ElvUF.Tags.Events['mana:current-max'] = 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER'
+ElvUF.Tags.Events['mana:current-max'] = 'UNIT_POWER_FREQUENT UNIT_MAXPOWER'
 ElvUF.Tags.Methods['mana:current-max'] = function(unit)
-	local pType = UnitPowerType(unit)
-	if pType == 0 then
-		local min = UnitPower(unit, pType)
-		return min == 0 and ' ' or	E:GetFormattedText('CURRENT_MAX', min, UnitPowerMax(unit, pType))
-	else
-		return ''
-	end
+	local min = UnitPower(unit, SPELL_POWER_MANA)
+
+	return min == 0 and ' ' or	E:GetFormattedText('CURRENT_MAX', min, UnitPowerMax(unit, SPELL_POWER_MANA))
 end
 
-ElvUF.Tags.Events['mana:current-percent'] = 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER'
+ElvUF.Tags.Events['mana:current-percent'] = 'UNIT_POWER_FREQUENT UNIT_MAXPOWER'
 ElvUF.Tags.Methods['mana:current-percent'] = function(unit)
-	local pType = UnitPowerType(unit)
-	if pType == 0 then
-		local min = UnitPower(unit, pType)
-		return min == 0 and ' ' or	E:GetFormattedText('CURRENT_PERCENT', min, UnitPowerMax(unit, pType))
-	else
-		return ''
-	end
+	local min = UnitPower(unit, SPELL_POWER_MANA)
+
+	return min == 0 and ' ' or	E:GetFormattedText('CURRENT_PERCENT', min, UnitPowerMax(unit, SPELL_POWER_MANA))
 end
 
-ElvUF.Tags.Events['mana:current-max-percent'] = 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER'
+ElvUF.Tags.Events['mana:current-max-percent'] = 'UNIT_POWER_FREQUENT UNIT_MAXPOWER'
 ElvUF.Tags.Methods['mana:current-max-percent'] = function(unit)
-	local pType = UnitPowerType(unit)
-	if pType == 0 then
-		local min = UnitPower(unit, pType)
-		return min == 0 and ' ' or	E:GetFormattedText('CURRENT_MAX_PERCENT', min, UnitPowerMax(unit, pType))
-	else
-		return ''
-	end
+	local min = UnitPower(unit, SPELL_POWER_MANA)
+
+	return min == 0 and ' ' or	E:GetFormattedText('CURRENT_MAX_PERCENT', min, UnitPowerMax(unit, SPELL_POWER_MANA))
 end
 
-ElvUF.Tags.Events['mana:percent'] = 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER'
+ElvUF.Tags.Events['mana:percent'] = 'UNIT_POWER_FREQUENT UNIT_MAXPOWER'
 ElvUF.Tags.Methods['mana:percent'] = function(unit)
-	local pType = UnitPowerType(unit)
-	if pType == 0 then
-		local min = UnitPower(unit, pType)
-		return min == 0 and ' ' or	E:GetFormattedText('PERCENT', min, UnitPowerMax(unit, pType))
-	else
-		return ''
-	end
+	local min = UnitPower(unit, SPELL_POWER_MANA)
+
+	return min == 0 and ' ' or	E:GetFormattedText('PERCENT', min, UnitPowerMax(unit, SPELL_POWER_MANA))
 end
 
-ElvUF.Tags.Events['mana:deficit'] = 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER'
+ElvUF.Tags.Events['mana:deficit'] = 'UNIT_POWER_FREQUENT UNIT_MAXPOWER'
 ElvUF.Tags.Methods['mana:deficit'] = function(unit)
-	local pType = UnitPowerType(unit)
-	if pType == 0 then
-		return E:GetFormattedText('DEFICIT', UnitPower(unit, pType), UnitPowerMax(unit, pType))
-	else
-		return ''
-	end
+	return E:GetFormattedText('DEFICIT', UnitPower(unit, pType), UnitPowerMax(unit, SPELL_POWER_MANA))
 end
 
-ElvUF.Tags.Events['mana:max'] = 'UNIT_DISPLAYPOWER UNIT_MAXPOWER'
+ElvUF.Tags.Events['mana:max'] = 'UNIT_MAXPOWER'
 ElvUF.Tags.Methods['mana:max'] = function(unit)
-	local pType = UnitPowerType(unit)
-	if pType == 0 then
-		local max = UnitPowerMax(unit, UnitPowerType(unit))
-		return E:GetFormattedText('CURRENT', max, max)
-	else
-		return ''
-	end
+	local max = UnitPowerMax(unit, SPELL_POWER_MANA)
+
+	return E:GetFormattedText('CURRENT', max, max)
 end
 
 ElvUF.Tags.Events['difficultycolor'] = 'UNIT_LEVEL PLAYER_LEVEL_UP'
@@ -957,4 +939,18 @@ ElvUF.Tags.Methods['classificationcolor'] = function(unit)
 	elseif(c == 'rareelite' or c == 'worldboss') then
 		return Hex(1, 0, 0) --Red
 	end
+end
+
+ElvUF.Tags.Events['guild'] = 'PLAYER_GUILD_UPDATE'
+ElvUF.Tags.Methods['guild'] = function(unit)
+	local guildName = GetGuildInfo(unit)
+
+	return guildName or ""
+end
+
+ElvUF.Tags.Events['guild:brackets'] = 'PLAYER_GUILD_UPDATE'
+ElvUF.Tags.Methods['guild:brackets'] = function(unit)
+	local guildName = GetGuildInfo(unit)
+
+	return guildName and format("<%s>", guildName) or ""
 end

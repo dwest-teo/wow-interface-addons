@@ -1,0 +1,62 @@
+------------------------------------------------------------------------
+r224 | zensunim | 2016-07-19 06:32:05 +0000 (Tue, 19 Jul 2016) | 2 lines
+Changed paths:
+   A /tags/4.38.3 (from /trunk:223)
+
+4.38.3
+* Updated for patch 7.0.3
+------------------------------------------------------------------------
+r223 | zensunim | 2016-07-19 06:31:32 +0000 (Tue, 19 Jul 2016) | 2 lines
+Changed paths:
+   M /trunk/GTFO.lua
+   M /trunk/GTFO.toc
+
+4.38.3
+* Updated for patch 7.0.3
+------------------------------------------------------------------------
+r221 | zensunim | 2016-07-06 01:50:24 +0000 (Wed, 06 Jul 2016) | 1 line
+Changed paths:
+   M /trunk/GTFO.lua
+   M /trunk/GTFO.toc
+
+Prepping for 4.38.2 release
+------------------------------------------------------------------------
+r220 | zensunim | 2016-07-05 07:25:40 +0000 (Tue, 05 Jul 2016) | 1 line
+Changed paths:
+   M /trunk/GTFO.lua
+   M /trunk/GTFO_Fail_MP.lua
+
+Added Pandaria spells for Brawler's Guild
+------------------------------------------------------------------------
+r219 | zensunim | 2016-06-26 19:54:51 +0000 (Sun, 26 Jun 2016) | 1 line
+Changed paths:
+   M /trunk/GTFO_FF_LGN.lua
+   M /trunk/GTFO_Fail_LGN.lua
+   M /trunk/GTFO_Spells_LGN.lua
+
+Added Legion spells for The Emerald Dream
+------------------------------------------------------------------------
+r218 | zensunim | 2016-06-26 17:42:26 +0000 (Sun, 26 Jun 2016) | 1 line
+Changed paths:
+   M /trunk/GTFO.lua
+   M /trunk/GTFO_FF_LGN.lua
+   M /trunk/GTFO_Fail_LGN.lua
+   M /trunk/GTFO_Fail_WOD.lua
+   M /trunk/GTFO_Spells_LGN.lua
+
+Added Legion spells for The Emerald Dream
+------------------------------------------------------------------------
+r217 | zensunim | 2016-06-22 18:46:00 +0000 (Wed, 22 Jun 2016) | 2 lines
+Changed paths:
+   M /trunk/GTFO.lua
+   M /trunk/GTFO_Fail_WOD.lua
+
+Added WoD spells for Draenor (world)		
+
+------------------------------------------------------------------------
+r216 | zensunim | 2016-06-17 05:52:18 +0000 (Fri, 17 Jun 2016) | 1 line
+Changed paths:
+   M /trunk/GTFO_Spells_Special.lua
+
+Added Legion Event spells
+------------------------------------------------------------------------

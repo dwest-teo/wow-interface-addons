@@ -1,6 +1,4 @@
 
-local BIGWIGS_AUTHORS = "rabbit, ammo, 7destiny, pettigrow, ananhaid, mojosdojo, Wetxius, jongt23, tekkub, fenlis, _yusaku_, shyva, StingerSoft, dynaletik, cwdg, gamefaq, yoshimo, sayclub, saroz, nevcairiel, s8095324, handdol, durcyn, chuanhsing, scorpio0920, kebinusan, Dynaletik, flyflame, zhTW, stanzilla, onyxmaster, MysticalOS, grimwald, lcf_hell, starinnia, chinkuwaila, arrowmaster, next96, tnt2ray, ackis, Leialyn, cremor, moonsorrow, jerry, fryguy, xinsonic, beerke, shari83, tsigo, hk2717, pigmonkey, ulic, mecdemort, Carlos, gnarfoz, a9012456, Cybersea, cronan, hyperactiveChipmunk, darchon, neriak, nirek, mikk, darkwings, hshh, otravi, yhpdoit, kjheng, AnarkiQ3, kergoth, dessa, ethancentaurai, Sayclub, erwanoops, Swix, Gothwin, illiaster, oojoo, nymbia, kyahx, valdriethien, phyber, oxman, profalbert, Traeumer, Zidomo, Anadale, tazmanyak, tain, thiana, ckknight, kemayo, zealotonastick, archarodim, coalado, silverwind, lucen, Adam77."
-
 local BigWigs = BigWigs
 local options = BigWigs:NewModule("Options")
 options:SetEnabledState(true)
@@ -40,7 +38,6 @@ local soundModule
 local translateZoneID
 
 local showToggleOptions, getAdvancedToggleOption = nil, nil
-local zoneModules = {}
 
 local getOptions
 local acOptions = {
@@ -104,7 +101,7 @@ local acOptions = {
 					end
 				end
 				if not InterfaceOptionsFrame:IsShown() then
-					local panel = loader.isLegion and "Big Wigs |cFF62B1F6".. EJ_GetTierInfo(7) .."|r" or "Big Wigs |cFF62B1F6".. EJ_GetTierInfo(6) .."|r" -- XXX Legion temp
+					local panel = "Big Wigs |cFF62B1F6".. EJ_GetTierInfo(loader.isLegion and 7 or 6) .."|r" -- XXX Legion temp
 					InterfaceOptionsFrame_OpenToCategory(panel)
 					InterfaceOptionsFrame_OpenToCategory(panel)
 				end
@@ -263,11 +260,7 @@ function translateZoneID(id)
 	if id < 10 then
 		name = select(id * 2, GetMapContinents())
 	else
-		if id == 1520 then -- XXX Legion hack
-			name = "*Emerald Nightmare"
-		else
-			name = GetMapNameByID(id)
-		end
+		name = GetMapNameByID(id)
 	end
 	return name
 end
@@ -478,7 +471,6 @@ local function masterOptionToggled(self, event, value)
 		-- we force a refresh of all checkboxes when enabling/disabling the master option.
 		if scrollFrame then
 			local dropdown = self:GetUserData("dropdown")
-			local module = self:GetUserData("module")
 			local bossOption = self:GetUserData("option")
 			scrollFrame:ReleaseChildren()
 			scrollFrame:AddChildren(getAdvancedToggleOption(scrollFrame, dropdown, module, bossOption))
@@ -643,8 +635,8 @@ function getAdvancedToggleOption(scrollFrame, dropdown, module, bossOption)
 	for i, key in next, BigWigs:GetRoleOptions() do
 		local flag = C[key]
 		if bit.band(module.toggleDefaults[dbKey], flag) == flag then
-			local name, desc = BigWigs:GetOptionDetails(key)
-			roleRestrictionCheckbox = getSlaveToggle(name, desc, dbKey, module, flag, check)
+			local roleName, roleDesc = BigWigs:GetOptionDetails(key)
+			roleRestrictionCheckbox = getSlaveToggle(roleName, roleDesc, dbKey, module, flag, check)
 		end
 	end
 
@@ -1115,7 +1107,7 @@ end
 local function onZoneShow(frame)
 	local zoneId = frame.id
 	if zoneId then
-		local instanceId = fakeWorldZones[zoneId] and zoneId or zoneId == 1520 and zoneId or GetAreaMapInfo(zoneId) -- XXX legion temp hack for no map id
+		local instanceId = fakeWorldZones[zoneId] and zoneId or GetAreaMapInfo(zoneId)
 
 		-- Make sure all the bosses for this zone are loaded.
 		loader:LoadZone(instanceId)
@@ -1218,8 +1210,8 @@ do
 		BigWigs_WrathOfTheLichKing = "Big Wigs ".. EJ_GetTierInfo(3),
 		BigWigs_Cataclysm = "Big Wigs ".. EJ_GetTierInfo(4),
 		BigWigs_MistsOfPandaria = "Big Wigs ".. EJ_GetTierInfo(5),
-		BigWigs_WarlordsOfDraenor = not loader.isLegion and "Big Wigs |cFF62B1F6".. EJ_GetTierInfo(6) .."|r" or "Big Wigs ".. EJ_GetTierInfo(6),
-		BigWigs_Legion = loader.isLegion and "Big Wigs |cFF62B1F6".. EJ_GetTierInfo(7) .."|r",
+		BigWigs_WarlordsOfDraenor = loader.isLegion and ("Big Wigs ".. EJ_GetTierInfo(6)) or ("Big Wigs |cFF62B1F6".. EJ_GetTierInfo(6) .."|r"),
+		BigWigs_Legion = loader.isLegion and ("Big Wigs |cFF62B1F6".. EJ_GetTierInfo(7) .."|r") or ("Big Wigs ".. EJ_GetTierInfo(7)),
 		LittleWigs = "Little Wigs",
 	}
 
@@ -1242,15 +1234,15 @@ do
 			frame:Hide()
 			InterfaceOptions_AddCategory(frame)
 			if setScript then
-				frame:SetScript("OnShow", function(self)
+				frame:SetScript("OnShow", function(f)
 					BigWigs:Enable()
 					-- First we need to expand ourselves if collapsed.
-					local p = findPanel(self.name)
+					local p = findPanel(f.name)
 					if p and p.element.collapsed then OptionsListButtonToggle_OnClick(p.toggle) end
 					-- InterfaceOptionsFrameAddOns.buttons has changed here to include the zones
 					-- if we were collapsed.
 					-- So now we need to select the first zone.
-					p = findPanel(nil, self.name)
+					p = findPanel(nil, f.name)
 					if p then
 						InterfaceOptionsFrame_OpenToCategory(p.element.name)
 						InterfaceOptionsFrame_OpenToCategory(p.element.name)
@@ -1266,8 +1258,8 @@ do
 
 	function options:GetZonePanel(zoneId)
 		local zoneName = translateZoneID(zoneId)
-		local instanceId = fakeWorldZones[zoneId] and zoneId or zoneId == 1520 and zoneId or GetAreaMapInfo(zoneId) -- XXX legion temp hack for no map id
-		local parent = loader.zoneTbl[instanceId] and addonNameToHeader[loader.zoneTbl[instanceId]] or loader.isLegion and addonNameToHeader.BigWigs_Legion or addonNameToHeader.BigWigs_WarlordsOfDraenor -- XXX LEGION update this to BigWigs_Legion
+		local instanceId = fakeWorldZones[zoneId] and zoneId or GetAreaMapInfo(zoneId)
+		local parent = loader.zoneTbl[instanceId] and addonNameToHeader[loader.zoneTbl[instanceId]] or addonNameToHeader.BigWigs_Legion
 		local panel, justCreated = self:GetPanel(zoneName, parent, zoneId)
 		if justCreated then
 			panel:SetScript("OnShow", onZoneShow)
@@ -1290,21 +1282,21 @@ do
 			end
 		elseif module.subPanelOptions then
 			local key = module.subPanelOptions.key
-			local options = module.subPanelOptions.options
-			if type(options) == "function" then
-				subPanelRegistry[key] = options
+			local opts = module.subPanelOptions.options
+			if type(opts) == "function" then
+				subPanelRegistry[key] = opts
 			else
-				acOptions.args[key] = options
+				acOptions.args[key] = opts
 			end
 		end
 	end
 
 	function getOptions()
-		for key, options in next, pluginRegistry do
-			acOptions.args.general.args[key] = options()
+		for key, opts in next, pluginRegistry do
+			acOptions.args.general.args[key] = opts()
 		end
-		for key, options in next, subPanelRegistry do
-			acOptions.args[key] = options()
+		for key, opts in next, subPanelRegistry do
+			acOptions.args[key] = opts()
 		end
 		return acOptions
 	end

@@ -14,7 +14,6 @@ local C_LFGList_GetApplicationInfo = C_LFGList.GetApplicationInfo
 local function LoadSkin()
 	if E.private.skins.blizzard.enable ~= true or E.private.skins.blizzard.lfg ~= true then return end
 	PVEFrame:StripTextures()
-	PVEFrame:StripTextures()
 	PVEFrameLeftInset:StripTextures()
 	RaidFinderQueueFrame:StripTextures(true)
 	PVEFrameBg:Hide()
@@ -24,7 +23,7 @@ local function LoadSkin()
 	PVEFrameTopRightCorner:Hide()
 	PVEFrameTopBorder:Hide()
 	PVEFrameLeftInsetBg:Hide()
-	PVEFrame.shadows:Hide()
+	PVEFrame.shadows:Kill() -- We need to kill it, because if you switch to Mythic Dungeon Tab and back, it shows back up.
 	S:HandleButton(LFDQueueFramePartyBackfillBackfillButton)
 	S:HandleButton(LFDQueueFramePartyBackfillNoBackfillButton)
 	S:HandleButton(LFDQueueFrameRandomScrollFrameChildFrameBonusRepFrame.ChooseButton)
@@ -124,6 +123,49 @@ local function LoadSkin()
 			end
 		end
 	end
+
+	--Fix issue with role buttons overlapping each other (Blizzard bug)
+	local repositionCheckButtons = {
+		LFGListApplicationDialog.TankButton.CheckButton,
+		LFGListApplicationDialog.HealerButton.CheckButton,
+		LFGListApplicationDialog.DamagerButton.CheckButton,
+	}
+	for _, checkButton in pairs(repositionCheckButtons) do
+		checkButton:ClearAllPoints()
+		checkButton:Point("BOTTOMLEFT", 0, 0)
+	end
+	hooksecurefunc("LFGListApplicationDialog_UpdateRoles", function(self) --Copy from Blizzard, we just fix position
+		local availTank, availHealer, availDPS = C_LFGList.GetAvailableRoles();
+
+		local avail1, avail2;
+		if ( availTank ) then
+			avail1 = self.TankButton;
+		end
+		if ( availHealer ) then
+			if ( avail1 ) then
+				avail2 = self.HealerButton;
+			else
+				avail1 = self.HealerButton;
+			end
+		end
+		if ( availDPS ) then
+			if ( avail1 ) then
+				avail2 = self.DamagerButton;
+			else
+				avail1 = self.DamagerButton;
+			end
+		end
+
+		if ( avail2 ) then
+			avail1:ClearAllPoints();
+			avail1:SetPoint("TOPRIGHT", self, "TOP", -40, -35);
+			avail2:ClearAllPoints();
+			avail2:SetPoint("TOPLEFT", self, "TOP", 40, -35);
+		elseif ( avail1 ) then
+			avail1:ClearAllPoints();
+			avail1:SetPoint("TOP", self, "TOP", 0, -35);
+		end
+	end)
 
 	LFDQueueFrameRoleButtonLeader.leadIcon = LFDQueueFrameRoleButtonLeader:CreateTexture(nil, 'BACKGROUND')
 	LFDQueueFrameRoleButtonLeader.leadIcon:SetTexture([[Interface\GroupFrame\UI-Group-LeaderIcon]])
@@ -537,35 +579,8 @@ S:RegisterSkin("ElvUI", LoadSkin)
 local function LoadSecondarySkin()
 	if E.private.skins.blizzard.enable ~= true or E.private.skins.blizzard.lfg ~= true then return end
 	ChallengesFrameInset:StripTextures()
+	ChallengesFrameInset:Hide()
 	ChallengesFrameInsetBg:Hide()
-	ChallengesFrameDetails.bg:Hide()
-
-	S:HandleButton(ChallengesFrameLeaderboard, true)
-	select(2, ChallengesFrameDetails:GetRegions()):Hide()
-	select(9, ChallengesFrameDetails:GetRegions()):Hide()
-	select(10, ChallengesFrameDetails:GetRegions()):Hide()
-	select(11, ChallengesFrameDetails:GetRegions()):Hide()
-	ChallengesFrameDungeonButton1:Point("TOPLEFT", ChallengesFrame, "TOPLEFT", 8, -83)
-
-	for i = 1, 8 do
-		local bu = ChallengesFrame["button"..i]
-		S:HandleButton(bu)
-		bu:StyleButton()
-		bu:SetHighlightTexture("")
-		bu.selectedTex:SetAlpha(.2)
-		bu.selectedTex:Point("TOPLEFT", 1, -1)
-		bu.selectedTex:Point("BOTTOMRIGHT", -1, 1)
-		bu.NoMedal:Kill()
-	end
-
-	for i = 1, 3 do
-		local rewardsRow = ChallengesFrame["RewardRow"..i]
-		for j = 1, 2 do
-			local bu = rewardsRow["Reward"..j]
-			bu:CreateBackdrop()
-			bu.Icon:SetTexCoord(unpack(E.TexCoords))
-		end
-	end
 end
 
 S:RegisterSkin("Blizzard_ChallengesUI", LoadSecondarySkin)

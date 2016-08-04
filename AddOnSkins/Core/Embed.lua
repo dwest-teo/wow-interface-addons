@@ -39,6 +39,11 @@ function AS:EmbedInit()
 
 			AS.EmbedSystemCreated = true
 
+			if (AS:CheckOption('EmbedSystem') and AS:CheckOption('EmbedSystemDual')) then
+				AS:DisableOption('EmbedSystem')
+				AS:DisableOption('EmbedSystemDual')
+			end
+
 			AS:EmbedSystemHooks()
 			AS:EmbedSystem_WindowResize()
 			AS:Delay(1, function() AS:Embed_Check(true) end)
@@ -161,7 +166,7 @@ function AS:Embed_Toggle(Message)
 			Frame:SetInside(EmbedSystem_RightWindow, 0, 0)
 		end
 	end
-	if Message then
+	if Message and AS:CheckOption('EmbedSystemMessage') then
 		local Message = format("Main: '%s'", AS:CheckOption('EmbedMain'))
 		if AS:CheckOption('EmbedSystemDual') then Message = format("Left: '%s' | Right: '%s'", AS:CheckOption('EmbedLeft'), AS:CheckOption('EmbedRight')) end
 		AS:Print(format('Embed System: - %s', Message))

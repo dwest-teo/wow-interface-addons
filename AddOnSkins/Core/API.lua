@@ -29,56 +29,56 @@ function AS:SetTemplate(Frame, Template, UseTexture, TextureFile)
 			Frame.InsetTop:Point("TOPLEFT", Frame, "TOPLEFT", -1, 1)
 			Frame.InsetTop:Point("TOPRIGHT", Frame, "TOPRIGHT", 1, -1)
 			Frame.InsetTop:Height(1)
-			Frame.InsetTop:SetTexture(0,0,0)	
+			Frame.InsetTop:SetColorTexture(0,0,0)	
 			Frame.InsetTop:SetDrawLayer("BORDER", -7)
 
 			Frame.InsetBottom = Frame:CreateTexture(nil, "BORDER")
 			Frame.InsetBottom:Point("BOTTOMLEFT", Frame, "BOTTOMLEFT", -1, -1)
 			Frame.InsetBottom:Point("BOTTOMRIGHT", Frame, "BOTTOMRIGHT", 1, -1)
 			Frame.InsetBottom:Height(1)
-			Frame.InsetBottom:SetTexture(0,0,0)	
+			Frame.InsetBottom:SetColorTexture(0,0,0)	
 			Frame.InsetBottom:SetDrawLayer("BORDER", -7)
 
 			Frame.InsetLeft = Frame:CreateTexture(nil, "BORDER")
 			Frame.InsetLeft:Point("TOPLEFT", Frame, "TOPLEFT", -1, 1)
 			Frame.InsetLeft:Point("BOTTOMLEFT", Frame, "BOTTOMLEFT", 1, -1)
 			Frame.InsetLeft:Width(1)
-			Frame.InsetLeft:SetTexture(0,0,0)
+			Frame.InsetLeft:SetColorTexture(0,0,0)
 			Frame.InsetLeft:SetDrawLayer("BORDER", -7)
 
 			Frame.InsetRight = Frame:CreateTexture(nil, "BORDER")
 			Frame.InsetRight:Point("TOPRIGHT", Frame, "TOPRIGHT", 1, 1)
 			Frame.InsetRight:Point("BOTTOMRIGHT", Frame, "BOTTOMRIGHT", -1, -1)
 			Frame.InsetRight:Width(1)
-			Frame.InsetRight:SetTexture(0,0,0)	
+			Frame.InsetRight:SetColorTexture(0,0,0)	
 			Frame.InsetRight:SetDrawLayer("BORDER", -7)
 
 			Frame.InsetInsideTop = Frame:CreateTexture(nil, "BORDER")
 			Frame.InsetInsideTop:Point("TOPLEFT", Frame, "TOPLEFT", 1, -1)
 			Frame.InsetInsideTop:Point("TOPRIGHT", Frame, "TOPRIGHT", -1, 1)
 			Frame.InsetInsideTop:Height(1)
-			Frame.InsetInsideTop:SetTexture(0,0,0)	
+			Frame.InsetInsideTop:SetColorTexture(0,0,0)	
 			Frame.InsetInsideTop:SetDrawLayer("BORDER", -7)
 
 			Frame.InsetInsideBottom = Frame:CreateTexture(nil, "BORDER")
 			Frame.InsetInsideBottom:Point("BOTTOMLEFT", Frame, "BOTTOMLEFT", 1, 1)
 			Frame.InsetInsideBottom:Point("BOTTOMRIGHT", Frame, "BOTTOMRIGHT", -1, 1)
 			Frame.InsetInsideBottom:Height(1)
-			Frame.InsetInsideBottom:SetTexture(0,0,0)	
+			Frame.InsetInsideBottom:SetColorTexture(0,0,0)	
 			Frame.InsetInsideBottom:SetDrawLayer("BORDER", -7)
 
 			Frame.InsetInsideLeft = Frame:CreateTexture(nil, "BORDER")
 			Frame.InsetInsideLeft:Point("TOPLEFT", Frame, "TOPLEFT", 1, -1)
 			Frame.InsetInsideLeft:Point("BOTTOMLEFT", Frame, "BOTTOMLEFT", -1, 1)
 			Frame.InsetInsideLeft:Width(1)
-			Frame.InsetInsideLeft:SetTexture(0,0,0)
+			Frame.InsetInsideLeft:SetColorTexture(0,0,0)
 			Frame.InsetInsideLeft:SetDrawLayer("BORDER", -7)
 
 			Frame.InsetInsideRight = Frame:CreateTexture(nil, "BORDER")
 			Frame.InsetInsideRight:Point("TOPRIGHT", Frame, "TOPRIGHT", -1, -1)
 			Frame.InsetInsideRight:Point("BOTTOMRIGHT", Frame, "BOTTOMRIGHT", 1, 1)
 			Frame.InsetInsideRight:Width(1)
-			Frame.InsetInsideRight:SetTexture(0,0,0)	
+			Frame.InsetInsideRight:SetColorTexture(0,0,0)	
 			Frame.InsetInsideRight:SetDrawLayer("BORDER", -7)
 
 			Frame.isInsetDone = true
@@ -158,6 +158,7 @@ local BlizzardRegions = {
 
 function AS:SkinButton(Button, Strip)
 	if Button.isSkinned then return end
+
 	local ButtonName = Button:GetName()
 
 	if ButtonName then
@@ -192,6 +193,26 @@ function AS:SkinButton(Button, Strip)
 	Button:HookScript("OnLeave", function(self)
 		self:SetBackdropBorderColor(unpack(AS.BorderColor))
 	end)
+
+	if Button.Flash then
+		Button.Flash:SetTexture(0, 0, 0, 0)
+	--[[
+		AS:CreateBackdrop(Button)
+		Button.Backdrop:SetAllPoints()
+		Button.Backdrop:SetBackdropBorderColor(1, 0, 0, 1)
+		Button.Backdrop:SetBackdropColor(0, 0, 0, 0)
+		Button.Backdrop:SetFrameStrata(Button:GetFrameStrata())
+		Button.Backdrop:SetFrameLevel(Button:GetFrameLevel() + 4)
+
+		Button.Backdrop:SetScript('OnUpdate', function(self)
+			if Button.Flash:IsShown() then
+				self:SetAlpha(Button.Flash:GetAlpha())
+			else
+				self:SetAlpha(0)
+			end
+		end)
+	]]
+	end
 end
 
 function AS:CreateShadow(Frame)
@@ -220,7 +241,7 @@ function AS:StyleButton(Button)
 
 	if Button.SetHighlightTexture and not Button.hover then
 		local hover = Button:CreateTexture()
-		hover:SetTexture(1, 1, 1, 0.3)
+		hover:SetColorTexture(1, 1, 1, 0.3)
 		hover:SetInside()
 		Button.hover = hover
 		Button:SetHighlightTexture(hover)
@@ -228,7 +249,7 @@ function AS:StyleButton(Button)
 
 	if Button.SetPushedTexture and not Button.pushed then
 		local pushed = Button:CreateTexture()
-		pushed:SetTexture(0.9, 0.8, 0.1, 0.3)
+		pushed:SetColorTexture(0.9, 0.8, 0.1, 0.3)
 		pushed:SetInside()
 		Button.pushed = pushed
 		Button:SetPushedTexture(pushed)
@@ -236,7 +257,7 @@ function AS:StyleButton(Button)
 
 	if Button.SetCheckedTexture and not Button.checked then
 		local checked = Button:CreateTexture()
-		checked:SetTexture(0,1,0,.3)
+		checked:SetColorTexture(0,1,0,.3)
 		checked:SetInside()
 		Button.checked = checked
 		Button:SetCheckedTexture(checked)
@@ -474,7 +495,12 @@ function AS:SkinScrollBar(Frame)
 				Frame.ThumbBG = CreateFrame("Frame", nil, Frame)
 				Frame.ThumbBG:Point("TOPLEFT", Frame:GetThumbTexture(), "TOPLEFT", 2, -3)
 				Frame.ThumbBG:Point("BOTTOMRIGHT", Frame:GetThumbTexture(), "BOTTOMRIGHT", -2, 3)
-				AS:SetTemplate(Frame.ThumbBG, "Default", true)
+				AS:SetTemplate(Frame.ThumbBG, "Default")
+				if IsAddOnLoaded('ElvUI') then
+					Frame.ThumbBG:SetBackdropColor(0.6, 0.6, 0.6)
+				else
+					Frame.ThumbBG:SetBackdropColor(unpack(AS.BorderColor))
+				end
 
 				if Frame.ThumbBG then
 					Frame.ThumbBG:SetFrameLevel(Frame.TrackBG:GetFrameLevel())
@@ -529,7 +555,7 @@ function AS:SkinNextPrevButton(Button, Vertical)
 		Button:GetPushedTexture():SetAllPoints(Button:GetNormalTexture())
 	end
 
-	Button:GetHighlightTexture():SetTexture(1, 1, 1, 0.3)
+	Button:GetHighlightTexture():SetColorTexture(1, 1, 1, 0.3)
 	Button:GetHighlightTexture():SetAllPoints(Button:GetNormalTexture())
 
 	Button.isSkinned = true
@@ -544,7 +570,7 @@ function AS:SkinRotateButton(Button)
 	Button:GetNormalTexture():SetTexCoord(0.3, 0.29, 0.3, 0.65, 0.69, 0.29, 0.69, 0.65)
 	Button:GetPushedTexture():SetTexCoord(0.3, 0.29, 0.3, 0.65, 0.69, 0.29, 0.69, 0.65)	
 
-	Button:GetHighlightTexture():SetTexture(1, 1, 1, 0.3)
+	Button:GetHighlightTexture():SetColorTexture(1, 1, 1, 0.3)
 
 	Button:GetNormalTexture():ClearAllPoints()
 	Button:GetNormalTexture():SetInside()

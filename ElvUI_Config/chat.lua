@@ -125,10 +125,11 @@ E.Options.args.chat = {
 						CH:UpdateSettings()
 					end,
 				},
-				spacer = {
+				classColorMentionsChat = {
 					order = 11,
-					type = 'description',
-					name = '',
+					type = "toggle",
+					name = L["Class Color Mentions"],
+					desc = L["Use class color for the names of players when they are mentioned."],
 				},
 				throttleInterval = {
 					order = 12,
@@ -153,8 +154,15 @@ E.Options.args.chat = {
 						E.db.chat[ info[#info] ] = value
 					end,
 				},
-				timeStampFormat = {
+				numAllowedCombatRepeat = {
 					order = 14,
+					type = "range",
+					name = L["Allowed Combat Repeat"],
+					desc = L["Number of repeat characters while in combat before the chat editbox is automatically closed."],
+					min = 2, max = 10, step = 1,
+				},
+				timeStampFormat = {
+					order = 15,
 					type = 'select',
 					name = TIMESTAMPS_LABEL,
 					desc = OPTION_TOOLTIP_TIMESTAMPS,
@@ -388,7 +396,7 @@ E.Options.args.chat = {
 					order = 5,
 					name = L["Tab Font Size"],
 					type = "range",
-					min = 4, max = 22, step = 1,
+					min = 4, max = 212, step = 1,
 				},
 				tabFontOutline = {
 					order = 6,

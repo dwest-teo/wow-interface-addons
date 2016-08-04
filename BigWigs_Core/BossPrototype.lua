@@ -7,7 +7,7 @@ local UnitAffectingCombat, UnitIsPlayer, UnitGUID, UnitPosition, UnitDistanceSqu
 local EJ_GetSectionInfo, GetSpellInfo, GetSpellTexture, IsSpellKnown = EJ_GetSectionInfo, GetSpellInfo, GetSpellTexture, IsSpellKnown
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local SendChatMessage = BigWigsLoader.SendChatMessage
-local format, find, sub, gsub, band = string.format, string.find, string.sub, string.gsub, bit.band
+local format, find, gsub, band = string.format, string.find, string.gsub, bit.band
 local type, next, tonumber = type, next, tonumber
 local core = BigWigs
 local C = core.C
@@ -27,9 +27,6 @@ local updateData = function(module)
 	if tree then
 		myRole = GetSpecializationRole(tree)
 		myDamagerRole = nil
-		if not BigWigsLoader.isLegion and IsSpellKnown(152276) and UnitBuff("player", (GetSpellInfo(156291))) then -- Gladiator Stance XXX legion
-			myRole = "DAMAGER"
-		end
 		if myRole == "DAMAGER" then
 			local _, class = UnitClass("player")
 			if
@@ -82,11 +79,13 @@ local icons = setmetatable({}, {__index =
 	function(self, key)
 		local value
 		if type(key) == "number" then
-			if key > 0 then
+			if key > 8 then
 				value = GetSpellTexture(key)
 				if not value then
 					core:Print(format("An invalid spell id (%d) is being used in a bar/message.", key))
 				end
+			elseif key > 0 then
+				value = format("Interface\\TARGETINGFRAME\\UI-RaidTargetingIcon_%d", key)
 			else
 				local _, _, _, abilityIcon = EJ_GetSectionInfo(-key)
 				if abilityIcon and abilityIcon:trim():len() > 0 then
@@ -236,7 +235,6 @@ function boss:RegisterEnableYell(...) core:RegisterEnableYell(self, ...) end
 --
 
 do
-	local modMissingFunction = "Module %q got the event %q (%d), but it doesn't know how to handle it."
 	local missingArgument = "Missing required argument when adding a listener to %q."
 	local missingFunction = "%q tried to register a listener to method %q, but it doesn't exist in the module."
 	local invalidId = "Module %q tried to register an invalid spell id (%s) to event %q."
@@ -404,8 +402,8 @@ do
 			local unit = select(i, ...)
 			unitEventMap[self][event][unit] = nil
 			local keepRegistered
-			for i = #enabledModules, 1, -1 do
-				local m = unitEventMap[enabledModules[i]][event]
+			for j = #enabledModules, 1, -1 do
+				local m = unitEventMap[enabledModules[j]][event]
 				if m and m[unit] then
 					keepRegistered = true
 				end
@@ -501,8 +499,8 @@ do
 			local guid = UnitGUID(unit)
 			if guid and not UnitIsPlayer(unit) then
 				if isNumber then
-					local _, _, _, _, _, id = strsplit("-", guid)
-					guid = tonumber(id)
+					local _, _, _, _, _, mobId = strsplit("-", guid)
+					guid = tonumber(mobId)
 				end
 				if guid == id then return unit end
 			end
@@ -637,11 +635,11 @@ do
 		local elapsed = self.scheduledScansCounter[guid] + 0.05
 
 		for i = 1, 5 do
-			local boss = bosses[i]
-			if UnitGUID(boss) == guid then
+			local unit = bosses[i]
+			if UnitGUID(unit) == guid then
 				local bossTarget = bossTargets[i]
 				local playerGUID = UnitGUID(bossTarget)
-				if playerGUID and ((not UnitDetailedThreatSituation(bossTarget, boss) and not self:Tank(bossTarget)) or elapsed > tankCheckExpiry) then
+				if playerGUID and ((not UnitDetailedThreatSituation(bossTarget, unit) and not self:Tank(bossTarget)) or elapsed > tankCheckExpiry) then
 					local name = self:UnitName(bossTarget)
 					self:CancelTimer(self.scheduledScans[guid])
 					func(self, name, playerGUID, elapsed)
@@ -851,15 +849,6 @@ do
 		if IsSpellKnown(88423) or IsSpellKnown(2782) or IsSpellKnown(77130) or IsSpellKnown(475) then
 			-- Nature's Cure (Resto Druid), Remove Corruption (Druid), Purify Spirit (Shaman), Remove Curse (Mage)
 			defDispel = defDispel .. "curse,"
-		end
-		if not BigWigsLoader.isLegion then -- XXX Legion removes glyphs
-			for i = 2, 6, 2 do -- 2/4/6 = major glyphs, NUM_GLYPH_SLOTS = 6
-				local _, _, _, spellId = GetGlyphSocketInfo(i)
-				if spellId == 58375 or spellId == 58631 then
-					-- Glyph of Shield Slam (Warrior), Glyph of Icy Touch (Death Knight)
-					offDispel = offDispel .. "magic,"
-				end
-			end
 		end
 	end
 	function boss:Dispeller(dispelType, isOffensive, key)
@@ -1226,17 +1215,18 @@ function boss:TargetBar(key, length, player, text, icon)
 end
 
 function boss:StopBar(text, player)
+	local msg = type(text) == "number" and spells[text] or text
 	if player then
 		if player == pName then
-			local msg = format(L.you, type(text) == "number" and spells[text] or text)
+			msg = format(L.you, msg)
 			self:SendMessage("BigWigs_StopBar", self, msg)
 			self:SendMessage("BigWigs_StopEmphasize", self, msg)
 		else
-			self:SendMessage("BigWigs_StopBar", self, format(L.other, type(text) == "number" and spells[text] or text, gsub(player, "%-.+", "*")))
+			self:SendMessage("BigWigs_StopBar", self, format(L.other, msg, gsub(player, "%-.+", "*")))
 		end
 	else
-		self:SendMessage("BigWigs_StopBar", self, type(text) == "number" and spells[text] or text)
-		self:SendMessage("BigWigs_StopEmphasize", self, type(text) == "string" and text or spells[text])
+		self:SendMessage("BigWigs_StopBar", self, msg)
+		self:SendMessage("BigWigs_StopEmphasize", self, msg)
 	end
 end
 
@@ -1322,8 +1312,14 @@ function boss:AddSyncListener(sync, throttle)
 end
 
 function boss:Berserk(seconds, noEngageMessage, customBoss, customBerserk, customFinalMessage)
-	local boss = customBoss or self.displayName
+	local name = customBoss or self.displayName
 	local key = "berserk"
+
+	-- Engage warning with no enrage
+	-- if not seconds then
+	-- 	self:Message(key, "Attention", nil, ("% engaged"):format(name), false)
+	-- 	return
+	-- end
 
 	-- There are many Berserks, but we use 26662 because Brutallus uses this one.
 	-- Brutallus is da bomb.
@@ -1341,7 +1337,7 @@ function boss:Berserk(seconds, noEngageMessage, customBoss, customBerserk, custo
 
 	if not noEngageMessage then
 		-- Engage warning with minutes to enrage
-		self:Message(key, "Attention", nil, format(L.custom_start, boss, berserk, seconds / 60), false)
+		self:Message(key, "Attention", nil, format(L.custom_start, name, berserk, seconds / 60), false)
 	end
 
 	-- Half-way to enrage warning.
@@ -1354,6 +1350,6 @@ function boss:Berserk(seconds, noEngageMessage, customBoss, customBerserk, custo
 	self:DelayedMessage(key, seconds - 30, "Urgent", format(L.custom_sec, berserk, 30))
 	self:DelayedMessage(key, seconds - 10, "Urgent", format(L.custom_sec, berserk, 10))
 	self:DelayedMessage(key, seconds - 5, "Important", format(L.custom_sec, berserk, 5))
-	self:DelayedMessage(key, seconds, "Important", customFinalMessage or format(L.custom_end, boss, berserk), icon, "Alarm")
+	self:DelayedMessage(key, seconds, "Important", customFinalMessage or format(L.custom_end, name, berserk), icon, "Alarm")
 end
 
