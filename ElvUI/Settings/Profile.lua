@@ -19,8 +19,8 @@ P['general'] = {
 	['objectiveFrameHeight'] = 480,
 	['bonusObjectivePosition'] = "LEFT",
 	["talkingHeadFrameScale"] = 0.9,
-
 	['afk'] = true,
+	["numberPrefixStyle"] = "METRIC",
 
 	["fontSize"] = 12,
 	["font"] = "PT Sans Narrow",
@@ -78,6 +78,12 @@ P['general'] = {
 				['xOffset'] = 2,
 				['yOffset'] = 2,
 				["hide"] = false,
+			},
+			['ticket'] = {
+				['scale'] = 1,
+				['position'] = "TOPRIGHT",
+				['xOffset'] = 0,
+				['yOffset'] = 0,
 			},
 		}
 	},
@@ -162,6 +168,7 @@ P['bags'] = {
 	["junkIcon"] = false,
 	['ignoreItems'] = '',
 	['itemLevel'] = true,
+	["useTooltipScanning"] = false,
 	['itemLevelThreshold'] = 1,
 	['itemLevelFont'] = 'Homespun',
 	['itemLevelFontSize'] = 10,
@@ -226,6 +233,7 @@ P["nameplates"] = {
 		['PLAYER'] = {
 			['enable'] = false,
 			["alwaysShow"] = false,
+			["clickthrough"] = false,
 			['healthbar'] = {
 				['enable'] = true,
 				['height'] = 10,
@@ -236,6 +244,7 @@ P["nameplates"] = {
 					['enable'] = false,
 					['format'] = 'CURRENT',
 				},
+				["useClassColor"] = true,
 			},
 			['showName'] = false,
 			['showLevel'] = false,
@@ -273,6 +282,9 @@ P["nameplates"] = {
 					['maxDuration'] = 120,
 					['filter'] = 'CCDebuffs'
 				},
+			},
+			["name"] = {
+				["useClassColor"] = true,
 			},
 		},
 		['HEALER'] = {
@@ -324,6 +336,9 @@ P["nameplates"] = {
 					['maxDuration'] = 120,
 					['filter'] = 'CCDebuffs'
 				},
+			},
+			["name"] = {
+				["useClassColor"] = true,
 			},
 		},
 		['FRIENDLY_PLAYER'] = {
@@ -377,6 +392,9 @@ P["nameplates"] = {
 					['filter'] = 'CCDebuffs'
 				},
 			},
+			["name"] = {
+				["useClassColor"] = true,
+			},
 		},
 		['ENEMY_PLAYER'] = {
 			["minions"] = false,
@@ -429,6 +447,9 @@ P["nameplates"] = {
 					['maxDuration'] = 120,
 					['filter'] = 'CCDebuffs'
 				},
+			},
+			["name"] = {
+				["useClassColor"] = true,
 			},
 		},
 		['FRIENDLY_NPC'] = {
@@ -2838,6 +2859,7 @@ P["actionbar"] = {
 	['font'] = 'Homespun',
 	['fontSize'] = 10,
 	['fontOutline'] = 'MONOCHROMEOUTLINE',
+	['fontColor'] = { r = 1, g = 1, b = 1 },
 
 	["macrotext"] = false,
 	["hotkeytext"] = true,
@@ -2851,7 +2873,7 @@ P["actionbar"] = {
 	['microbar'] = {
 		['enabled'] = false,
 		['mouseover'] = false,
-		['buttonsPerRow'] = 12,
+		['buttonsPerRow'] = 11,
 		['alpha'] = 1,
 	},
 

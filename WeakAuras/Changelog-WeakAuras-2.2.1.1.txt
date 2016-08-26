@@ -1,0 +1,24 @@
+tag 2.2.1.1
+4e76114e79feb6b50459790c07f4073752699931
+Benjamin Staneck <staneck@gmail.com>
+2016-08-14 22:48:30 +0200
+
+
+
+--------------------
+
+Infus:
+	- Fix text font flags
+	Yeah, I can't code...
+	- Fix text eliding for aurabars
+	Take icon size into account.
+	
+	Ticket-Nr: 668
+	- Readd monochrome font flag
+	This used to crash WoW. The two example cases I found no longer crash
+	wow though and after playing around with it, it seems the bug is
+	finally fixed.
+	
+	Ticket-Nr: 670
+	- Text: Add font flags combobox
+	Ticket-Nr: 670

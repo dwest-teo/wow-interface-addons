@@ -2,7 +2,7 @@ if select(2, GetAddOnInfo('ElvUI_KnightFrame')) and IsAddOnLoaded('ElvUI_KnightF
 
 local SLE, T, E, L, V, P, G = unpack(select(2, ...))
 local KF, Info, Timer = unpack(ElvUI_KnightFrame)
---GLOBALS: CreateFrame, UIParent, SLE_ArmoryDB, hooksecurefunc
+--GLOBALS: CreateFrame, UIParent, SLE_ArmoryDB, hooksecurefunc, GetInventoryItemGems
 local _G = _G
 local _
 local IsShiftKeyDown = IsShiftKeyDown
@@ -241,10 +241,10 @@ function CA:Setup_CharacterArmory()
 			_G["CharacterLevelText"]:SetText('|c'..RAID_CLASS_COLORS[E.myclass].colorStr.._G["CharacterLevelText"]:GetText())
 
 			_G["CharacterFrameTitleText"]:ClearAllPoints()
-			_G["CharacterFrameTitleText"]:Point('TOP', self, 0, 23)
+			_G["CharacterFrameTitleText"]:Point('TOP', self, 0, 35)
 			_G["CharacterFrameTitleText"]:SetParent(self)
 			_G["CharacterLevelText"]:ClearAllPoints()
-			_G["CharacterLevelText"]:SetPoint('TOP', _G["CharacterFrameTitleText"], 'BOTTOM', 0, -13)
+			_G["CharacterLevelText"]:SetPoint('TOP', _G["CharacterFrameTitleText"], 'BOTTOM', 0, 2)
 			_G["CharacterLevelText"]:SetParent(self)
 		end
 	end)
@@ -261,13 +261,6 @@ function CA:Setup_CharacterArmory()
 	
 	--<< Change Model Frame's frameLevel >>--
 	_G["CharacterModelFrame"]:SetFrameLevel(self:GetFrameLevel() + 2)
-	
-	--<< Average Item Level >>--
-	KF:TextSetting(self, nil, { Tag = 'AverageItemLevel', FontSize = 12 }, 'BOTTOM', _G["CharacterModelFrame"], 'TOP', 0, 14)
-	local function ValueColorUpdate()
-		self.AverageItemLevel:SetText(KF:Color_Value(L["Average"])..' : '..format('%.2f', T.select(2, T.GetAverageItemLevel())))
-	end
-	E.valueColorUpdateFuncs[ValueColorUpdate] = true
 	
 	-- Create each equipment slots gradation, text, gem socket icon.
 	local Slot
@@ -428,8 +421,8 @@ function CA:Setup_CharacterArmory()
 end
 
 local function DCS_Check()
-	if DCS_ExpandCheck then
-		DCS_ExpandCheck:SetFrameLevel(CharacterModelFrame:GetFrameLevel() + 2)
+	if _G["DCS_ExpandCheck"] then
+		_G["DCS_ExpandCheck"]:SetFrameLevel(_G["CharacterModelFrame"]:GetFrameLevel() + 2)
 		DCS_Check = nil
 	end
 end
@@ -685,7 +678,7 @@ function CA:Update_Gear()
 					
 					if E.db.sle.Armory.Character.NoticeMissing ~= false then
 						if not Slot.IsEnchanted and Info.Armory_Constants.EnchantableSlots[SlotName] then 
-							if SlotName ~= 'SecondaryHandSlot' then
+							if SlotName ~= 'SecondaryHandSlot' or (ItemType == "INVTYPE_WEAPONOFFHAND" or ItemType == "INVTYPE_WEAPON")then
 								ErrorDetected = true
 								Slot.EnchantWarning:Show()
 								
@@ -743,8 +736,6 @@ function CA:Update_Gear()
 			Slot.Gradation:SetVertexColor(T.unpack(E.db.sle.Armory.Character.Gradation.Color))
 		end
 	end
-	
-	self.AverageItemLevel:SetText(KF:Color_Value(STAT_AVERAGE_ITEM_LEVEL)..' : '..format('%.2f', T.select(2, T.GetAverageItemLevel())))
 	
 	if NeedUpdateList then
 		self.GearUpdated = NeedUpdateList
@@ -852,6 +843,69 @@ function CA:Update_Display(Force)
 	end
 end
 
+function CA:UpdateSettings(part)
+	local db = E.db.sle.Armory.Character
+	if not db.Enable then return end
+	if db.Enable and _G["CharacterArmory"].Setup_CharacterArmory then _G["CharacterArmory"]:Setup_CharacterArmory() end
+	if part == "ilvl" or part == "all" then
+		for _, SlotName in T.pairs(Info.Armory_Constants.GearList) do
+			if _G["CharacterArmory"][SlotName] and _G["CharacterArmory"][SlotName].ItemLevel then
+				_G["CharacterArmory"][SlotName].ItemLevel:FontTemplate(E.LSM:Fetch('font', db.Level.Font),db.Level.FontSize,db.Level.FontStyle)
+			end
+		end
+	end
+	if part == "ench" or part == "all" then
+		for _, SlotName in T.pairs(Info.Armory_Constants.GearList) do
+			if _G["CharacterArmory"][SlotName] then
+				if _G["CharacterArmory"][SlotName].ItemEnchant then
+					_G["CharacterArmory"][SlotName].ItemEnchant:FontTemplate(E.LSM:Fetch('font', db.Enchant.Font),db.Enchant.FontSize,db.Enchant.FontStyle)
+				end
+				if _G["CharacterArmory"][SlotName].EnchantWarning then
+					_G["CharacterArmory"][SlotName].EnchantWarning:Size(db.Enchant.WarningSize)
+				end
+			end
+		end
+	end
+	if part == "gem" or part == "all" then
+		for _, SlotName in T.pairs(Info.Armory_Constants.GearList) do
+			for i = 1, MAX_NUM_SOCKETS do
+				if _G["CharacterArmory"][SlotName] and _G["CharacterArmory"][SlotName]["Socket"..i] then
+					_G["CharacterArmory"][SlotName]["Socket"..i]:Size(db.Gem.SocketSize)
+				else
+					break
+				end
+			end
+			if _G["CharacterArmory"][SlotName] and _G["CharacterArmory"][SlotName].SocketWarning then
+				_G["CharacterArmory"][SlotName].SocketWarning:Size(db.Gem.WarningSize)
+			end
+		end
+	end
+	if part == "dur" or part == "all" then
+		for _, SlotName in T.pairs(Info.Armory_Constants.GearList) do
+			if _G["CharacterArmory"][SlotName] and _G["CharacterArmory"][SlotName].Durability then
+				_G["CharacterArmory"][SlotName].Durability:FontTemplate(E.LSM:Fetch('font', db.Durability.Font),db.Durability.FontSize,db.Durability.FontStyle)
+			end
+		end
+	end
+	if (part == "bg" or part == "all") then
+		_G["CharacterArmory"]:Update_BG()
+	end
+	if part == "gear" or part == "all" then
+		_G["CharacterArmory"]:Update_Gear()
+		_G["CharacterArmory"]:Update_Display(true)
+	end
+end
+
+function CA:UpdateIlvlFont()
+	local db = E.private.sle.Armory.ItemLevel
+	_G["CharacterStatsPane"].ItemLevelFrame.Value:FontTemplate(E.LSM:Fetch('font', db.font), db.size, db.outline)
+	_G["CharacterStatsPane"].ItemLevelFrame:SetHeight(db.size + 4)
+	_G["CharacterStatsPane"].ItemLevelFrame.Background:SetHeight(db.size + 4)
+	if _G["CharacterStatsPane"].ItemLevelFrame.leftGrad then
+		_G["CharacterStatsPane"].ItemLevelFrame.leftGrad:SetHeight(db.size + 4)
+		_G["CharacterStatsPane"].ItemLevelFrame.rightGrad:SetHeight(db.size + 4)
+	end
+end
 
 KF.Modules[#KF.Modules + 1] = 'CharacterArmory'
 KF.Modules.CharacterArmory = function()
@@ -940,4 +994,11 @@ KF.Modules.CharacterArmory = function()
 		KF_KnightArmory_NoticeMissing.CheckButton:SetTexture('Interface\\Buttons\\UI-CheckBox-Check-Disabled')
 		]]
 	end
+	if SLE._Compatibility["DejaCharacterStats"] then return end
+	--Resize and reposition god damned ilevel text
+	_G["CharacterStatsPane"].ItemLevelFrame:SetPoint("TOP", _G["CharacterStatsPane"].ItemLevelCategory, "BOTTOM", 0, 6)
+	CA:UpdateIlvlFont()
+	hooksecurefunc("PaperDollFrame_UpdateStats", CA.PaperDollFrame_UpdateStats)
+	-- PaperDollFrame_UpdateStats = CA.PaperDollFrame_UpdateStats()
+	CA:ToggleStats()
 end

@@ -165,16 +165,17 @@ function DTP:update_Guild()
 	if T.IsInGuild() then
 		T.GuildRoster()
 		local guildTotal, online = T.GetNumGuildMembers()
-			for i = 1, T.GetNumGuildMembers() do
-				local _, _, _, _, _, _, _, _, connected, _, _, _, _, isMobile = T.GetGuildRosterInfo(i)
-				if isMobile then
-					online = online + 1
-				end
+		for i = 1, T.GetNumGuildMembers() do
+			local _, _, _, _, _, _, _, _, connected, _, _, _, _, isMobile = T.GetGuildRosterInfo(i)
+			if isMobile then
+				online = online + 1
 			end
+		end
+		local text = E.db.sle.dt.guild.textStyle == "Default" and "|cffffffff"..GUILD..": |r" or E.db.sle.dt.guild.textStyle == "NoText" and "" or E.db.sle.dt.guild.textStyle == "Icon" and "|TInterface\\ICONS\\Achievement_Dungeon_HEROIC_GloryoftheRaider:12|t: "
 		if E.db.sle.dt.guild.totals then
-			LDB.text = --[["|cff82c5ff"]]"|cffffffff"..GUILD..": |r"..valueColor(online).."/"..valueColor(guildTotal)--[["|r"]]
+			LDB.text = --[["|cff82c5ff"]]text..valueColor(online).."/"..valueColor(guildTotal)--[["|r"]]
 		else
-			LDB.text = "|cffffffff"..GUILD..": |r"..valueColor(online)
+			LDB.text = text..valueColor(online)
 		end
 	else
 		LDB.text = "|cffffffff"..L["No Guild"].."|r"
@@ -234,7 +235,7 @@ function LDB:OnClick(button)
 	end
 
 	if button == "RightButton" then
-		_G["ElvConfigToggle"]:Click();
+		E:ToggleConfig()
 		SLE.ACD:SelectGroup("ElvUI", "sle", "modules", "datatext", "sldatatext", "slguild")
 	end
 end
@@ -261,8 +262,10 @@ function LDB.OnEnter(self)
 	end
 
 	local line = tooltip:AddLine()
-	tooltip:SetCell(line, 1, "Shadow & Light Guild", ssTitleFont, "CENTER", 0)
-	tooltip:AddLine(" ")
+	if not E.db.sle.dt.guild.hide_titleline then
+		tooltip:SetCell(line, 1, "Shadow & Light Guild", ssTitleFont, "CENTER", 0)
+		tooltip:AddLine(" ")
+	end
 
 	if T.IsInGuild() then
 		local guild_table = {}

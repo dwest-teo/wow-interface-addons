@@ -256,7 +256,7 @@ local function LoadSkin()
 	HandleGoldIcon("ScenarioQueueFrameRandomScrollFrameChildFrameMoneyReward")
 
 	for i = 1, NUM_LFD_CHOICE_BUTTONS do
-		S:HandleCheckBox(_G["LFDQueueFrameSpecificListButton"..i].enableButton)
+		S:HandleCheckBox(_G["LFDQueueFrameSpecificListButton"..i].enableButton, nil, true)
 	end
 
 	hooksecurefunc("ScenarioQueueFrameSpecific_Update", function()
@@ -265,7 +265,7 @@ local function LoadSkin()
 			local button = _G["ScenarioQueueFrameSpecificButton"..i]
 
 			if button and not button.skinned then
-				S:HandleCheckBox(button.enableButton)
+				S:HandleCheckBox(button.enableButton, nil, true)
 				button.skinned = true;
 			end
 		end
@@ -273,7 +273,7 @@ local function LoadSkin()
 
 	for i = 1, NUM_LFR_CHOICE_BUTTONS do
 		local bu = _G["LFRQueueFrameSpecificListButton"..i].enableButton
-		S:HandleCheckBox(bu)
+		S:HandleCheckBox(bu, nil, true)
 	end
 
 	S:HandleDropDownBox(LFDQueueFrameTypeDropDown)
@@ -382,7 +382,7 @@ local function LoadSkin()
 			LFRBrowseFrame:StripTextures()
 			for _, roleButton in pairs(roleButtons) do
 				roleButton:SetNormalTexture("")
-				S:HandleCheckBox(roleButton.checkButton)
+				S:HandleCheckBox(roleButton.checkButton, nil, true)
 				roleButton:GetChildren():SetFrameLevel(roleButton:GetChildren():GetFrameLevel() + 1)
 			end
 
@@ -471,6 +471,7 @@ local function LoadSkin()
 
 	S:HandleEditBox(LFGListFrame.EntryCreation.Name)
 	S:HandleEditBox(LFGListFrame.EntryCreation.ItemLevel.EditBox)
+	S:HandleEditBox(LFGListFrame.EntryCreation.HonorLevel.EditBox)
 	S:HandleEditBox(LFGListFrame.EntryCreation.VoiceChat.EditBox)
 
 	S:HandleDropDownBox(LFGListEntryCreationActivityDropDown)
@@ -478,6 +479,7 @@ local function LoadSkin()
 	S:HandleDropDownBox(LFGListEntryCreationCategoryDropDown, 330)
 
 	S:HandleCheckBox(LFGListFrame.EntryCreation.ItemLevel.CheckButton)
+	S:HandleCheckBox(LFGListFrame.EntryCreation.HonorLevel.CheckButton)
 	S:HandleCheckBox(LFGListFrame.EntryCreation.VoiceChat.CheckButton)
 
 	LFGListFrame.EntryCreation.ActivityFinder.Dialog:StripTextures()
@@ -572,6 +574,29 @@ local function LoadSkin()
 	LFGListApplicationViewerScrollFrameScrollBar:ClearAllPoints()
 	LFGListApplicationViewerScrollFrameScrollBar:Point("TOPLEFT", LFGListFrame.ApplicationViewer.Inset, "TOPRIGHT", 0, -14)
 	LFGListApplicationViewerScrollFrameScrollBar:Point("BOTTOMLEFT", LFGListFrame.ApplicationViewer.Inset, "BOTTOMRIGHT", 0, 14)
+
+	hooksecurefunc("LFGListCategorySelection_AddButton", function(self, btnIndex, categoryID, filters)
+		local button = self.CategoryButtons[btnIndex]
+		if(button) then
+			if not button.isSkinned then
+				button:SetTemplate("Default")
+				button.Icon:SetDrawLayer("BACKGROUND", 2)
+				button.Icon:SetInside()
+				button.Cover:Hide()
+				button.HighlightTexture:SetColorTexture(1, 1, 1, 0.1)
+				button.HighlightTexture:SetInside()
+				button.isSkinned = true
+			end
+
+			button.SelectedTexture:Hide()
+			local selected = self.selectedCategory == categoryID and self.selectedFilters == filters
+			if(selected) then
+				button:SetBackdropBorderColor(1, 1, 0)
+			else
+				button:SetBackdropBorderColor(unpack(E["media"].bordercolor))
+			end
+		end
+	end);
 end
 
 S:RegisterSkin("ElvUI", LoadSkin)

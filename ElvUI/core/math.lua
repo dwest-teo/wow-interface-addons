@@ -15,14 +15,26 @@ local GetScreenWidth, GetScreenHeight = GetScreenWidth, GetScreenHeight
 
 --Return short value of a number
 function E:ShortValue(v)
-	if abs(v) >= 1e9 then
-		return format("%.1fG", v / 1e9)
-	elseif abs(v) >= 1e6 then
-		return format("%.1fM", v / 1e6)
-	elseif abs(v) >= 1e3 then
-		return format("%.1fk", v / 1e3)
+	if E.db.general.numberPrefixStyle == "METRIC" then
+		if abs(v) >= 1e9 then
+			return format("%.1fG", v / 1e9)
+		elseif abs(v) >= 1e6 then
+			return format("%.1fM", v / 1e6)
+		elseif abs(v) >= 1e3 then
+			return format("%.1fk", v / 1e3)
+		else
+			return format("%d", v)
+		end
 	else
-		return format("%d", v)
+		if abs(v) >= 1e9 then
+			return format("%.1fB", v / 1e9)
+		elseif abs(v) >= 1e6 then
+			return format("%.1fM", v / 1e6)
+		elseif abs(v) >= 1e3 then
+			return format("%.1fK", v / 1e3)
+		else
+			return format("%d", v)
+		end
 	end
 end
 
@@ -109,21 +121,21 @@ function E:GetScreenQuadrant(frame)
 		return "UNKNOWN", frame:GetName()
 	end
 
-	if (x > (screenWidth / 4) and x < (screenWidth / 4)*3) and y > (screenHeight / 4)*3 then
+	if (x > (screenWidth / 3) and x < (screenWidth / 3)*2) and y > (screenHeight / 3)*2 then
 		point = "TOP"
-	elseif x < (screenWidth / 4) and y > (screenHeight / 4)*3 then
+	elseif x < (screenWidth / 3) and y > (screenHeight / 3)*2 then
 		point = "TOPLEFT"
-	elseif x > (screenWidth / 4)*3 and y > (screenHeight / 4)*3 then
+	elseif x > (screenWidth / 3)*2 and y > (screenHeight / 3)*2 then
 		point = "TOPRIGHT"
-	elseif (x > (screenWidth / 4) and x < (screenWidth / 4)*3) and y < (screenHeight / 4) then
+	elseif (x > (screenWidth / 3) and x < (screenWidth / 3)*2) and y < (screenHeight / 3) then
 		point = "BOTTOM"
-	elseif x < (screenWidth / 4) and y < (screenHeight / 4) then
+	elseif x < (screenWidth / 3) and y < (screenHeight / 3) then
 		point = "BOTTOMLEFT"
-	elseif x > (screenWidth / 4)*3 and y < (screenHeight / 4) then
+	elseif x > (screenWidth / 3)*2 and y < (screenHeight / 3) then
 		point = "BOTTOMRIGHT"
-	elseif x < (screenWidth / 4) and (y > (screenHeight / 4) and y < (screenHeight / 4)*3) then
+	elseif x < (screenWidth / 3) and (y > (screenHeight / 3) and y < (screenHeight / 3)*2) then
 		point = "LEFT"
-	elseif x > (screenWidth / 4)*3 and y < (screenHeight / 4)*3 and y > (screenHeight / 4) then
+	elseif x > (screenWidth / 3)*2 and y < (screenHeight / 3)*2 and y > (screenHeight / 3) then
 		point = "RIGHT"
 	else
 		point = "CENTER"

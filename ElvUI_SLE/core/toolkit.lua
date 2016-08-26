@@ -17,6 +17,7 @@ T.UnitLevel = UnitLevel
 T.UnitClass = UnitClass
 T.UnitRace = UnitRace
 T.UnitName = UnitName
+T.UnitInVehicle = UnitInVehicle
 T.UnitFullName = UnitFullName
 T.GetUnitName = GetUnitName
 T.UnitFactionGroup = UnitFactionGroup
@@ -26,6 +27,7 @@ T.UnitDebuff = UnitDebuff
 T.GetSpecialization = GetSpecialization
 T.GetSpecializationInfo = GetSpecializationInfo
 T.GetSpecializationInfoByID = GetSpecializationInfoByID
+T.GetSpecializationRole = GetSpecializationRole
 T.GetTalentInfo = GetTalentInfo
 T.GetTalentInfoByID = GetTalentInfoByID
 T.GetNumSpecializationsForClassID = GetNumSpecializationsForClassID
@@ -60,6 +62,7 @@ T.GetNumClasses = GetNumClasses
 T.GetClassInfo = GetClassInfo
 -- T.
 --Items
+T.IsUsableItem = IsUsableItem
 T.GetInventoryItemLink = GetInventoryItemLink
 T.GetInventorySlotInfo = GetInventorySlotInfo
 T.GetInventoryItemDurability = GetInventoryItemDurability
@@ -138,6 +141,7 @@ T.GetZoneText = GetZoneText
 T.GetRealZoneText = GetRealZoneText
 T.GetMinimapZoneText = GetMinimapZoneText
 T.GetMapNameByID = GetMapNameByID
+T.GetCurrentMapAreaID = GetCurrentMapAreaID
 T.GetSubZoneText = GetSubZoneText
 T.GetPlayerMapPosition = GetPlayerMapPosition
 T.GetZonePVPInfo = GetZonePVPInfo
@@ -169,6 +173,7 @@ end
 --Math
 T.floor = floor
 T.tonumber = tonumber
+T.tostring = tostring
 --Groups
 T.IsInGroup = IsInGroup
 T.IsInRaid = IsInRaid
@@ -310,6 +315,54 @@ end
 
 --For when we dramatically change some options
 function SLE:FixDatabase()
+end
+
+--Reseting shit
+function SLE:Reset(group)
+	if not group then print("U wot m8?") end
+	if group == "unitframes" or group == "all" then
+		E.db.sle.combatico.pos = 'TOP'
+		E.db.sle.roleicons = "ElvUI"
+		E.db.sle.powtext = false
+	end
+	if group == "backgrounds" or group == "all" then
+		E:CopyTable(E.db.sle.backgrounds, P.sle.backgrounds)
+		E:ResetMovers(L["SLE_BG_1_Mover"])
+		E:ResetMovers(L["SLE_BG_2_Mover"])
+		E:ResetMovers(L["SLE_BG_3_Mover"])
+		E:ResetMovers(L["SLE_BG_4_Mover"])
+	end
+	if group == "datatexts" or group == "all" then
+		E:CopyTable(E.db.sle.datatexts, P.sle.datatexts)
+		E:CopyTable(E.db.sle.dt, P.sle.dt)
+		E:ResetMovers(L["SLE_DataPanel_1"])
+		E:ResetMovers(L["SLE_DataPanel_2"])
+		E:ResetMovers(L["SLE_DataPanel_3"])
+		E:ResetMovers(L["SLE_DataPanel_4"])
+		E:ResetMovers(L["SLE_DataPanel_5"])
+		E:ResetMovers(L["SLE_DataPanel_6"])
+		E:ResetMovers(L["SLE_DataPanel_7"])
+		E:ResetMovers(L["SLE_DataPanel_8"])
+	end
+	if group == "marks" or group == "all" then
+		E:CopyTable(E.db.sle.raidmarkers, P.sle.raidmarkers)
+		E:ResetMovers(L['Raid Marker Bar'])
+	end
+	if group == "all" then
+		E:CopyTable(E.db.sle, P.sle)
+		E:ResetMovers("PvP")
+		E:ResetMovers(L["S&L UI Buttons"])
+		E:ResetMovers(L["Error Frame"])
+		E:ResetMovers(L["Pet Battle Status"])
+		E:ResetMovers(L["Pet Battle AB"])
+		E:ResetMovers(L["Farm Seed Bars"])
+		E:ResetMovers(L["Farm Tool Bar"])
+		E:ResetMovers(L["Farm Portal Bar"])
+		E:ResetMovers(L["Garrison Tools Bar"])
+		E:ResetMovers(L["Ghost Frame"])
+		E:ResetMovers(L["Raid Utility"])
+	end
+	E:UpdateAll()
 end
 
 --When we need to get mutiple modules in a file

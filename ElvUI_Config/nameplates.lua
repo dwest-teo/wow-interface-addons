@@ -124,46 +124,8 @@ local function GetUnitSettings(unit, name)
 					NP:ConfigureAll()
 				end,
 			},
-			levelGroup = {
-				order = -1,
-				name = LEVEL,
-				type = "group",	
-				args = {
-					header = {
-						order = 0,
-						type = "header",
-						name = LEVEL,
-					},
-					enable = {
-						order = 1,
-						name = L["Enable"],
-						type = "toggle",
-						get = function(info) return E.db.nameplates.units[unit].showLevel end,
-						set = function(info, value) E.db.nameplates.units[unit].showLevel = value; NP:ConfigureAll() end,
-					},
-				},
-			},
-			nameGroup = {
-				order = -1,
-				name = L["Name"],
-				type = "group",
-				args = {
-					header = {
-						order = 0,
-						type = "header",
-						name = L["Name"],
-					},
-					enable = {
-						order = 1,
-						name = L["Enable"],
-						type = "toggle",
-						get = function(info) return E.db.nameplates.units[unit].showName end,
-						set = function(info, value) E.db.nameplates.units[unit].showName = value; NP:ConfigureAll() end,
-					},
-				},
-			},
 			healthGroup = {
-				order = 2,
+				order = 1,
 				name = L["Health"],
 				type = "group",
 				get = function(info) return E.db.nameplates.units[unit].healthbar[ info[#info] ] end,
@@ -223,7 +185,7 @@ local function GetUnitSettings(unit, name)
 				},
 			},
 			powerGroup = {
-				order = 3,
+				order = 2,
 				name = L["Power"],
 				type = "group",
 				get = function(info) return E.db.nameplates.units[unit].powerbar[ info[#info] ] end,
@@ -249,7 +211,7 @@ local function GetUnitSettings(unit, name)
 				},
 			},
 			castGroup = {
-				order = 4,
+				order = 3,
 				name = L["Cast Bar"],
 				type = "group",
 				get = function(info) return E.db.nameplates.units[unit].castbar[ info[#info] ] end,
@@ -275,7 +237,7 @@ local function GetUnitSettings(unit, name)
 				},
 			},
 			buffsGroup = {
-				order = 5,
+				order = 4,
 				name = L["Buffs"],
 				type = "group",
 				get = function(info) return E.db.nameplates.units[unit].buffs.filters[ info[#info] ] end,
@@ -352,7 +314,7 @@ local function GetUnitSettings(unit, name)
 				},
 			},
 			debuffsGroup = {
-				order = 6,
+				order = 5,
 				name = L["Debuffs"],
 				type = "group",
 				get = function(info) return E.db.nameplates.units[unit].debuffs.filters[ info[#info] ] end,
@@ -428,6 +390,46 @@ local function GetUnitSettings(unit, name)
 					},
 				},
 			},
+			levelGroup = {
+				order = 6,
+				name = LEVEL,
+				type = "group",	
+				args = {
+					header = {
+						order = 0,
+						type = "header",
+						name = LEVEL,
+					},
+					enable = {
+						order = 1,
+						name = L["Enable"],
+						type = "toggle",
+						get = function(info) return E.db.nameplates.units[unit].showLevel end,
+						set = function(info, value) E.db.nameplates.units[unit].showLevel = value; NP:ConfigureAll() end,
+					},
+				},
+			},
+			nameGroup = {
+				order = 7,
+				name = L["Name"],
+				type = "group",
+				get = function(info) return E.db.nameplates.units[unit].name[ info[#info] ] end,
+				set = function(info, value) E.db.nameplates.units[unit].name[ info[#info] ] = value; NP:ConfigureAll() end,
+				args = {
+					header = {
+						order = 0,
+						type = "header",
+						name = L["Name"],
+					},
+					enable = {
+						order = 1,
+						name = L["Enable"],
+						type = "toggle",
+						get = function(info) return E.db.nameplates.units[unit].showName end,
+						set = function(info, value) E.db.nameplates.units[unit].showName = value; NP:ConfigureAll() end,
+					},
+				},
+			},
 		},
 	}
 
@@ -437,16 +439,32 @@ local function GetUnitSettings(unit, name)
 			name = L["Enable"],
 			type = "toggle",
 		}
+		group.args.spacer = {
+			order = -14,
+			type = "description",
+			name = ""
+		}
 		group.args.alwaysShow = {
 			order = -13,
 			name = L["Always Display"],
 			desc = L["By forcing the nameplate to always show it will not move on the screen to stay below your characters feet."],
 			type = "toggle"
 		}
-		group.args.spacer = {
-			order = -14,
-			type = "description",
-			name = ""
+		group.args.clickthrough = {
+			order = -12,
+			name = L["Click Through"],
+			type = "toggle",
+			set = function(info, value) E.db.nameplates.units[unit][ info[#info] ] = value; NP:TogglePlayerMouse() end,
+		}
+		group.args.healthGroup.args.useClassColor = {
+			order = 4,
+			type = "toggle",
+			name = L["Use Class Color"],
+		}
+		group.args.nameGroup.args.useClassColor = {
+			order = 3,
+			type = "toggle",
+			name = L["Use Class Color"],
 		}
 	elseif unit == "FRIENDLY_PLAYER" or unit == "ENEMY_PLAYER" then
 		group.args.minions = {
@@ -469,6 +487,11 @@ local function GetUnitSettings(unit, name)
 			type = "toggle",
 			name = L["Use Class Color"],
 		}
+		group.args.nameGroup.args.useClassColor = {
+			order = 3,
+			type = "toggle",
+			name = L["Use Class Color"],
+		}
 	elseif unit == "ENEMY_NPC" then
 		group.args.minors = {
 			order = 0,
@@ -479,6 +502,11 @@ local function GetUnitSettings(unit, name)
 	elseif unit == "HEALER" then
 		group.args.healthGroup.args.useClassColor = {
 			order = 4,
+			type = "toggle",
+			name = L["Use Class Color"],
+		}
+		group.args.nameGroup.args.useClassColor = {
+			order = 3,
 			type = "toggle",
 			name = L["Use Class Color"],
 		}
@@ -556,12 +584,12 @@ E.Options.args.nameplate = {
 					order = 5,					
 				},
 				lowHealthThreshold = {
+					order = 6,
 					name = L["Low Health Threshold"],
 					desc = L["Make the unitframe glow yellow when it is below this percent of health, it will glow red when the health value is half of this value."],
 					type = "range",
 					isPercent = true,
-					min = 0.2, max = 1, step = 0.01, 
-					order = 6,
+					min = 0, max = 1, step = 0.01,
 				},
 				statusbar = {
 					order = 0,
@@ -607,8 +635,8 @@ E.Options.args.nameplate = {
 					order = 9,
 					type = "range",
 					name = L["Load Distance"],
-					desc = L["How far away a nameplate should be before it loads."],
-					min = 10, max = 60, step = 1,
+					desc = L["Only load nameplates for units within this range."],
+					min = 10, max = 100, step = 1,
 				},
 				clampToScreen = {
 					order = 10,

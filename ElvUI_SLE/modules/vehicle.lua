@@ -2,6 +2,7 @@ local SLE, T, E, L, V, P, G = unpack(select(2, ...))
 local EVB = SLE:NewModule("EnhancedVehicleBar")
 local AB = E:GetModule("ActionBars");
 local LAB = LibStub("LibActionButton-1.0-ElvUI")
+local ES
 --GLOBALS: CreateFrame, hooksecurefunc, UIParent
 local _G = _G
 local RegisterStateDriver = RegisterStateDriver
@@ -55,7 +56,7 @@ function EVB:CreateExtraButtonSet()
 
 		bar.buttons[i] = LAB:CreateButton(i, T.format(bar:GetName().."Button%d", i), bar, nil);
 		bar.buttons[i]:SetState(0, "action", i);
-		
+
 		for k = 1, 14 do
 			bar.buttons[i]:SetState(k, "action", (k - 1) * 12 + i)
 		end
@@ -74,16 +75,45 @@ function EVB:CreateExtraButtonSet()
 		end
 
 		AB:StyleButton(bar.buttons[i], nil, nil, true);
+		if E.private.sle.actionbars.transparentButtons then bar.buttons[i].backdrop:SetTemplate('Transparent') end
 		bar.buttons[i]:SetCheckedTexture("")
 		RegisterStateDriver(bar.buttons[i], 'visibility', '[petbattle] hide; [vehicleui][overridebar][shapeshift][possessbar] show; hide')
 
 	end
 end
 
+function EVB:ButtonsSize()
+	if not self.bar then return end
+	for i = 1, #self.bar.buttons do
+		self.bar.buttons[i]:Size(self.size);
+		if (i == 1) then
+			self.bar.buttons[i]:SetPoint('BOTTOMLEFT', 2, 2)
+		else
+			local prev = i == 12 and self.bar.buttons[6] or self.bar.buttons[i-1];
+			self.bar.buttons[i]:SetPoint('LEFT', prev, 'RIGHT', self.spacing, 0)
+		end
+	end
+	self.bar.buttons[12]:Size(self.size);
+	self.bar.buttons[12]:SetPoint('LEFT', self.bar.buttons[6], 'RIGHT', self.spacing, 0)
+end
+
+function EVB:BarSize()
+	if not self.bar then return end
+	local bar = self.bar
+
+	self.size = E.db.sle.actionbars.vehicle.buttonsize
+	self.spacing = E.db.sle.actionbars.vehicle.buttonspacing
+
+	bar:SetWidth((self.size * 7) + (self.spacing * 6) + 4);
+	bar:SetHeight(self.size + 4);
+end
+
 function EVB:Initialize()
 	if not SLE.initialized then return end
 	if not E.private.sle.vehicle.enable or not E.private.actionbar.enable then return end;
 
+	ES = SLE._Compatibility["ElvUI_KitUI"] and E:GetModule("EnhancedShadows") or SLE:GetModule("EnhancedShadows")
+	
 	local visibility = "[petbattle] hide; [vehicleui][overridebar][shapeshift][possessbar] hide;"
 	local page = T.format("[vehicleui] %d; [possessbar] %d; [overridebar] %d; [shapeshift] 13;", GetVehicleBarIndex(), GetVehicleBarIndex(), GetOverrideBarIndex());
 	local bindButtons = "ACTIONBUTTON";
@@ -96,20 +126,16 @@ function EVB:Initialize()
 		end
 	end);
 
-	local size = 40;
-	local spacing = E:Scale(AB.db["bar1"].buttonspacing);
 	local bar = CreateFrame("Frame", "ElvUISLEEnhancedVehicleBar", UIParent, "SecureHandlerStateTemplate");
 	bar.id = 1
+	self.bar = bar;
 
-	self.size = size;
-	self.spacing = spacing;
+	EVB:BarSize()
 
-	bar:SetWidth((size * 7) + (spacing * 8));
-	bar:SetHeight(size + (spacing * 2));
 	bar:SetTemplate("Transparent");
 	bar:CreateShadow();
-	if (E:GetModule("EnhancedShadows", true)) then
-		E:GetModule("EnhancedShadows"):RegisterShadow(bar.shadow);
+	if E.private.sle.module.shadows.vehicle then
+		ES:RegisterShadow(bar.shadow);
 	end
 
 	bar:SetPoint("BOTTOM", 0, 34);
@@ -137,9 +163,9 @@ function EVB:Initialize()
 
 	self:Animate(bar, 0, -(bar:GetHeight()), 1);
 
-	self.bar = bar;
-
 	self:CreateExtraButtonSet();
+	self:ButtonsSize()
+	E:CreateMover(bar, "EnhancedVehicleBar_Mover", L["Enhanced Vehicle Bar"], nil, nil, nil, "S&L,S&L MISC")
 
 	AB:UpdateButtonConfig(bar, bindButtons);
 	AB:PositionAndSizeBar("bar1")

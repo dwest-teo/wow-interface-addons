@@ -13,6 +13,7 @@ local format, find, split, match, strrep, len, sub, gsub = string.format, string
 --WoW API / Variables
 local CreateFrame = CreateFrame
 local C_Timer_After = C_Timer.After
+local C_PetBattles_IsInBattle = C_PetBattles.IsInBattle
 local DoEmote = DoEmote
 local GetBonusBarOffset = GetBonusBarOffset
 local GetCombatRatingBonus = GetCombatRatingBonus
@@ -1018,12 +1019,66 @@ end
 
 function E:AddNonPetBattleFrames(event)
 	if InCombatLockdown() then return end
-	for object, _ in pairs(E.FrameLocks) do
+	for object, data in pairs(E.FrameLocks) do
 		local obj = _G[object] or object
-		obj:SetParent(UIParent)
+		local parent, strata
+		if type(data) == "table" then
+			parent, strata = data.parent, data.strata
+		elseif data == true then
+			parent = UIParent
+		end
+		obj:SetParent(parent)
+		if strata then
+			obj:SetFrameStrata(strata)
+		end
 	end
 
 	self:UnregisterEvent("PLAYER_REGEN_DISABLED")
+end
+
+function E:RegisterPetBattleHideFrames(object, originalParent, originalStrata)
+	if not object or not originalParent then
+		E:Print("Error. Usage: RegisterPetBattleHideFrames(object, originalParent, originalStrata)")
+		return
+	end
+
+	local object = _G[object] or object
+	--If already doing pokemon
+	if C_PetBattles_IsInBattle() then
+		object:SetParent(E.HiddenFrame)
+	end
+	E.FrameLocks[object] = {
+		["parent"] = originalParent,
+		["strata"] = originalStrata or nil,
+	}
+end
+
+function E:UnregisterPetBattleHideFrames(object)
+	if not object then
+		E:Print("Error. Usage: UnregisterPetBattleHideFrames(object)")
+		return
+	end
+
+	local object = _G[object] or object
+	--Check if object was registered to begin with
+	if not E.FrameLocks[object] then
+		return
+	end
+
+	--Change parent of object back to original parent
+	local originalParent = E.FrameLocks[object].parent
+	if originalParent then
+		object:SetParent(originalParent)
+	end
+
+	--Change strata of object back to original
+	local originalStrata = E.FrameLocks[object].strata
+	if originalStrata then
+		object:SetFrameStrata(originalStrata)
+	end
+
+	--Remove object from table
+	E.FrameLocks[object] = nil
 end
 
 function E:EnterVehicleHideFrames(event, unit)
@@ -1358,45 +1413,71 @@ function E:DBConversions()
 end
 
 local CPU_USAGE = {}
-local function CompareCPUDiff(module, minCalls)
-	local greatestUsage, greatestCalls, greatestName
-	local greatestDiff = 0;
-	local mod = E:GetModule(module, true) or E
+local function CompareCPUDiff(showall, module, minCalls)
+	local greatestUsage, greatestCalls, greatestName, newName, newFunc
+	local greatestDiff, lastModule, mod, newUsage, calls, differance = 0;
 
 	for name, oldUsage in pairs(CPU_USAGE) do
-		local newUsage, calls = GetFunctionCPUUsage(mod[name], true)
-		local differance = newUsage - oldUsage
-
-		if differance > greatestDiff and calls > (minCalls or 15) then
-			greatestName = name
-			greatestUsage = newUsage
-			greatestCalls = calls
-			greatestDiff = differance
+		newName, newFunc = name:match("^([^:]+):(.+)$")
+		if not newFunc then
+			E:Print('CPU_USAGE:', name, newFunc)
+		else
+			if newName ~= lastModule then
+				mod = E:GetModule(newName, true) or E
+				lastModule = newName
+			end
+			newUsage, calls = GetFunctionCPUUsage(mod[newFunc], true)
+			differance = newUsage - oldUsage
+			if showall and calls > minCalls then
+				E:Print(calls, name, differance)
+			end
+			if (differance > greatestDiff) and calls > minCalls then
+				greatestName, greatestUsage, greatestCalls, greatestDiff = name, newUsage, calls, differance
+			end
 		end
 	end
 
-	if(greatestName) then
-		E:Print(greatestName.. " had the CPU usage of: "..greatestUsage.."ms. And has been called ".. greatestCalls.." times.")
+	if greatestName then
+		E:Print(greatestName.. " had the CPU usage difference of: "..greatestUsage.."ms. And has been called ".. greatestCalls.." times.")
+	else
+		E:Print('CPU Usage: No CPU Usage differences found.')
 	end
 end
 
 function E:GetTopCPUFunc(msg)
-	local module, delay, minCalls = msg:match("^([^%s]+)%s+(.*)$")
+	local module, showall, delay, minCalls = msg:match("^([^%s]+)%s*([^%s]*)%s*([^%s]*)%s*(.*)$")
+	local mod
 
-	module = module == "nil" and nil or module
-	delay = delay == "nil" and nil or tonumber(delay)
-	minCalls = minCalls == "nil" and nil or tonumber(minCalls)
+	module = (module == "nil" and nil) or module
+	if not module then
+		E:Print('cpuusage: module (arg1) is required! This can be set as "all" too.')
+		return
+	end
+	showall = (showall == "true" and true) or false
+	delay = (delay == "nil" and nil) or tonumber(delay) or 5
+	minCalls = (minCalls == "nil" and nil) or tonumber(minCalls) or 15
 
 	twipe(CPU_USAGE)
-	local mod = self:GetModule(module, true) or self
-	for name, func in pairs(mod) do
-		if type(mod[name]) == "function" and name ~= "GetModule" then
-			CPU_USAGE[name] = GetFunctionCPUUsage(mod[name], true)
+	if module == "all" then
+		for _, registeredModule in pairs(self['RegisteredModules']) do
+			mod = self:GetModule(registeredModule, true) or self
+			for name, func in pairs(mod) do
+				if type(mod[name]) == "function" and name ~= "GetModule" then
+					CPU_USAGE[registeredModule..":"..name] = GetFunctionCPUUsage(mod[name], true)
+				end
+			end
+		end
+	else
+		mod = self:GetModule(module, true) or self
+		for name, func in pairs(mod) do
+			if type(mod[name]) == "function" and name ~= "GetModule" then
+				CPU_USAGE[module..":"..name] = GetFunctionCPUUsage(mod[name], true)
+			end
 		end
 	end
 
-	self:Delay(delay or 5, CompareCPUDiff, module, minCalls)
-	self:Print("Calculating CPU Usage..")
+	self:Delay(delay, CompareCPUDiff, showall, module, minCalls)
+	self:Print("Calculating CPU Usage differences (module: "..(module or "?")..", showall: "..tostring(showall)..", minCalls: "..tostring(minCalls)..", delay: "..tostring(delay)..")")
 end
 
 function E:Initialize()
@@ -1491,4 +1572,9 @@ function E:Initialize()
 			end
 		end)
 	end
+
+	-- We must run the CVar for cameraDistanceMaxFactor on login, otherwise it won't get saved.
+	hooksecurefunc("BlizzardOptionsPanel_SetupControl", function(control)
+		if control == InterfaceOptionsCameraPanelMaxDistanceSlider then SetCVar("cameraDistanceMaxFactor", 2.6) end
+	end)
 end

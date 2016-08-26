@@ -119,6 +119,7 @@ E.Options.args.general = {
 						['PARTY'] = L["Party Only"],
 						['RAID'] = L["Party / Raid"],
 						['RAID_ONLY'] = L["Raid Only"],
+						["EMOTE"] = CHAT_MSG_EMOTE,
 					},
 				},
 				autoRepair = {
@@ -243,6 +244,17 @@ E.Options.args.general = {
 					get = function(info) return E.db.general.talkingHeadFrameScale end,
 					set = function(info, value) E.db.general.talkingHeadFrameScale = value; B:ScaleTalkingHeadFrame() end,
 				},
+				numberPrefixStyle = {
+					order = 20,
+					type = "select",
+					name = L["Number Prefix"],
+					get = function(info) return E.db.general.numberPrefixStyle end,
+					set = function(info, value) E.db.general.numberPrefixStyle = value; E:StaticPopup_Show("CONFIG_RL") end,
+					values = {
+						["METRIC"] = "k, M, G",
+						["ENGLISH"] = "K, M, B",
+					},
+				},
 				objectiveFrameHeaderSpacing = {
 					order = 29,
 					type = "description",
@@ -361,6 +373,8 @@ E.Options.args.general = {
 						--E.db.nameplate.buffs.fontSize = fontSize  --Dont use this because nameplate font it somewhat smaller than the rest of the font sizes
 						--E.db.nameplate.debuffs.font = font
 						--E.db.nameplate.debuffs.fontSize = fontSize   --Dont use this because nameplate font it somewhat smaller than the rest of the font sizes
+						E.db.actionbar.font = font
+						--E.db.actionbar.fontSize = fontSize	--This may not look good if a big font size is chosen
 						E.db.auras.font = font
 						E.db.auras.fontSize = fontSize
 						E.db.chat.font = font
@@ -925,6 +939,48 @@ E.Options.args.general = {
 								},
 							},
 						},
+						ticket = {
+							order = 5,
+							type = 'group',
+							name = L["Open Ticket"],
+							get = function(info) return E.db.general.minimap.icons.ticket[ info[#info] ] end,
+							set = function(info, value) E.db.general.minimap.icons.ticket[ info[#info] ] = value; E:GetModule('Minimap'):UpdateSettings() end,
+							args = {
+								scale = {
+									order = 1,
+									type = 'range',
+									name = L["Scale"],
+									min = 0.5, max = 2, step = 0.05,
+								},
+								position = {
+									order = 2,
+									type = 'select',
+									name = L["Position"],
+									values = {
+										["LEFT"] = L["Left"],
+										["RIGHT"] = L["Right"],
+										["TOP"] = L["Top"],
+										["BOTTOM"] = L["Bottom"],
+										["TOPLEFT"] = L["Top Left"],
+										["TOPRIGHT"] = L["Top Right"],
+										["BOTTOMLEFT"] = L["Bottom Left"],
+										["BOTTOMRIGHT"] = L["Bottom Right"],
+									},
+								},
+								xOffset = {
+									order = 3,
+									type = 'range',
+									name = L["xOffset"],
+									min = -50, max = 50, step = 1,
+								},
+								yOffset = {
+									order = 4,
+									type = 'range',
+									name = L["yOffset"],
+									min = -50, max = 50, step = 1,
+								},
+							},
+						},
 					},
 				},
 			},
@@ -1109,7 +1165,6 @@ E.Options.args.general = {
 		worldMap = {
 			order = 12,
 			type = "group",
-			-- guiInline = true,
 			name = WORLD_MAP,
 			args = {
 				header = {
@@ -1125,21 +1180,40 @@ E.Options.args.general = {
 					get = function(info) return E.global.general.smallerWorldMap end,
 					set = function(info, value) E.global.general.smallerWorldMap = value; E:StaticPopup_Show("GLOBAL_RL") end
 				},
-				WorldMapCoordinatesEnable = {
+				fadeMapWhenMoving = {
 					order = 3,
+					type = "toggle",
+					name = MAP_FADE_TEXT,
+					get = function(info) return E.global.general.fadeMapWhenMoving end,
+					set = function(info, value)
+						E.global.general.fadeMapWhenMoving = value;
+						SetCVar("mapFade", (value == true and 1 or 0))
+					end,
+				},
+				mapAlphaWhenMoving = {
+					order = 4,
+					type = "range",
+					name = L["Map Opacity When Moving"],
+					isPercent = true,
+					min = 0, max = 1, step = 0.01,
+					get = function(info) return E.global.general.mapAlphaWhenMoving end,
+					set = function(info, value)
+						E.global.general.mapAlphaWhenMoving = value;
+						WORLD_MAP_MIN_ALPHA = value;
+						SetCVar("mapAnimMinAlpha", value)
+					end,
+					disabled = function() return not E.global.general.fadeMapWhenMoving end,
+				},
+				WorldMapCoordinatesEnable = {
+					order = 5,
 					type = 'toggle',
 					name = L["World Map Coordinates"],
 					desc = L["Puts coordinates on the world map."],
 					get = function(info) return E.global.general.WorldMapCoordinates.enable end,
-					set = function(info, value) E.global.general.WorldMapCoordinates.enable = value; E:StaticPopup_Show("GLOBAL_RL") end
-				},
-				spacing = {
-					order = 4,
-					type = "description",
-					name = " ",
+					set = function(info, value) E.global.general.WorldMapCoordinates.enable = value; E:StaticPopup_Show("GLOBAL_RL") end,
 				},
 				WorldMapCoordinates = {
-					order = 5,
+					order = 6,
 					type = "group",
 					name = L["World Map Coordinates"],
 					guiInline = true,

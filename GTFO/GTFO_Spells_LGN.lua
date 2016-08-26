@@ -402,3 +402,68 @@ GTFO.FFSpellID["203097"] = {
   negatingBuffSpellID = 203096; -- Rot
 };
 
+-- *************
+-- * Nighthold *
+-- *************
+
+GTFO.SpellID["212736"] = {
+  --desc = "Pool of Frost (Spellblade Aluriel)";
+  sound = 1;
+};
+
+GTFO.SpellID["213504"] = {
+  --desc = "Arcane Fog (Spellblade Aluriel)";
+  sound = 1;
+};
+
+GTFO.SpellID["213278"] = {
+  --desc = "Burning Ground (Spellblade Aluriel)";
+  sound = 1;
+};
+
+GTFO.SpellID["206398"] = {
+  --desc = "Fel Flame (Star Augur Etraeus)";
+  sound = 1;
+  applicationOnly = true;
+  test = true;
+};
+
+GTFO.SpellID["219950"] = {
+  --desc = "Controlled Chaos (High Botanist Tel'arn)";
+  sound = 1;
+  test = true;
+};
+
+GTFO.SpellID["213624"] = {
+  --desc = "Mark of Frost (Spellblade Aluriel)";
+  sound = 4;
+  negatingBuffSpellID = 212587; -- Mark of Frost
+};
+
+GTFO.SpellID["213520"] = {
+  --desc = "Arcane Orb (Spellblade Aluriel)";
+  sound = 1;
+  test = true;
+};
+
+GTFO.SpellID["212494"] = {
+  --desc = "Annihilated (Spellblade Aluriel)";
+  sound = 1;
+  tankSound = 0;
+};
+
+GTFO.SpellID["216027"] = {
+  --desc = "Nether Zone (Tichondrius)";
+  sound = 1;
+};
+
+GTFO.SpellID["209433"] = {
+  --desc = "Spanning Singularity (Grand Magistrix Elisande)";
+  sound = 1;
+};
+
+GTFO.SpellID["209433"] = {
+  --desc = "Spanning Singularity (Grand Magistrix Elisande)";
+  sound = 1;
+};
+

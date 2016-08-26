@@ -1,4 +1,4 @@
-﻿local E, L, V, P, G = unpack(ElvUI)
+﻿local SLE, T, E, L, V, P, G = unpack(select(2, ...))
 --GLOBALS: SLE_ArmoryDB
 local _
 local _G = _G
@@ -11,7 +11,7 @@ if not (select(2, GetAddOnInfo('ElvUI_KnightFrame')) and IsAddOnLoaded('ElvUI_Kn
 		Name = 'KnightFrame',
 		MyRealm = gsub(E.myrealm,'[%s%-]','')
 	}
-	local KF = E:NewModule(Info.Name, 'AceEvent-3.0', 'AceConsole-3.0', 'AceHook-3.0')
+	local KF = SLE:NewModule(Info.Name, 'AceEvent-3.0', 'AceConsole-3.0', 'AceHook-3.0')
 	KF.Modules = {}
 	
 	
@@ -78,6 +78,10 @@ if not (select(2, GetAddOnInfo('ElvUI_KnightFrame')) and IsAddOnLoaded('ElvUI_Kn
 			Blood = 250,
 			Frost = 251,
 			Unholy = 252
+		},
+		DemonHunter = {
+			Havoc = 577,
+			Vengeance = 581,
 		},
 		Mage = {
 			Arcane = 62,
@@ -198,6 +202,16 @@ if not (select(2, GetAddOnInfo('ElvUI_KnightFrame')) and IsAddOnLoaded('ElvUI_Kn
 				Role = 'Melee'
 			}
 		},
+		DEMONHUNTER = {
+			[(L["Spec_DemonHunter_Havoc"])] = { 
+				Color = '|cffa330c9',
+				Role = 'Melee'
+			},
+			[(L["Spec_DemonHunter_Vengeance"])] = {
+				Color = '|cffa330c9',
+				Role = 'Tank'
+			},
+		},
 		MAGE = {
 			[(L["Spec_Mage_Arcane"])] = { --비전
 				Color = '|cffdcb0fb',
@@ -297,6 +311,12 @@ if not (select(2, GetAddOnInfo('ElvUI_KnightFrame')) and IsAddOnLoaded('ElvUI_Kn
 		for i = 1, #KF.Modules do
 			KF.Modules[(KF.Modules[i])]()
 		end
+		
+		function KF:ForUpdateAll()
+			_G["CharacterArmory"]:UpdateSettings("all")
+			if not SLE._Compatibility["DejaCharacterStats"] then _G["CharacterArmory"]:ToggleStats() end
+			_G["InspectArmory"]:UpdateSettings("all")
+		end
 	end
-	E:RegisterModule(KF:GetName())
+	SLE:RegisterModule(KF:GetName())
 end

@@ -217,6 +217,7 @@ function mod:SetTargetFrame(frame)
 		frame.isTarget = true
 		if(self.db.units[frame.UnitType].healthbar.enable ~= true) then
 			frame.Name:ClearAllPoints()
+			frame.NPCTitle:ClearAllPoints()
 			frame.Level:ClearAllPoints()
 			frame.HealthBar.r, frame.HealthBar.g, frame.HealthBar.b = nil, nil, nil
 			frame.CastBar:Hide()
@@ -258,6 +259,13 @@ function mod:SetTargetFrame(frame)
 	end
 
 	mod:ClassBar_Update(frame)
+
+	--WoW shows nameplates for any unit which is in combat with you, even when nameplateShowAll is set to 0
+	if frame.isTarget then
+		frame:Show()
+	elseif self.db.onlyShowTarget then
+		frame:Hide()
+	end
 end
 
 function mod:StyleFrame(frame, useMainFrame)
@@ -354,7 +362,13 @@ function mod:NAME_PLATE_UNIT_ADDED(event, unit, frame)
 	self:ConfigureElement_NPCTitle(frame.UnitFrame)
 	self:RegisterEvents(frame.UnitFrame, unit)
 	self:UpdateElement_All(frame.UnitFrame, unit)
-	frame.UnitFrame:Show()
+
+	-- WoW shows nameplates for all units that are in combat with you, even if nameplateShowAll is set to 0.
+	if ((self.db.onlyShowTarget and frame.UnitFrame.isTarget) or not self.db.onlyShowTarget) then
+		frame.UnitFrame:Show()
+	else
+		frame.UnitFrame:Hide()
+	end
 end
 
 function mod:NAME_PLATE_UNIT_REMOVED(event, unit, frame, ...)
@@ -378,10 +392,12 @@ function mod:NAME_PLATE_UNIT_REMOVED(event, unit, frame, ...)
 	frame.UnitFrame.AbsorbBar:Hide()
 	frame.UnitFrame.HealPrediction:Hide()
 	frame.UnitFrame.PersonalHealPrediction:Hide()
-	frame.UnitFrame.Name:ClearAllPoints()
 	frame.UnitFrame.Level:ClearAllPoints()
 	frame.UnitFrame.Level:SetText("")
+	frame.UnitFrame.Name:ClearAllPoints()
 	frame.UnitFrame.Name:SetText("")
+	frame.UnitFrame.NPCTitle:ClearAllPoints()
+	frame.UnitFrame.NPCTitle:SetText("")
 	frame.UnitFrame:Hide()
 	frame.UnitFrame.isTarget = nil
 	frame.UnitFrame.displayedUnit = nil
@@ -455,7 +471,7 @@ function mod:UpdateInVehicle(frame, noEvents)
 end
 
 function mod:UpdateElement_All(frame, unit, noTargetFrame)
-	if(self.db.units[frame.UnitType].healthbar.enable or self.db.onlyShowTarget) then
+	if(self.db.units[frame.UnitType].healthbar.enable or self.db.onlyShowTarget or frame.isTarget) then
 		mod:UpdateElement_MaxHealth(frame)
 		mod:UpdateElement_Health(frame)
 		mod:UpdateElement_HealthColor(frame)
@@ -714,10 +730,13 @@ function mod:PLAYER_REGEN_ENABLED()
 	end
 end
 
+function mod:TogglePlayerMouse()
+	self.PlayerFrame__:EnableMouse(not self.db.units.PLAYER.clickthrough)
+end
+
 function mod:Initialize()
 	self.db = E.db["nameplates"]
 	if E.private["nameplates"].enable ~= true then return end
-	E.NamePlates = mod
 
 	self:UpdateVehicleStatus()
 
@@ -760,11 +779,11 @@ function mod:Initialize()
 	self:NAME_PLATE_UNIT_REMOVED("NAME_PLATE_UNIT_REMOVED", "player", self.PlayerFrame__)
 	E:CreateMover(self.PlayerFrame__, "PlayerNameplate", L["Player Nameplate"])
 	self:TogglePlayerDisplayType()
+	self.PlayerFrame__:EnableMouse(not self.db.units.PLAYER.clickthrough)
 
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 	E.NamePlates = self
 end
-
 
 E:RegisterModule(mod:GetName())

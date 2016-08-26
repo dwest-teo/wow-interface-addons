@@ -1,6 +1,5 @@
 local SLE, T, E, L, V, P, G = unpack(select(2, ...))
 local NP = E:GetModule('NamePlates')
-local LSM = LibStub("LibSharedMedia-3.0")
 local N = SLE:NewModule("Nameplates", 'AceHook-3.0', 'AceEvent-3.0', 'AceTimer-3.0')
 local rosterTimer
 N.targetCount = 0
@@ -22,14 +21,14 @@ hooksecurefunc(NP, 'NAME_PLATE_CREATED', function(self, event, frame)
 		myPlate.threatInfo:SetPoint("BOTTOMLEFT", myPlate.HealthBar, "BOTTOMLEFT", 1, 2)
 		myPlate.threatInfo:SetJustifyH("LEFT")
 	end
-	if not frame.targetcount then
+	if not myPlate.targetcount then
 		myPlate.targetcount = myPlate.HealthBar:CreateFontString(nil, "OVERLAY")
 		myPlate.targetcount:SetPoint('BOTTOMRIGHT', myPlate.HealthBar, 'BOTTOMRIGHT', 1, 2)
 		myPlate.targetcount:SetJustifyH("RIGHT")
 		myPlate.targetCount = 0
 	end
-	myPlate.threatInfo:FontTemplate(LSM:Fetch("font", NP.db.font), NP.db.fontSize, NP.db.fontOutline)
-	myPlate.targetcount:FontTemplate(LSM:Fetch("font", NP.db.font), NP.db.fontSize, NP.db.fontOutline)
+	myPlate.threatInfo:FontTemplate(E.LSM:Fetch("font", NP.db.font), NP.db.fontSize, NP.db.fontOutline)
+	myPlate.targetcount:FontTemplate(E.LSM:Fetch("font", NP.db.font), NP.db.fontSize, NP.db.fontOutline)
 	myPlate.targetcount:SetText()
 end)
 
@@ -52,7 +51,7 @@ hooksecurefunc(NP, 'Update_ThreatList', function(self, myPlate)
 			if unit and not T.UnitIsPlayer(unit) and T.UnitCanAttack('player', unit) then
 				local status, percent = T.select(2, T.UnitDetailedThreatSituation('player', unit))
 				if (status) then
-					myPlate.threatInfo:SetFormattedText('%s%.0f%%|r', Hex(T.GetThreatStatusColor(status)), percent)
+					myPlate.threatInfo:SetFormattedText('%s%.0f%%|r', Hex(T.GetThreatStatusColor(status)), percent or "")
 				end
 			end
 		end
@@ -116,16 +115,23 @@ function N:StartRosterUpdate()
 	end
 end
 
+function N:NAME_PLATE_UNIT_REMOVED(event, unit, frame, ...)
+	local frame = frame or NP:GetNamePlateForUnit(unit);
+	frame.UnitFrame.unit = nil
+	frame.UnitFrame.threatInfo:SetText("")
+end
+
 function N:Initialize()
 	if not SLE.initialized or not E.private.nameplates.enable then return end
-	N.db = E.db.sle.nameplate
-	N.viewPort = NP.viewPort
+	if E.db.sle.nameplate then E.db.sle.nameplates = E.db.sle.nameplate; E.db.sle.nameplate = nil end
+	N.db = E.db.sle.nameplates
 	self:RegisterEvent("GROUP_ROSTER_UPDATE", "StartRosterUpdate")
 	self:RegisterEvent("UNIT_TARGET", "UpdateCount")
+	self:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
 
 	E:Delay(.3, function() N:UpdateCount(nil,"player", true) end)
 	function N:ForUpdateAll()
-		N.db = E.db.sle.nameplate
+		N.db = E.db.sle.nameplates
 	end
 end
 

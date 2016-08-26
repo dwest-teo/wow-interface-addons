@@ -548,6 +548,10 @@ WeakAuras.load_prototype = {
             single_class = trigger.class.single
           end
 
+          if (trigger.use_class == nil) then -- no class selected, fallback to current class
+            single_class = select(2, UnitClass("player"));
+          end
+
           -- If a single specific class was found, load the specific list for it
           if(single_class) then
             return WeakAuras.spec_types_specific[single_class];
@@ -588,7 +592,7 @@ WeakAuras.load_prototype = {
             single_class = trigger.class.single
           end
 
-          if (not trigger.use_class) then -- no class selected, fallback to current class
+          if (trigger.use_class == nil) then -- no class selected, fallback to current class
             single_class = select(2, UnitClass("player"));
           end
 
@@ -609,7 +613,7 @@ WeakAuras.load_prototype = {
             single_spec = trigger.spec.single;
           end
 
-          if (not trigger.use_spec) then
+          if (trigger.use_spec == nil) then
             single_spec = GetSpecialization();
           end
 
@@ -648,7 +652,7 @@ WeakAuras.load_prototype = {
             single_class = trigger.class.single
           end
 
-          if (not trigger.use_class) then -- no class selected, fallback to current class
+          if (trigger.use_class == nil) then -- no class selected, fallback to current class
             single_class = select(2, UnitClass("player"));
           end
 
@@ -669,7 +673,7 @@ WeakAuras.load_prototype = {
             single_spec = trigger.spec.single;
           end
 
-          if (not trigger.use_spec) then
+          if (trigger.use_spec == nil) then
             single_spec = GetSpecialization();
           end
 
@@ -684,6 +688,12 @@ WeakAuras.load_prototype = {
         end
       end,
       test = "WeakAuras.CheckPvpTalentByIndex(%d)"
+    },
+    {
+      name = "spellknown",
+      display = L["Spell Known"],
+      type = "spell",
+      test = "IsSpellKnown(%s)"
     },
     {
       name = "race",
@@ -2285,6 +2295,9 @@ WeakAuras.event_prototypes = {
           end
           if (inverse) then
             active = not active;
+            if (triggerTotemName) then
+              icon = select(3, GetSpellInfo(triggerTotemName));
+            end
           elseif (active and remainingCheck) then
             local expirationTime = startTime and (startTime + duration) or 0;
             local remainingTime = expirationTime - GetTime()
@@ -2318,6 +2331,9 @@ WeakAuras.event_prototypes = {
           state.show = not found;
           state.changed = true;
           state.name = triggerTotemName;
+          if (triggerTotemName) then
+            state.icon = select(3, GetSpellInfo(triggerTotemName));
+          end
         else -- check all slots
           for i = 1, 5 do
             local _, totemName, startTime, duration, icon = GetTotemInfo(i);
@@ -3147,6 +3163,12 @@ WeakAuras.event_prototypes = {
         display = L["Always active trigger"],
         type = "tristate",
         init = "true"
+      },
+      {
+        name = "incombat",
+        display = L["In Combat"],
+        type = "tristate",
+        init = "UnitAffectingCombat('player')"
       },
       {
         name = "pvpflagged",

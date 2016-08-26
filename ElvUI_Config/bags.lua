@@ -136,19 +136,21 @@ E.Options.args.bags = {
 							desc = L["Displays item level on equippable items."],
 							set = function(info, value) E.db.bags.itemLevel = value; B:UpdateItemLevelDisplay() end,
 						},
-						itemLevelThreshold = {
+						useTooltipScanning = {
 							order = 2,
+							type = 'toggle',
+							name = L["Use Tooltip Scanning"],
+							desc = L["This makes the item level display more reliable but uses more resources. If this is disabled then upgraded items will not show the correct item level."],
+							set = function(info, value) E.db.bags.useTooltipScanning = value; B:UpdateItemLevelDisplay() end,
+						},
+						itemLevelThreshold = {
+							order = 3,
 							name = L["Item Level Threshold"],
 							desc = L["The minimum item level required for it to be shown."],
 							type = 'range',
 							min = 1, max = 1000, step = 1,
 							disabled = function() return not E.db.bags.itemLevel end,
 							set = function(info, value) E.db.bags.itemLevelThreshold = value; B:UpdateItemLevelDisplay() end,
-						},
-						spacer = {
-							order = 3,
-							type = 'description',
-							name = '',
 						},
 						itemLevelFont = {
 							order = 4,
@@ -242,7 +244,7 @@ E.Options.args.bags = {
 					type = 'range',
 					name = L["Panel Width (Bags)"],
 					desc = L["Adjust the width of the bag frame."],
-					min = 150, max = 700, step = 1,
+					min = 150, max = 1400, step = 1,
 					set = function(info, value) E.db.bags[ info[#info] ] = value; B:Layout();end,
 					disabled = function() return E.db.bags.alignToChat end
 				},
@@ -251,7 +253,7 @@ E.Options.args.bags = {
 					type = 'range',
 					name = L["Panel Width (Bank)"],
 					desc = L["Adjust the width of the bank frame."],
-					min = 150, max = 700, step = 1,
+					min = 150, max = 1400, step = 1,
 					set = function(info, value) E.db.bags[ info[#info] ] = value; B:Layout(true) end,
 					disabled = function() return E.db.bags.alignToChat end
 				},

@@ -103,6 +103,31 @@ GTFO.SpellID["219118"] = {
   sound = 1;
 };
 
+GTFO.SpellID["217549"] = {
+  --desc = "Fel Flames (Legion Event)";
+  sound = 1;
+};
+
+GTFO.SpellID["219367"] = {
+  --desc = "Rain of Fire (Darthuzal - Legion Event)";
+  sound = 1;
+};
+
+GTFO.SpellID["224069"] = {
+  --desc = "Wake of Blood (Subjugator Val'rek - Legion Event)";
+  sound = 1;
+};
+
+GTFO.SpellID["218338"] = {
+  --desc = "Fel Lightning (Fel Lord Kaz'ral - Fel Spike - Legion Event)";
+  sound = 1;
+};
+
+GTFO.SpellID["213865"] = {
+  --desc = "Fel Lava (Vogrethar the Defiled - Legion Event)";
+  sound = 1;
+};
+
 -- ==============================================================================
 -- Fail alerts
 -- ==============================================================================
@@ -195,6 +220,16 @@ GTFO.SpellID["212437"] = {
 };
 
 GTFO.SpellID["218507"] = {
-  --desc = "Flames of Argus (Fragment of Argus)";
+  --desc = "Flames of Argus (Fragment of Argus - Legion Event)";
+  sound = 3;
+};
+
+GTFO.SpellID["205307"] = {
+  --desc = "War Stomp (Fel Reaver - Legion Event)";
+  sound = 3;
+};
+
+GTFO.SpellID["217936"] = {
+  --desc = "Hellfire (Mazgoroth - Legion Event)";
   sound = 3;
 };

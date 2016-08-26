@@ -2,7 +2,6 @@
 local M = E:GetModule('Minimap')
 local MM, DD = SLE:GetModules("Minimap", "Dropdowns")
 local LP = SLE:NewModule("LocationPanel", "AceTimer-3.0")
-local LSM = LibStub("LibSharedMedia-3.0");
 local loc_panel
 local COORDS_WIDTH = 35 -- Coord panels width
 
@@ -226,6 +225,7 @@ function LP:UpdateCoords(elapsed)
 		displayLine = subZoneText
 	end
 	loc_panel.Text:SetText(displayLine)
+	if LP.db.autowidth then loc_panel:Width(loc_panel.Text:GetStringWidth() + 10) end
 
 	--Location Colorings
 	if displayLine ~= "" then
@@ -248,16 +248,20 @@ function LP:UpdateCoords(elapsed)
 end
 
 function LP:Resize()
-	loc_panel:Size(LP.db.width, LP.db.height)
+	if LP.db.autowidth then
+		loc_panel:Size(loc_panel.Text:GetStringWidth() + 10, LP.db.height)
+	else
+		loc_panel:Size(LP.db.width, LP.db.height)
+	end
 	loc_panel.Text:Width(LP.db.width - 18)
 	loc_panel.Xcoord:Size(LP.db.fontSize * 3, LP.db.height)
 	loc_panel.Ycoord:Size(LP.db.fontSize * 3, LP.db.height)
 end
 
 function LP:Fonts()
-	loc_panel.Text:SetFont(LSM:Fetch('font', LP.db.font), LP.db.fontSize, LP.db.fontOutline)
-	loc_panel.Xcoord.Text:SetFont(LSM:Fetch('font', LP.db.font), LP.db.fontSize, LP.db.fontOutline)
-	loc_panel.Ycoord.Text:SetFont(LSM:Fetch('font', LP.db.font), LP.db.fontSize, LP.db.fontOutline)
+	loc_panel.Text:SetFont(E.LSM:Fetch('font', LP.db.font), LP.db.fontSize, LP.db.fontOutline)
+	loc_panel.Xcoord.Text:SetFont(E.LSM:Fetch('font', LP.db.font), LP.db.fontSize, LP.db.fontOutline)
+	loc_panel.Ycoord.Text:SetFont(E.LSM:Fetch('font', LP.db.font), LP.db.fontSize, LP.db.fontOutline)
 end
 
 function LP:Template()
@@ -304,20 +308,24 @@ end
 function LP:ItemList(check)
 	for i = 1, #LP.PortItems do
 		local data = LP.PortItems[i]
-		if SLE:BagSearch(data.secure.ID) or PlayerHasToy(data.secure.ID)then
+		if (SLE:BagSearch(data.secure.ID) or PlayerHasToy(data.secure.ID)) and T.IsUsableItem(data.secure.ID) then
 			if check then 
 				T.tinsert(LP.MainMenu, {text = ITEMS..":", title = true, nohighlight = true})
 				return true 
 			else
 				local tmp = {}
 				local cd = DD:GetCooldown("Item", data.secure.ID)
-				if cd then
-					E:CopyTable(tmp, data)
-					tmp.text = tmp.text..T.format(LP.CDformats[LP.db.portals.cdFormat], cd)
-					T.tinsert(LP.MainMenu, tmp)
-				else
-					T.tinsert(LP.MainMenu, data)
+				local HSplace = ""
+				if LP.db.portals.HSplace and data.secure.ID == 6948 then
+					HSplace = " - "..GetBindLocation()
 				end
+				E:CopyTable(tmp, data)
+				if cd then
+					tmp.text = tmp.text..HSplace..T.format(LP.CDformats[LP.db.portals.cdFormat], cd)
+				else
+					tmp.text = tmp.text..HSplace
+				end
+				T.tinsert(LP.MainMenu, tmp)
 			end
 		end
 	end

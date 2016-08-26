@@ -1,55 +1,18 @@
 local SLE, T, E, L, V, P, G = unpack(select(2, ...))
 
 P["sle"] = {
+	--Actionbars
+	["actionbars"] = {
+		["vehicle"] = {
+			["buttonsize"] = 40,
+			["buttonspacing"] = 2,
+		},
+	},
 	--Auras
 	["auras"] = {
 		["hideBuffsTimer"] = false,
 		["hideDebuffsTimer"] = false,
 	},
-	--Screensaver
-	["screensaver"] = {
-			["keydown"] = false,
-			["title"] = {
-				["font"] = "PT Sans Narrow",
-				["size"] = 28,
-				["outline"] = "OUTLINE",
-			},
-			["subtitle"] = {
-				["font"] = "PT Sans Narrow",
-				["size"] = 15,
-				["outline"] = "OUTLINE",
-			},
-			["date"] = {
-				["font"] = "PT Sans Narrow",
-				["size"] = 15,
-				["outline"] = "OUTLINE",
-			},
-			["player"] = {
-				["font"] = "PT Sans Narrow",
-				["size"] = 15,
-				["outline"] = "OUTLINE",
-			},
-			["tips"] = {
-				["font"] = "PT Sans Narrow",
-				["size"] = 20,
-				["outline"] = "OUTLINE",
-			},
-			["crest"] = 128,
-			["xpack"] = 150,
-			["height"] = 135,
-			["playermodel"] = {
-				["anim"] = 4,
-				["distance"] = 4.5,
-				["holderXoffset"] = 0,
-				["holderYoffset"] = 0,
-				["rotation"] = 0,
-			},
-			["animTime"] = 0,
-			["animBounce"] = true,
-			["animType"] = "SlideIn",
-			["tipThrottle"] = 15,
-			["panelTemplate"] = "Transparent",
-		},
 	--Backgrounds
 	["backgrounds"] = {
 		["bg1"] = {
@@ -105,14 +68,85 @@ P["sle"] = {
 			["clickthrough"] = true,
 		},
 	},
-	--PvP
-	["pvp"] = {
-		["autorelease"] = false,
-		["rebirth"] = true,
-		["duels"] = {
-			["regular"] = false,
-			["pet"] = false,
-			["announce"] = false,
+		--Bags
+	["bags"] = {
+		["lootflash"] = true,
+	},
+	--Blizzard
+	["blizzard"] = {
+		["rumouseover"] = false,
+		["errorframe"] = {
+			["height"] = 60,
+			["width"] = 512,
+		},
+		["vehicleSeatScale"] = 1,
+	},
+	--Chat
+	["chat"] = {
+		["guildmaster"] = false,
+		["dpsSpam"] = false,
+		["textureAlpha"] = {
+			["enable"] = false,
+			["alpha"] = 0.5,
+		},
+		["combathide"] = "NONE",
+		["editboxhistory"] = 5,
+		["justify"] = {
+			["frame1"] = "LEFT",
+			["frame2"] = "LEFT",
+			["frame3"] = "LEFT",
+			["frame4"] = "LEFT",
+			["frame5"] = "LEFT",
+			["frame6"] = "LEFT",
+			["frame7"] = "LEFT",
+			["frame8"] = "LEFT",
+			["frame9"] = "LEFT",
+			["frame10"] = "LEFT",
+		},
+		["tab"] = {
+			["select"] = false,
+			["style"] = "DEFAULT",
+			["color"] = {r = 1, g = 1, b = 1},
+		},
+	},
+	--Datbars
+	["databars"] = {
+		["exp"] = {
+			["longtext"] = false,
+			["chatfilter"] = {
+				["enable"] = false,
+				["iconsize"] = 12,
+				["style"] = "STYLE1",
+			},
+		},
+		["rep"] = {
+			["longtext"] = false,
+			["autotrack"] = false,
+			["chatfilter"] = {
+				["enable"] = false,
+				["iconsize"] = 12,
+				["style"] = "STYLE1",
+				["styleDec"] = "STYLE1",
+				["showAll"] = false,
+				["chatframe"] = "AUTO",
+			},
+		},
+		["honor"] = {
+			["longtext"] = false,
+			["chatfilter"] = {
+				["enable"] = false,
+				["iconsize"] = 12,
+				["style"] = "STYLE1",
+				["awardStyle"] = "STYLE1",
+			},
+		},
+		["artifact"] = {
+			["longtext"] = false,
+			["chatfilter"] = {
+				["enable"] = false,
+				["iconsize"] = 12,
+				["style"] = "STYLE1",
+			},
 		},
 	},
 	--Datatexts panels
@@ -203,29 +237,6 @@ P["sle"] = {
 		},
 		["chathandle"] = true,
 	},
-	--LFR options
-	["lfr"] = {
-		["enabled"] = false,
-		["cata"] = {
-			["ds"] = false,
-		},
-		["mop"] = {
-			["mv"] = false,
-			["hof"] = false,
-			["toes"] = false,
-			["tot"] = false,
-			["soo"] = false,
-		},
-		["wod"] = {
-			["hm"] = false,
-			["brf"] = false,
-			["hfc"] = false,
-		},
-		["legion"] = {
-			["nightmare"] = false,
-			["palace"] = false,
-		},
-	},
 	--SLE Datatexts
 	["dt"] = {
 		["friends"] = {
@@ -233,9 +244,11 @@ P["sle"] = {
 			["expandBNBroadcast"] = false,
 			["hideFriends"] = false,
 			["hide_hintline"] = false,
+			["hide_titleline"] = false,
 			["sortBN"] = 'TOONNAME',
 			["tooltipAutohide"] = 0.2,
 			["totals"] = false,
+			["textStyle"] = "Default",
 		},
 		["guild"] = {
 			["combat"] = false,
@@ -243,9 +256,11 @@ P["sle"] = {
 			["hideGuild"] = false,
 			["hide_guildname"] = false,
 			["hide_hintline"] = false,
+			["hide_titleline"] = false,
 			["sortGuild"] = 'TOONNAME',
 			["tooltipAutohide"] = 0.2,
 			["totals"] = false,
+			["textStyle"] = "Default",
 		},
 		["mail"] = {
 			["icon"] = true,
@@ -268,56 +283,6 @@ P["sle"] = {
 		},
 		["regen"] = {
 			["short"] = false,
-		},
-	},
-	--Misc
-	["misc"] = {
-		["threat"] = {
-			["enable"] = false,
-			["position"] = "RightChatDataPanel",
-		},
-		["viewport"] = {
-			["left"] = 0,
-			["right"] = 0,
-			["top"] = 0,
-			["bottom"] = 0,
-		},
-	},
-	--Blizzard
-	["blizzard"] = {
-		["rumouseover"] = false,
-		["errorframe"] = {
-			["height"] = 60,
-			["width"] = 512,
-		},
-		["vehicleSeatScale"] = 1,
-	},
-	--Chat
-	["chat"] = {
-		["guildmaster"] = false,
-		["dpsSpam"] = false,
-		["textureAlpha"] = {
-			["enable"] = false,
-			["alpha"] = 0.5,
-		},
-		["combathide"] = "NONE",
-		["editboxhistory"] = 5,
-		["justify"] = {
-			["frame1"] = "LEFT",
-			["frame2"] = "LEFT",
-			["frame3"] = "LEFT",
-			["frame4"] = "LEFT",
-			["frame5"] = "LEFT",
-			["frame6"] = "LEFT",
-			["frame7"] = "LEFT",
-			["frame8"] = "LEFT",
-			["frame9"] = "LEFT",
-			["frame10"] = "LEFT",
-		},
-		["tab"] = {
-			["select"] = false,
-			["style"] = "DEFAULT",
-			["color"] = {r = 1, g = 1, b = 1},
 		},
 	},
 	--Legacy
@@ -344,10 +309,28 @@ P["sle"] = {
 			["enable"] = false,
 		},
 	},
-	--Nameplate Options
-	["nameplate"] = {
-		["showthreat"] = false,
-		["targetcount"] = false,
+	--LFR options
+	["lfr"] = {
+		["enabled"] = false,
+		["cata"] = {
+			["ds"] = false,
+		},
+		["mop"] = {
+			["mv"] = false,
+			["hof"] = false,
+			["toes"] = false,
+			["tot"] = false,
+			["soo"] = false,
+		},
+		["wod"] = {
+			["hm"] = false,
+			["brf"] = false,
+			["hfc"] = false,
+		},
+		["legion"] = {
+			["nightmare"] = false,
+			["palace"] = false,
+		},
 	},
 	--Loot 
 	["loot"] = {
@@ -400,81 +383,53 @@ P["sle"] = {
 			},
 		},
 	},
-	--Datbars
-	["databars"] = {
-		["exp"] = {
-			["longtext"] = false,
-			["chatfilter"] = {
-				["enable"] = false,
-				["iconsize"] = 12,
-				["style"] = "STYLE1",
+	--Media
+	["media"] = {
+		["fonts"] = {
+			["zone"] = {
+				["font"] = "PT Sans Narrow",
+				["size"] = 32,
+				["outline"] = "OUTLINE",
+				["width"] = 512,
 			},
-		},
-		["rep"] = {
-			["longtext"] = false,
-			["autotrack"] = false,
-			["chatfilter"] = {
-				["enable"] = false,
-				["iconsize"] = 12,
-				["style"] = "STYLE1",
-				["styleDec"] = "STYLE1",
-				["showAll"] = false,
-				["chatframe"] = "AUTO",
+			["subzone"] = {
+				["font"] = "PT Sans Narrow",
+				["size"] = 25,
+				["outline"] = "OUTLINE",
+				["offset"] = 0,
+				["width"] = 512,
 			},
-		},
-		["honor"] = {
-			["longtext"] = false,
-			["chatfilter"] = {
-				["enable"] = false,
-				["iconsize"] = 12,
-				["style"] = "STYLE1",
-				["awardStyle"] = "STYLE1",
+			["pvp"] = {
+				["font"] = "PT Sans Narrow",
+				["size"] = 22,
+				["outline"] = "OUTLINE",
+				["width"] = 512,
 			},
-		},
-		["artifact"] = {
-			["longtext"] = false,
-			["chatfilter"] = {
-				["enable"] = false,
-				["iconsize"] = 12,
-				["style"] = "STYLE1",
+			["mail"] = {
+				["font"] = "PT Sans Narrow",
+				["size"] = 12,
+				["outline"] = "NONE",
 			},
-		},
-	},
-	--Raid Markers
-	["raidmarkers"] = {
-		["enable"] = true,
-		["visibility"] = 'DEFAULT',
-		["customVisibility"] = "[noexists, nogroup] hide; show",
-		["backdrop"] = false,
-		["buttonSize"] = 22,
-		["spacing"] = 2,
-		["orientation"] = 'HORIZONTAL',
-		["modifier"] = 'shift-',
-		["reverse"] = false,
-	},
-	--Quests
-	["quests"] = {
-		["visibility"] = {
-			["bg"] = "COLLAPSED",
-			["arena"] = "COLLAPSED",
-			["dungeon"] = "FULL",
-			["raid"] = "COLLAPSED",
-			["scenario"] = "FULL",
-			["rested"] = "FULL",
-			["garrison"] = "FULL",
-		},
-		["autoReward"] = false,
-	},
-	--Tooltip
-	["tooltip"] = {
-		["showFaction"] = false,
-		["xOffset"] = 0,
-		["yOffset"] = 0,
-		["alwaysCompareItems"] = false,
-		["RaidProg"] = {
-			["enable"] = false,
-			["NameStyle"] = "SHORT",
-			["DifStyle"] = "SHORT",
+			["editbox"] = {
+				["font"] = "PT Sans Narrow",
+				["size"] = 12,
+				["outline"] = "NONE",
+			},
+			["gossip"] = {
+				["font"] = "PT Sans Narrow",
+				["size"] = 12,
+				["outline"] = "NONE",
+			},
+			["objective"] = {
+				["font"] = "PT Sans Narrow",
+				["size"] = 12,
+				["outline"] = "NONE",
+			},
+			["objectiveHeader"] = {
+				["font"] = "PT Sans Narrow",
+				["size"] = 12,
+				["outline"] = "NONE",
+			},
 		},
 	},
 	--Minimap Module
@@ -521,6 +476,7 @@ P["sle"] = {
 		},
 		["locPanel"] = {
 			["enable"] = false,
+			["autowidth"] = false,
 			["width"] = 200,
 			["height"] = 21,
 			["linkcoords"] = true,
@@ -535,6 +491,7 @@ P["sle"] = {
 			["customColor"] = {r = 1, g = 1, b = 1 },
 			["portals"] = {
 				["enable"] = true,
+				["HSplace"] = true,
 				["customWidth"] = false,
 				["customWidthValue"] = 200,
 				["justify"] = "LEFT",
@@ -542,9 +499,121 @@ P["sle"] = {
 			},
 		},
 	},
-	--Bags
-	["bags"] = {
-		["lootflash"] = true,
+	--Misc
+	["misc"] = {
+		["threat"] = {
+			["enable"] = false,
+			["position"] = "RightChatDataPanel",
+		},
+		["viewport"] = {
+			["left"] = 0,
+			["right"] = 0,
+			["top"] = 0,
+			["bottom"] = 0,
+		},
+	},
+	--Nameplate Options
+	["nameplates"] = {
+		["showthreat"] = false,
+		["targetcount"] = false,
+		["visibleRange"] = 60,
+	},
+	--Order Halls
+	["orderhall"] = {
+		["autoOrder"] = {
+			["enable"] = false,
+			["autoEquip"] = false,
+		},
+	},
+	--Quests
+	["quests"] = {
+		["visibility"] = {
+			["bg"] = "COLLAPSED",
+			["arena"] = "COLLAPSED",
+			["dungeon"] = "FULL",
+			["raid"] = "COLLAPSED",
+			["scenario"] = "FULL",
+			["rested"] = "FULL",
+			["garrison"] = "FULL",
+		},
+		["autoReward"] = false,
+	},
+	--PvP
+	["pvp"] = {
+		["autorelease"] = false,
+		["rebirth"] = true,
+		["duels"] = {
+			["regular"] = false,
+			["pet"] = false,
+			["announce"] = false,
+		},
+	},
+	--Raid Manager
+	["raidmanager"] = {
+		["level"] = true,
+		["roles"] = false,
+	},
+	--Raid Markers
+	["raidmarkers"] = {
+		["enable"] = true,
+		["visibility"] = 'DEFAULT',
+		["customVisibility"] = "[noexists, nogroup] hide; show",
+		["backdrop"] = false,
+		["buttonSize"] = 22,
+		["spacing"] = 2,
+		["orientation"] = 'HORIZONTAL',
+		["modifier"] = 'shift-',
+		["reverse"] = false,
+	},
+	--Screensaver
+	["screensaver"] = {
+			["keydown"] = false,
+			["title"] = {
+				["font"] = "PT Sans Narrow",
+				["size"] = 28,
+				["outline"] = "OUTLINE",
+			},
+			["subtitle"] = {
+				["font"] = "PT Sans Narrow",
+				["size"] = 15,
+				["outline"] = "OUTLINE",
+			},
+			["date"] = {
+				["font"] = "PT Sans Narrow",
+				["size"] = 15,
+				["outline"] = "OUTLINE",
+			},
+			["player"] = {
+				["font"] = "PT Sans Narrow",
+				["size"] = 15,
+				["outline"] = "OUTLINE",
+			},
+			["tips"] = {
+				["font"] = "PT Sans Narrow",
+				["size"] = 20,
+				["outline"] = "OUTLINE",
+			},
+			["crest"] = 128,
+			["xpack"] = 150,
+			["height"] = 135,
+			["playermodel"] = {
+				["anim"] = 4,
+				["distance"] = 4.5,
+				["holderXoffset"] = 0,
+				["holderYoffset"] = 0,
+				["rotation"] = 0,
+			},
+			["animTime"] = 0,
+			["animBounce"] = true,
+			["animType"] = "SlideIn",
+			["tipThrottle"] = 15,
+			["panelTemplate"] = "Transparent",
+		},
+	--Shadows
+	['shadows'] = { 
+		['shadowcolor'] = { ['r'] = 0, ['g'] = 0, ['b'] = 0 },
+		['classcolor'] = false,
+		['size'] = 3,
 	},
 	--Skins
 	["skins"] = {
@@ -554,6 +623,62 @@ P["sle"] = {
 			["underline"] = true,
 			["underlineClass"] = false,
 			["underlineColor"] = {r = 1, g = 0.82, b = 0},
+		},
+		["merchant"] = {
+			["list"] = {
+				["nameFont"] = "PT Sans Narrow",
+				["nameSize"] = 13,
+				["nameOutline"] = "OUTLINE",
+				["subFont"] = "PT Sans Narrow",
+				["subSize"] = 12,
+				["subOutline"] = "OUTLINE",
+			},
+		},
+	},
+	--Tooltip
+	["tooltip"] = {
+		["showFaction"] = false,
+		["xOffset"] = 0,
+		["yOffset"] = 0,
+		["alwaysCompareItems"] = false,
+		["RaidProg"] = {
+			["enable"] = false,
+			["NameStyle"] = "SHORT",
+			["DifStyle"] = "SHORT",
+		},
+	},
+	--UI Buttons
+	["uibuttons"] = {
+		["enable"] = false,
+		["size"] = 17,
+		["mouse"] = false,
+		["menuBackdrop"] = false,
+		["dropdownBackdrop"] = false,
+		["orientation"] = "vertical",
+		["spacing"] = 3,
+		["point"] = "TOPLEFT",
+		["anchor"] = "TOPRIGHT",
+		["xoffset"] = 0,
+		["yoffset"] = 0,
+		["customroll"] = {
+			["min"] = "1",
+			["max"] = "50",
+		},
+		["Config"] = {
+			["enabled"] = false,
+			["called"] = "Reload",
+		},
+		["Addon"] = {
+			["enabled"] = false,
+			["called"] = "Manager",
+		},
+		["Status"] = {
+			["enabled"] = false,
+			["called"] = "AFK",
+		},
+		["Roll"] = {
+			["enabled"] = false,
+			["called"] = "Hundred",
 		},
 	},
 	--Unitfrmes
@@ -650,94 +775,7 @@ P["sle"] = {
 			["classTexture"] = "ElvUI Norm",
 		},
 	},
-	--Raid Manager
-	["raidmanager"] = {
-		["level"] = true,
-		["roles"] = false,
-	},
-	--Media
-	["media"] = {
-		["fonts"] = {
-			["zone"] = {
-				["font"] = "PT Sans Narrow",
-				["size"] = 32,
-				["outline"] = "OUTLINE",
-				["width"] = 512,
-			},
-			["subzone"] = {
-				["font"] = "PT Sans Narrow",
-				["size"] = 25,
-				["outline"] = "OUTLINE",
-				["offset"] = 0,
-				["width"] = 512,
-			},
-			["pvp"] = {
-				["font"] = "PT Sans Narrow",
-				["size"] = 22,
-				["outline"] = "OUTLINE",
-				["width"] = 512,
-			},
-			["mail"] = {
-				["font"] = "PT Sans Narrow",
-				["size"] = 12,
-				["outline"] = "NONE",
-			},
-			["editbox"] = {
-				["font"] = "PT Sans Narrow",
-				["size"] = 12,
-				["outline"] = "NONE",
-			},
-			["gossip"] = {
-				["font"] = "PT Sans Narrow",
-				["size"] = 12,
-				["outline"] = "NONE",
-			},
-			["objective"] = {
-				["font"] = "PT Sans Narrow",
-				["size"] = 12,
-				["outline"] = "NONE",
-			},
-			["objectiveHeader"] = {
-				["font"] = "PT Sans Narrow",
-				["size"] = 12,
-				["outline"] = "NONE",
-			},
-		},
-	},
-	--UI Buttons
-	["uibuttons"] = {
-		["enable"] = false,
-		["size"] = 17,
-		["mouse"] = false,
-		["menuBackdrop"] = false,
-		["dropdownBackdrop"] = false,
-		["orientation"] = "vertical",
-		["spacing"] = 3,
-		["point"] = "TOPLEFT",
-		["anchor"] = "TOPRIGHT",
-		["xoffset"] = 0,
-		["yoffset"] = 0,
-		["customroll"] = {
-			["min"] = "1",
-			["max"] = "50",
-		},
-		["Config"] = {
-			["enabled"] = false,
-			["called"] = "Reload",
-		},
-		["Addon"] = {
-			["enabled"] = false,
-			["called"] = "Manager",
-		},
-		["Status"] = {
-			["enabled"] = false,
-			["called"] = "AFK",
-		},
-		["Roll"] = {
-			["enabled"] = false,
-			["called"] = "Hundred",
-		},
-	},
+
 }
 
 --Datatexts

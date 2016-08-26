@@ -215,11 +215,11 @@ function DTP:update_Friends()
 	local bnTotal, bnOnline = T.BNGetNumFriends()
 	local totalOnline = friendsOnline + bnOnline
 	local totalFriends = friendsTotal + bnTotal
-
+	local text = E.db.sle.dt.friends.textStyle == "Default" and "|cffffffff"..L["Friends"]..": |r" or E.db.sle.dt.friends.textStyle == "NoText" and "" or E.db.sle.dt.friends.textStyle == "Icon" and "|TInterface\\ICONS\\Achievement_Reputation_01:12|t: "
 	if E.db.sle.dt.friends.totals then
-		LDB.text = "|cffffffff"..L["Friends"]..": |r"..valueColor(totalOnline).."/"..valueColor(totalFriends)
+		LDB.text = text..valueColor(totalOnline).."/"..valueColor(totalFriends)
 	else
-		LDB.text = "|cffffffff"..L["Friends"]..": |r"..valueColor(totalOnline)
+		LDB.text = text..valueColor(totalOnline)
 	end
 end
 
@@ -306,7 +306,7 @@ function LDB:OnClick(button)
 	end
 
 	if button == "RightButton" then
-		_G["ElvConfigToggle"]:Click();
+		E:ToggleConfig()
 		SLE.ACD:SelectGroup("ElvUI", "sle", "modules", "datatext", "sldatatext", "slfriends")
 	end
 end
@@ -333,8 +333,10 @@ function LDB.OnEnter(self)
 	end
 
 	local line = tooltip:AddLine()
-	tooltip:SetCell(line, 1, "Shadow & Light Friends", ssTitleFont, "CENTER", 0)
-	tooltip:AddLine(" ")
+	if not E.db.sle.dt.friends.hide_titleline then
+		tooltip:SetCell(line, 1, "Shadow & Light Friends", ssTitleFont, "CENTER", 0)
+		tooltip:AddLine(" ")
+	end
 
 	local _, numBNOnline = T.BNGetNumFriends()
 	local _, numFriendsOnline = T.GetNumFriends()

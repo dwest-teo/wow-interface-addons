@@ -1,5 +1,4 @@
 ﻿local SLE, T, E, L, V, P, G = unpack(select(2, ...))
-local LSM = LibStub("LibSharedMedia-3.0")
 local A = SLE:NewModule("Actionbars", 'AceHook-3.0', 'AceEvent-3.0')
 local AB = E:GetModule('ActionBars');
 --GLOBALS: hooksecurefunc, LibStub
@@ -28,16 +27,7 @@ function A:BarsBackdrop()
 			frame.backdrop:SetTemplate('Transparent')
 		end
 	end
-	
-	-- Pet Buttons
-	for i = 1, NUM_PET_ACTION_SLOTS do
-		local petButtons = {_G["PetActionButton"..i]}
-		for _, button in T.pairs(petButtons) do
-			if button.backdrop then
-				button.backdrop:SetTemplate('Transparent')
-			end
-		end
-	end
+
 end
 
 function A:ButtonsBackdrop()
@@ -49,13 +39,22 @@ function A:ButtonsBackdrop()
 					button.backdrop:SetTemplate('Transparent')
 				end
 			end
-		end	
+		end
+	end
+	-- Pet Buttons
+	for i = 1, NUM_PET_ACTION_SLOTS do
+		local petButtons = {_G["PetActionButton"..i]}
+		for _, button in T.pairs(petButtons) do
+			if button.backdrop then
+				button.backdrop:SetTemplate('Transparent')
+			end
+		end
 	end
 end
 
 function A:Initialize()
 	if not SLE.initialized or E.private.actionbar.enable ~= true then return; end
-	A.MaxBars = T.IsAddOnLoaded('ElvUI_ExtraActionBars') and 10 or 6
+	A.MaxBars = SLE._Compatibility["ElvUI_ExtraActionBars"] and 10 or 6
 
 	if E.private.sle.actionbars.oorBind then 
 		hooksecurefunc(AB, "UpdateButtonConfig", function(self, bar, buttonName)

@@ -41,8 +41,10 @@ A |cff1784d1"%s"|r role was chosen.
 |cffFF0000Warning:|r Please note that the authors' may or may not use any of the layouts/themes you have selected as they may have changed their setup more recently. Also switching between layouts in here may cause some unpredictable and weird results.]=]
 L["Darth's Config"] = true
 L["Repooc's Config"] = true
+L["Affinitii's Config"] = true
 L["Darth's Default Set"] = true
 L["Repooc's Default Set"] = true
+L["Affinitii's Default Set"] = true
 L["Layout & Settings Import"] = true
 L["You have selected to use %s."] = true
 L["SLE_INSTALL_LAYOUT_TEXT2"] = [[Following buttons will import layout/addon settings for the selected config and role.
@@ -55,7 +57,7 @@ L["Moving Frames"] = true
 L["Import Profile"] = true
 L["AFK Mode"] = true
 L["You have selected to use %s and role %s."] = true
-L["SLE_INSTALL_SETTINGS_LAYOUT_TEXT"] = [[This action can cause you to loose some of your settings.
+L["SLE_INSTALL_SETTINGS_LAYOUT_TEXT"] = [[This action can cause you to lose some of your settings.
 Continue?]]
 L["SLE_INSTALL_SETTINGS_ADDONS_TEXT"] = [[This will create a profile for these addons (if enabled) and switch to it:
 %s
@@ -158,6 +160,14 @@ L["Only Damaged"] = true
 L["Gem Sockets"] = true
 L["Socket Size"] = true
 L["Inspect Armory"] = true
+L["Full Item Level"] = true
+L["Show both equipped and average item levels."] = true
+L["Item Level Coloring"] = true
+L["Color code item levels values. Equipped will be gradient, avarage - selected color."] = true
+L["Color of Average"] = true
+L["Sets the color of avarage item level."] = true
+L["Only Relevant Stats"] = true
+L["Show only those primary stats relevant to your spec."] = true
 
 --AFK
 L["You Are Away From Keyboard for"] = true
@@ -358,6 +368,7 @@ L["These options are for modifing the Shadow & Light Friends datatext."] = true
 L["Hide In Combat"] = true
 L["Will not show the tooltip while in combat."] = true
 L["Hide Friends"] = true
+L["Hide Title"] = true
 L["Minimize the Friend Datatext."] = true
 L["Show Totals"] = true
 L["Show total friends in the datatext."] = true
@@ -391,6 +402,11 @@ L["Remove selected character from the stored gold values"] = true
 L["Are you sure you want to remove |cff1784d1%s|r from currency datatexts?"] = true
 L["Hide panel background"] = true
 L["Don't show this panel, only datatexts assinged to it"] = true
+L["SLE_DT_CURRENCY_WARNING_GOLD"] = [[Your datapanel %s has ElvUI's "Gold" datatext active while "S&L Currency" datatext is selected elsewhere. To ensure the correct functioning of "S&L Currency" datatext we are disabling some functions of "Gold" datatext. To avoid this conflict you need to replace one of conflicting datatexts.]]
+
+--Enhnced Shadows
+L["Enhanced Shadows"] = true
+L["Use shadows on..."] = true
 
 --Equip Manager
 L["Equipment Manager"] = true
@@ -527,6 +543,8 @@ L["Show texture"] = true
 L["Show instance difficulty info as default texture."] = true
 L["Sets the colors for difficulty abbreviation"] = true
 L["Location Panel"] = true
+L["Automatic Width"] = true
+L["Change width based on the zone name length."] = true
 L["Update Throttle"] = true
 L["The frequency of coordinates and zonetext updates. Check will be done more often with lower values."] = true
 L["Full Location"] = true
@@ -541,6 +559,8 @@ L["Right click on the location panel will bring up a menu with available options
 L["Custom Width"] = true
 L["By default menu's width will be equal to the location panel width. Checking this option will allow you to set own width."] = true
 L["Justify Text"] = true
+L["Hearthstone Location"] = true
+L["Show the name on location your Heathstone is bound to."] = true
 
 
 --Miscs
@@ -686,6 +706,14 @@ Ctrl + Left Click to collapce]]
 L["SLE_QUESTKING_Required"] = "  Required: "
 L["ElvUI Objective Tracker"] = true
 L["ElvUI Skins"] = true
+L["As List"] = true
+L["List Style Fonts"] = true
+L["Item Name Font"] = true
+L["Item Name Size"] = true
+L["Item Name Outline"] = true
+L["Item Info Font"] = true
+L["Item Info Size"] = true
+L["Item Info Outline"] = true
 
 --Toolbars
 L["We are sorry, but you can't do this now. Try again after the end of this combat."] = true
@@ -853,6 +881,7 @@ Benik, The Slacker
 Blazeflack
 Boradan
 Camealion
+Nils Ruesch
 Omega1970
 Pvtschlag
 Simpy, The Heretic

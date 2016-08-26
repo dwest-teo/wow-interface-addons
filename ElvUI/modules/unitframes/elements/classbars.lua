@@ -26,8 +26,6 @@ function UF:Configure_ClassBar(frame, cur)
 	bars.Holder = frame.ClassBarHolder
 	bars.origParent = frame
 
-	if not cur then cur = 0 end
-
 	--Fix height in case it is lower than the theme allows, or in case it's higher than 30px when not detached
 	if (not self.thinBorders and not E.PixelMode) and frame.CLASSBAR_HEIGHT > 0 and frame.CLASSBAR_HEIGHT < 7 then --A height of 7 means 6px for borders and just 1px for the actual power statusbar
 		frame.CLASSBAR_HEIGHT = 7
@@ -125,6 +123,12 @@ function UF:Configure_ClassBar(frame, cur)
 	bars:Height(frame.CLASSBAR_HEIGHT - ((frame.BORDER + frame.SPACING)*2))
 
 	if (frame.ClassBar == 'ClassIcons' or frame.ClassBar == 'Runes') then
+
+		--This fixes issue with ComboPoints showing as active when they are not.
+		if frame.ClassBar == "ClassIcons" and not cur then 
+			cur = 0
+		end
+
 		local maxClassBarButtons = max(UF.classMaxResourceBar[E.myclass] or 0, MAX_COMBO_POINTS)
 		for i = 1, maxClassBarButtons do
 			bars[i]:Hide()
@@ -171,28 +175,20 @@ function UF:Configure_ClassBar(frame, cur)
 					bars[i]:SetStatusBarColor(unpack(ElvUF.colors.ClassBars[E.myclass][i]))
 				elseif E.myclass == "PALADIN" or E.myclass == "MAGE" or E.myclass == "WARLOCK" then
 					bars[i]:SetStatusBarColor(unpack(ElvUF.colors.ClassBars[E.myclass]))
-				elseif E.myclass == "DEATHKNIGHT" then
-					if frame.ClassBar == "Runes" then
-						local r, g, b = unpack(ElvUF.colors.ClassBars["DEATHKNIGHT"])
-						bars[i]:SetStatusBarColor(r, g, b)
-						if (bars[i].bg) then
-							local mu = bars[i].bg.multiplier or 1
-							bars[i].bg:SetVertexColor(r * mu, g * mu, b * mu)
-						end
-					else
-						local r1, g1, b1 = unpack(ElvUF.colors.ComboPoints[1])
-						local r2, g2, b2 = unpack(ElvUF.colors.ComboPoints[2])
-						local r3, g3, b3 = unpack(ElvUF.colors.ComboPoints[3])
-
-						local r, g, b = ElvUF.ColorGradient(i, frame.MAX_CLASS_BAR > 5 and 6 or 5, r1, g1, b1, r2, g2, b2, r3, g3, b3)
-						bars[i]:SetStatusBarColor(r, g, b)
+				elseif E.myclass == "DEATHKNIGHT" and frame.ClassBar == "Runes" then
+					local r, g, b = unpack(ElvUF.colors.ClassBars["DEATHKNIGHT"])
+					bars[i]:SetStatusBarColor(r, g, b)
+					if (bars[i].bg) then
+						local mu = bars[i].bg.multiplier or 1
+						bars[i].bg:SetVertexColor(r * mu, g * mu, b * mu)
 					end
 				else -- Combo Points for everyone else
 					local r1, g1, b1 = unpack(ElvUF.colors.ComboPoints[1])
 					local r2, g2, b2 = unpack(ElvUF.colors.ComboPoints[2])
 					local r3, g3, b3 = unpack(ElvUF.colors.ComboPoints[3])
+					local maxComboPoints = ((frame.MAX_CLASS_BAR == 8 and 8) or (frame.MAX_CLASS_BAR > 5 and 6 or 5))
 
-					local r, g, b = ElvUF.ColorGradient(i, frame.MAX_CLASS_BAR > 5 and 6 or 5, r1, g1, b1, r2, g2, b2, r3, g3, b3)
+					local r, g, b = ElvUF.ColorGradient(i, maxComboPoints, r1, g1, b1, r2, g2, b2, r3, g3, b3)
 					bars[i]:SetStatusBarColor(r, g, b)
 				end
 
@@ -211,7 +207,7 @@ function UF:Configure_ClassBar(frame, cur)
 					end
 				end
 
-				if cur >= i then bars[i]:Show() end
+				if cur and cur >= i then bars[i]:Show() end
 			end
 		end
 

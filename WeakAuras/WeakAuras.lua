@@ -866,7 +866,19 @@ function WeakAuras.UpdateCurrentInstanceType(instanceType)
   end
 end
 
+local pausedOptionsProcessing = false;
+function WeakAuras.pauseOptionsProcessing(enable)
+  pausedOptionsProcessing = enable;
+end
+
+function WeakAuras.IsOptionsProcessingPaused()
+  return pausedOptionsProcessing;
+end
+
 function WeakAuras.ScanForLoads(self, event, arg1)
+  if (WeakAuras.IsOptionsProcessingPaused()) then
+    return;
+  end
   -- PET_BATTLE_CLOSE fires twice at the end of a pet battle. IsInBattle evaluates to TRUE during the
   -- first firing, and FALSE during the second. I am not sure if this check is necessary, but the
   -- following IF statement limits the impact of the PET_BATTLE_CLOSE event to the second one.
@@ -1075,6 +1087,7 @@ loadFrame:RegisterEvent("PET_BATTLE_OPENING_START");
 loadFrame:RegisterEvent("PET_BATTLE_CLOSE");
 loadFrame:RegisterEvent("UNIT_ENTERED_VEHICLE");
 loadFrame:RegisterEvent("UNIT_EXITED_VEHICLE");
+loadFrame:RegisterEvent("SPELLS_CHANGED");
 
 function WeakAuras.RegisterLoadEvents()
   loadFrame:SetScript("OnEvent", WeakAuras.ScanForLoads);
@@ -1643,7 +1656,12 @@ function WeakAuras.Modernize(data)
     if not data.fontFlags then
         data.fontFlags = "OUTLINE";
     end
+  end
 
+  if data.regionType == "text" then
+    if (type(data.outline) == "boolean") then
+      data.outline = data.outline and "OUTLINE" or "None";
+    end
   end
 
   if (not data.activeTriggerMode) then
@@ -2094,7 +2112,9 @@ function WeakAuras.Announce(message, output, _, extra, id, type)
 end
 
 function WeakAuras.PerformActions(data, type, region)
-  if not(paused or squelch_actions) then
+  if (paused) then
+    return;
+  end;
   local actions;
   if(type == "start") then
     actions = data.actions.start;
@@ -2104,7 +2124,7 @@ function WeakAuras.PerformActions(data, type, region)
     return;
   end
 
-  if(actions.do_message and actions.message_type and actions.message) then
+  if(actions.do_message and actions.message_type and actions.message and not squelch_actions) then
     if(actions.message_type == "PRINT") then
       DEFAULT_CHAT_FRAME:AddMessage(actions.message, actions.r or 1, actions.g or 1, actions.b or 1);
     elseif(actions.message_type == "COMBAT") then
@@ -2139,7 +2159,7 @@ function WeakAuras.PerformActions(data, type, region)
     end
   end
 
-  if(actions.do_sound and actions.sound) then
+  if(actions.do_sound and actions.sound and not squelch_actions) then
     if(actions.sound == " custom") then
       if(actions.sound_path) then
         PlaySoundFile(actions.sound_path, actions.sound_channel or "Master");
@@ -2153,7 +2173,7 @@ function WeakAuras.PerformActions(data, type, region)
     end
   end
 
-  if(actions.do_custom and actions.custom) then
+  if(actions.do_custom and actions.custom and not squelch_actions) then
     local func = WeakAuras.LoadFunction("return function() "..(actions.custom).."\n end");
     if func then
       WeakAuras.ActivateAuraEnvironment(region.id, region.cloneId, region.state);
@@ -2162,6 +2182,7 @@ function WeakAuras.PerformActions(data, type, region)
     end
   end
 
+  -- Apply glow actions even if squelch_actions is true
   if(actions.do_glow and actions.glow_action and actions.glow_frame) then
     local glow_frame;
     if(actions.glow_frame:sub(1, 10) == "WeakAuras:") then
@@ -2180,7 +2201,6 @@ function WeakAuras.PerformActions(data, type, region)
         WeakAuras_HideOverlayGlow(glow_frame);
       end
     end
-  end
   end
 end
 
@@ -3347,7 +3367,7 @@ end
 
 local replaceStringCache = {};
 function WeakAuras.ReplacePlaceHolders(textStr, regionValues, regionState)
-  if (regionState) then
+  if (regionState and textStr:len() > 2) then
     for key, value in pairs(regionState) do
       if (type(value) == "string" or type(value) == "number") then
         if (not replaceStringCache[key]) then

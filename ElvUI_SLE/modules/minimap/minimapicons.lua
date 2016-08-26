@@ -50,6 +50,7 @@ SMB.ignoreButtons = {
 	'ElvConfigToggle',
 	'GameTimeFrame',
 	'HelpOpenTicketButton',
+	'HelpOpenWebTicketButton',
 	'MiniMapTrackingButton',
 	'MiniMapVoiceChatFrame',
 	'TimeManagerClockButton',
@@ -83,6 +84,7 @@ SMB.AddButtonsToBar = {
 	'SmartBuff_MiniMapButton',
 	'QueueStatusMinimapButton',
 	'MiniMapMailFrame',
+	"ItemRackMinimapFrame",
 }
 
 local function SkinButton(Button)
@@ -278,11 +280,15 @@ function SMB:Update()
 				if Name == 'SmartBuff_MiniMapButton' then
 					SMARTBUFF_MinimapButton_CheckPos = function() end
 					SMARTBUFF_MinimapButton_OnUpdate = function() end
+				elseif Name == "ItemRackMinimapFrame" then
+					ItemRack.MoveMinimap = function() end
 				end
 				if not E.db.sle.minimap.mapicons.skindungeon and Name == 'QueueStatusMinimapButton' then
 					Exception = false
+					local pos = E.db.general.minimap.icons.lfgEye.position or "BOTTOMRIGHT"
+					local scale = E.db.general.minimap.icons.lfgEye.scale or 1
 					_G["QueueStatusMinimapButton"]:ClearAllPoints()
-					_G["QueueStatusMinimapButton"]:Point("BOTTOMRIGHT", _G["Minimap"], -3, 3)
+					_G["QueueStatusMinimapButton"]:Point(pos, _G["Minimap"], pos, E.db.general.minimap.icons.lfgEye.xOffset or 3, E.db.general.minimap.icons.lfgEye.yOffset or 0)
 				end
 				if (not E.db.sle.minimap.mapicons.skinmail and Name == 'MiniMapMailFrame') then
 					Exception = false

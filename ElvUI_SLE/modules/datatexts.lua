@@ -1,6 +1,6 @@
 ﻿local SLE, T, E, L, V, P, G = unpack(select(2, ...))  
 local DTP = SLE:NewModule('Datatexts', 'AceHook-3.0', 'AceEvent-3.0');
-local DT = E:GetModule('DataTexts');
+local DT, MM = SLE:GetElvModules("DataTexts", "Minimap");
 --GLOBALS: ElvDB, hooksecurefunc
 local _G = _G
 local CreateFrame = CreateFrame
@@ -17,17 +17,18 @@ DTP.values = {
 	[8] = {"BOTTOM", ((E.eyefinity or E.screenwidth)/6 - 15), 3},
 }
 DTP.Names = {}
+DTP.GoldCache = {}
 
 local function Bar_OnEnter(self)
 	if DTP.db["panel"..self.Num].mouseover then
-		E:UIFrameFadeIn(self, 0.2, self:GetAlpha(), 1)
+		E:UIFrameFadeIn(self, 0.2, self:GetAlpha(), DTP.db["panel"..self.Num].alpha)
 	end
 end
 
 local function Button_OnEnter(self)
 	local bar = self:GetParent()
 	if DTP.db["panel"..bar.Num].mouseover then
-		E:UIFrameFadeIn(bar, 0.2, bar:GetAlpha(), 1)
+		E:UIFrameFadeIn(bar, 0.2, bar:GetAlpha(), DTP.db["panel"..bar.Num].alpha)
 	end
 end
 
@@ -41,6 +42,49 @@ local function Button_OnLeave(self)
 	local bar = self:GetParent()
 	if DTP.db["panel"..bar.Num].mouseover then
 		E:UIFrameFadeOut(bar, 0.2, bar:GetAlpha(), 0)
+	end
+end
+
+local OnLoadThrottle = true
+function DTP:LoadDTHook()
+	local SLE_Cur_Selected = false
+	T.twipe(DTP.GoldCache)
+	for panelName, panel in T.pairs(DT.RegisteredPanels) do
+		for i=1, panel.numPoints do
+			local pointIndex = DT.PointLocation[i]
+			if DTP.Names[panelName] then 
+				panel.dataPanels[pointIndex]:HookScript("OnEnter", Button_OnEnter)
+				panel.dataPanels[pointIndex]:HookScript("OnLeave", Button_OnLeave)
+			end
+			for option, value in T.pairs(DT.db.panels) do
+				if value and type(value) == 'table' then
+					if option == panelName and DT.db.panels[option][pointIndex] and DT.db.panels[option][pointIndex] == "Gold" then
+						DTP.GoldCache[panelName] = panel.dataPanels[pointIndex]
+					elseif option == panelName and DT.db.panels[option][pointIndex] and DT.db.panels[option][pointIndex] == "S&L Currency" then
+						SLE_Cur_Selected = true
+					end
+				elseif value and type(value) == 'string' and value == "Gold" then
+					if DT.db.panels[option] == "Gold" and option == panelName then
+						DTP.GoldCache[panelName] = panel.dataPanels[pointIndex]
+					end
+				elseif value and type(value) == 'string' and value == "S&L Currency" then
+					if DT.db.panels[option] == "Gold" and option == panelName then
+						SLE_Cur_Selected = true
+					end
+				end
+			end
+		end
+	end
+	if OnLoadThrottle then
+		OnLoadThrottle = false
+		if SLE_Cur_Selected then
+			for k, v in T.pairs(DTP.GoldCache) do
+				local message = T.format(L["SLE_DT_CURRENCY_WARNING_GOLD"], "|cff1784d1"..L[k].."|r")
+				SLE:ErrorPrint(message)
+				if v then v:UnregisterAllEvents() end
+			end
+		end
+		E:Delay(1, function() OnLoadThrottle = true end)
 	end
 end
 
@@ -74,7 +118,7 @@ function DTP:Mouseover(i)
 	if DTP.db["panel"..i].mouseover then
 		self["Panel_"..i]:SetAlpha(0)
 	else
-		self["Panel_"..i]:SetAlpha(1)
+		self["Panel_"..i]:SetAlpha(DTP.db["panel"..i].alpha)
 	end
 end
 
@@ -95,7 +139,11 @@ function DTP:Toggle(i)
 end
 
 function DTP:PetHide(i)
-	E.FrameLocks[self["Panel_"..i]] = DTP.db["panel"..i].pethide or nil
+	if DTP.db["panel"..i].pethide then
+		E:RegisterPetBattleHideFrames(self["Panel_"..i], E.UIParent, "LOW")
+	else
+		E:UnregisterPetBattleHideFrames(self["Panel_"..i])
+	end
 end
 
 function DTP:Template(i)
@@ -173,7 +221,11 @@ function DTP:Initialize()
 	local popup = E.PopupDialogs['SLE_CONFIRM_DELETE_CURRENCY_CHARACTER']
 	popup.OnAccept = DTP.DeleteCurrencyEntry,
 	
-	hooksecurefunc(DT, "LoadDataTexts", DTP.MouseoverHook)
+	-- hooksecurefunc(DT, "LoadDataTexts", DTP.MouseoverHook)
+	hooksecurefunc(DT, "LoadDataTexts", DTP.LoadDTHook)
+	-- :UpdateSettings()
+	hooksecurefunc(MM, "UpdateSettings", DTP.LoadDTHook)
+	DTP:LoadDTHook()
 end
 
 SLE:RegisterModule(DTP:GetName())

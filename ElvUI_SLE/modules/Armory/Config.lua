@@ -2,6 +2,15 @@
 
 local SLE, T, E, L, V, P, G = unpack(select(2, ...)) 
 local KF, Info, Timer = unpack(ElvUI_KnightFrame)
+--GLOBALS: SLE_ArmoryDB, AceGUIWidgetLSMlists, PaperDollFrame_UpdateStats
+local _G = _G
+-- local PaperDollFrame_UpdateStats = PaperDollFrame_UpdateStats
+local UnitPowerType = UnitPowerType
+
+local MAX_NUM_SOCKETS = MAX_NUM_SOCKETS
+local ALTERNATE_RESOURCE_TEXT, DAMAGE, ATTACK_POWER, ATTACK_SPEED, STAT_SPELLPOWER, STAT_ENERGY_REGEN, STAT_RUNE_REGEN, STAT_FOCUS_REGEN, STAT_SPEED, DURABILITY, HIDE = ALTERNATE_RESOURCE_TEXT, DAMAGE, ATTACK_POWER, ATTACK_SPEED, STAT_SPELLPOWER, STAT_ENERGY_REGEN, STAT_RUNE_REGEN, STAT_FOCUS_REGEN, STAT_SPEED, DURABILITY, HIDE
+local FACTION_ALLIANCE, FACTION_HORDE, ARENA, NONE, STAT_CATEGORY_ATTRIBUTES, STAT_CATEGORY_ATTRIBUTES = FACTION_ALLIANCE, FACTION_HORDE, ARENA, NONE, STAT_CATEGORY_ATTRIBUTES, STAT_CATEGORY_ATTRIBUTES
+local ADD, DELETE, HEALTH = ADD, DELETE, HEALTH
 
 if not (KF and KF.Modules and (KF.Modules.CharacterArmory or KF.Modules.InspectArmory)) then return end
 
@@ -22,7 +31,7 @@ local function LoadArmoryConfigTable()
 			EnchantString = {
 				type = 'group',
 				name = L["Enchant String"],
-				order = 300,
+				order = 700,
 				args = {
 					Space = {
 						type = 'description',
@@ -74,7 +83,7 @@ local function LoadArmoryConfigTable()
 								values = function()
 									local List = {}
 									List[""] = NONE
-									for Name, _ in pairs(SLE_ArmoryDB.EnchantString) do
+									for Name, _ in T.pairs(SLE_ArmoryDB.EnchantString) do
 										List[Name] = Name
 									end
 									if not SelectedEnchantString then
@@ -109,12 +118,12 @@ local function LoadArmoryConfigTable()
 										set = function(_, value)
 											SLE_ArmoryDB.EnchantString[SelectedEnchantString]["original"] = value
 											
-											if CharacterArmory then
-												CharacterArmory:Update_Gear()
+											if _G["CharacterArmory"] then
+												_G["CharacterArmory"]:Update_Gear()
 											end
 											
-											if InspectArmory and InspectArmory.LastDataSetting then
-												InspectArmory:InspectFrame_DataSetting(InspectArmory.CurrentInspectData)
+											if _G["InspectArmory"] and _G["InspectArmory"].LastDataSetting then
+												_G["InspectArmory"]:InspectFrame_DataSetting(_G["InspectArmory"].CurrentInspectData)
 											end
 										end,
 										disabled = function() return E.db.sle.Armory.Character.Enable == false and E.db.sle.Armory.Inspect.Enable == false end
@@ -129,12 +138,12 @@ local function LoadArmoryConfigTable()
 										set = function(_, value)
 											SLE_ArmoryDB.EnchantString[SelectedEnchantString]["new"] = value
 											
-											if CharacterArmory then
-												CharacterArmory:Update_Gear()
+											if _G["CharacterArmory"] then
+												_G["CharacterArmory"]:Update_Gear()
 											end
 											
-											if InspectArmory and InspectArmory.LastDataSetting then
-												InspectArmory:InspectFrame_DataSetting(InspectArmory.CurrentInspectData)
+											if _G["InspectArmory"] and _G["InspectArmory"].LastDataSetting then
+												_G["InspectArmory"]:InspectFrame_DataSetting(_G["InspectArmory"].CurrentInspectData)
 											end
 										end,
 										disabled = function() return E.db.sle.Armory.Character.Enable == false and E.db.sle.Armory.Inspect.Enable == false end
@@ -149,12 +158,12 @@ local function LoadArmoryConfigTable()
 												SLE_ArmoryDB.EnchantString[SelectedEnchantString] = nil
 												SelectedEnchantString = ''
 												
-												if CharacterArmory then
-													CharacterArmory:Update_Gear()
+												if _G["CharacterArmory"] then
+													_G["CharacterArmory"]:Update_Gear()
 												end
 												
-												if InspectArmory and InspectArmory.LastDataSetting then
-													InspectArmory:InspectFrame_DataSetting(InspectArmory.CurrentInspectData)
+												if _G["InspectArmory"] and _G["InspectArmory"].LastDataSetting then
+													_G["InspectArmory"]:InspectFrame_DataSetting(_G["InspectArmory"].CurrentInspectData)
 												end
 											end
 										end,
@@ -236,11 +245,7 @@ local function LoadArmoryConfigTable()
 			order = 1,
 			desc = '',
 			get = function() return E.db.sle.Armory.Character.Enable end,
-			set = function(_, value)
-				E.db.sle.Armory.Character.Enable = value
-				
-				KF.Modules.CharacterArmory()
-			end
+			set = function(_, value) E.db.sle.Armory.Character.Enable = value; KF.Modules.CharacterArmory() end
 		}
 		
 		local SelectedCABG
@@ -253,29 +258,117 @@ local function LoadArmoryConfigTable()
 					type = 'toggle',
 					name = L["Show Missing Enchants or Gems"],
 					order = 1,
-					desc = '',
 					get = function() return E.db.sle.Armory.Character.NoticeMissing end,
-					set = function(_, value)
-						E.db.sle.Armory.Character.NoticeMissing = value
-						
-						CharacterArmory:Update_Gear()
-						CharacterArmory:Update_Display(true)
-					end,
+					set = function(_, value) E.db.sle.Armory.Character.NoticeMissing = value; _G["CharacterArmory"]:UpdateSettings("gear") end,
 					disabled = function() return not E.db.sle.Armory.Character.Enable end,
 				},
 				MissingIcon = {
 					type = 'toggle',
 					name = L["Show Warning Icon"],
 					order = 2,
-					desc = '',
 					get = function() return E.db.sle.Armory.Character.MissingIcon end,
-					set = function(_, value)
-						E.db.sle.Armory.Character.MissingIcon = value
-						
-						CharacterArmory:Update_Gear()
-						CharacterArmory:Update_Display(true)
-					end,
+					set = function(_, value) E.db.sle.Armory.Character.MissingIcon = value; _G["CharacterArmory"]:UpdateSettings("gear") end,
 					disabled = function() return not E.db.sle.Armory.Character.Enable or not E.db.sle.Armory.Character.NoticeMissing end,
+				},
+				Stats = {
+					type = 'group',
+					name = STAT_CATEGORY_ATTRIBUTES,
+					order = 3,
+					guiInline = true,
+					disabled = function() return SLE._Compatibility["DejaCharacterStats"] end,
+					get = function(info) return E.db.sle.Armory.Character.Stats[ info[#info] ] end,
+					set = function(info, value) E.db.sle.Armory.Character.Stats[ info[#info] ] = value; PaperDollFrame_UpdateStats() end,
+					args = {
+						IlvlFull = {
+							order = 1,
+							type = "toggle",
+							name = L["Full Item Level"],
+							desc = L["Show both equipped and average item levels."],
+						},
+						IlvlColor = {
+							order = 2,
+							type = "toggle",
+							name = L["Item Level Coloring"],
+							desc = L["Color code item levels values. Equipped will be gradient, avarage - selected color."],
+							disabled = function() return SLE._Compatibility["DejaCharacterStats"] or not E.db.sle.Armory.Character.Stats.IlvlFull end,
+						},
+						AverageColor = {
+							type = 'color',
+							order = 3,
+							name = L["Color of Average"],
+							desc = L["Sets the color of avarage item level."],
+							hasAlpha = false,
+							disabled = function() return SLE._Compatibility["DejaCharacterStats"] or not E.db.sle.Armory.Character.Stats.IlvlFull end,
+							get = function(info)
+								local t = E.db.sle.Armory.Character.Stats[ info[#info] ]
+								local d = P.sle.Armory.Character.Stats[info[#info]]
+								return t.r, t.g, t.b, t.a, d.r, d.g, d.b, d.a
+							end,
+							set = function(info, r, g, b, a)
+								E.db.sle.Armory.Character.Stats[ info[#info] ] = {}
+								local t = E.db.sle.Armory.Character.Stats[ info[#info] ]
+								t.r, t.g, t.b, t.a = r, g, b, a
+								PaperDollFrame_UpdateStats()
+							end,
+						},
+						OnlyPrimary = {
+							order = 4,
+							type = "toggle",
+							name = L["Only Relevant Stats"],
+							desc = L["Show only those primary stats relevant to your spec."],
+						},
+						IlvlFont = {
+							type = 'group',
+							name = L["Font"],
+							order = 5,
+							guiInline = true,
+							get = function(info) return E.private.sle.Armory.ItemLevel[ info[#info] ] end,
+							set = function(info, value) E.private.sle.Armory.ItemLevel[ info[#info] ] = value; _G["CharacterArmory"]:UpdateIlvlFont() end,
+							args = {
+								font = {
+									type = 'select', dialogControl = 'LSM30_Font',
+									name = L["Font"],
+									order = 1,
+									values = function()
+										return AceGUIWidgetLSMlists and AceGUIWidgetLSMlists.font or {}
+									end,
+								},
+								size = {
+									type = 'range',
+									name = L["Font Size"],
+									order = 2,
+									min = 6,max = 22,step = 1,
+								},
+								outline = {
+									type = 'select',
+									name = L["Font Outline"],
+									order = 3,
+									values = FontStyleList,
+								}
+							},
+						},
+						Stats = {
+							type = 'group',
+							name = STAT_CATEGORY_ATTRIBUTES,
+							order = 6,
+							guiInline = true,
+							get = function(info) return E.db.sle.Armory.Character.Stats.List[ info[#info] ] end,
+							set = function(info, value) E.db.sle.Armory.Character.Stats.List[ info[#info] ] = value; _G["CharacterArmory"]:ToggleStats() end,
+							args = {
+								HEALTH = { order = 1,type = "toggle",name = HEALTH,},
+								POWER = { order = 2,type = "toggle",name = _G[T.select(2, UnitPowerType("player"))],},
+								ALTERNATEMANA = { order = 3,type = "toggle",name = ALTERNATE_RESOURCE_TEXT,},
+								ATTACK_DAMAGE = { order = 4,type = "toggle",name = DAMAGE,},
+								ATTACK_AP = { order = 5,type = "toggle",name = ATTACK_POWER,},
+								ATTACK_ATTACKSPEED = { order = 6,type = "toggle",name = ATTACK_SPEED,},
+								SPELLPOWER = { order = 7,type = "toggle",name = STAT_SPELLPOWER,},
+								ENERGY_REGEN = { order = 8,type = "toggle",name = STAT_ENERGY_REGEN,},
+								RUNE_REGEN = { order = 9,type = "toggle",name = STAT_RUNE_REGEN,},
+								FOCUS_REGEN = { order = 10,type = "toggle",name = STAT_FOCUS_REGEN,},
+								MOVESPEED = { order = 11,type = "toggle",name = STAT_SPEED,},
+							},
+						},
+					},
 				},
 				Backdrop = {
 					type = 'group',
@@ -288,19 +381,14 @@ local function LoadArmoryConfigTable()
 							name = L["Select Image"],
 							order = 1,
 							get = function()
-								for Index, Key in pairs(BackdropKeyTable) do
+								for Index, Key in T.pairs(BackdropKeyTable) do
 									if Key == E.db.sle.Armory.Character.Backdrop.SelectedBG then
 										return Index
 									end
 								end
-								
 								return '1'
 							end,
-							set = function(_, value)
-								E.db.sle.Armory.Character.Backdrop.SelectedBG = BackdropKeyTable[value]
-								
-								CharacterArmory:Update_BG()
-							end,
+							set = function(_, value) E.db.sle.Armory.Character.Backdrop.SelectedBG = BackdropKeyTable[value]; _G["CharacterArmory"]:UpdateSettings("bg") end,
 							values = function() return BackgroundList end,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
@@ -308,13 +396,8 @@ local function LoadArmoryConfigTable()
 							type = 'input',
 							name = L["Custom Image Path"],
 							order = 2,
-							desc = '',
 							get = function() return E.db.sle.Armory.Character.Backdrop.CustomAddress end,
-							set = function(_, value)
-								E.db.sle.Armory.Character.Backdrop.CustomAddress = value
-								
-								CharacterArmory:Update_BG()
-							end,
+							set = function(_, value) E.db.sle.Armory.Character.Backdrop.CustomAddress = value; _G["CharacterArmory"]:UpdateSettings("bg") end,
 							width = 'double',
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end,
 							hidden = function() return E.db.sle.Armory.Character.Backdrop.SelectedBG ~= 'CUSTOM' end
@@ -337,11 +420,7 @@ local function LoadArmoryConfigTable()
 							name = L["Enable"],
 							order = 1,
 							get = function() return E.db.sle.Armory.Character.Gradation.Display end,
-							set = function(_, value)
-								E.db.sle.Armory.Character.Gradation.Display = value
-								
-								CharacterArmory:Update_Gear()
-							end,
+							set = function(_, value) E.db.sle.Armory.Character.Gradation.Display = value; _G["CharacterArmory"]:Update_Gear() end,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
 						Color = {
@@ -354,11 +433,7 @@ local function LoadArmoryConfigTable()
 									   E.db.sle.Armory.Character.Gradation.Color[3],
 									   E.db.sle.Armory.Character.Gradation.Color[4]
 							end,
-							set = function(Info, r, g, b, a)
-								E.db.sle.Armory.Character.Gradation.Color = { r, g, b, a }
-								
-								CharacterArmory:Update_Gear()
-							end,
+							set = function(Info, r, g, b, a) E.db.sle.Armory.Character.Gradation.Color = { r, g, b, a }; _G["CharacterArmory"]:Update_Gear() end,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false or E.db.sle.Armory.Character.Gradation.Display == false end
 						},
 					}
@@ -374,32 +449,13 @@ local function LoadArmoryConfigTable()
 					order = 7,
 					guiInline = true,
 					get = function(info) return E.db.sle.Armory.Character[(info[#info - 1])][(info[#info])] end,
-					set = function(info, value)
-						E.db.sle.Armory.Character[(info[#info - 1])][(info[#info])] = value
-						
-						for _, SlotName in pairs(Info.Armory_Constants.GearList) do
-							if CharacterArmory[SlotName] and CharacterArmory[SlotName].ItemLevel then
-								CharacterArmory[SlotName].ItemLevel:FontTemplate(
-									E.LSM:Fetch('font', E.db.sle.Armory.Character.Level.Font)
-									,
-									E.db.sle.Armory.Character.Level.FontSize
-									,
-									E.db.sle.Armory.Character.Level.FontStyle
-								)
-							end
-						end
-					end,
+					set = function(info, value) E.db.sle.Armory.Character[(info[#info - 1])][(info[#info])] = value; _G["CharacterArmory"]:UpdateSettings("ilvl") end,
 					args = {
 						Display = {
 							type = 'select',
 							name = L["Visibility"],
 							order = 1,
-							set = function(info, value)
-								E.db.sle.Armory.Character[(info[#info - 1])][(info[#info])] = value
-								
-								CharacterArmory:Update_Gear()
-								CharacterArmory:Update_Display(true)
-							end,
+							set = function(info, value) E.db.sle.Armory.Character[(info[#info - 1])][(info[#info])] = value;  _G["CharacterArmory"]:UpdateSettings("gear") end,
 							values = DisplayMethodList,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
@@ -407,42 +463,32 @@ local function LoadArmoryConfigTable()
 							type = 'toggle',
 							name = L["Upgrade Level"],
 							order = 2,
-							set = function(_, value)
-								E.db.sle.Armory.Character.Level.ShowUpgradeLevel = value
-								
-								CharacterArmory:Update_Gear()
-							end,
+							set = function(_, value) E.db.sle.Armory.Character.Level.ShowUpgradeLevel = value; _G["CharacterArmory"]:Update_Gear() end,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
 						Space = {
 							type = 'description',
-							name = ' ',
+							name = '',
 							order = 3
 						},
 						Font = {
 							type = 'select', dialogControl = 'LSM30_Font',
 							name = L["Font"],
 							order = 4,
-							values = function()
-								return AceGUIWidgetLSMlists and AceGUIWidgetLSMlists.font or {}
-							end,
+							values = function() return AceGUIWidgetLSMlists and AceGUIWidgetLSMlists.font or {} end,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
 						FontSize = {
 							type = 'range',
 							name = L["Font Size"],
 							order = 5,
-							desc = '',
-							min = 6,
-							max = 22,
-							step = 1,
+							min = 6, max = 22, step = 1,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
 						FontStyle = {
 							type = 'select',
 							name = L["Font Outline"],
 							order = 6,
-							desc = '',
 							values = FontStyleList,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						}
@@ -450,7 +496,7 @@ local function LoadArmoryConfigTable()
 				},
 				Space4 = {
 					type = 'description',
-					name = ' ',
+					name = '',
 					order = 8
 				},
 				Enchant = {
@@ -459,32 +505,12 @@ local function LoadArmoryConfigTable()
 					order = 9,
 					guiInline = true,
 					get = function(info) return E.db.sle.Armory.Character[(info[#info - 1])][(info[#info])] end,
-					set = function(info, value)
-						E.db.sle.Armory.Character[(info[#info - 1])][(info[#info])] = value
-						
-						for _, SlotName in pairs(Info.Armory_Constants.GearList) do
-							if CharacterArmory[SlotName] and CharacterArmory[SlotName].ItemEnchant then
-								CharacterArmory[SlotName].ItemEnchant:FontTemplate(
-									E.LSM:Fetch('font', E.db.sle.Armory.Character.Enchant.Font)
-									,
-									E.db.sle.Armory.Character.Enchant.FontSize
-									,
-									E.db.sle.Armory.Character.Enchant.FontStyle
-								)
-							end
-						end
-					end,
+					set = function(info, value) E.db.sle.Armory.Character[(info[#info - 1])][(info[#info])] = value;  _G["CharacterArmory"]:UpdateSettings("ench") end,
 					args = {
 						Display = {
 							type = 'select',
 							name = L["Visibility"],
 							order = 1,
-							set = function(info, value)
-								E.db.sle.Armory.Character[(info[#info - 1])][(info[#info])] = value
-								
-								CharacterArmory:Update_Gear()
-								CharacterArmory:Update_Display(true)
-							end,
 							values = DisplayMethodList,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
@@ -492,60 +518,39 @@ local function LoadArmoryConfigTable()
 							type = 'range',
 							name = L["Warning Size"],
 							order = 2,
-							set = function(_, value)
-								E.db.sle.Armory.Character.Enchant.WarningSize = value
-								
-								for _, SlotName in pairs(Info.Armory_Constants.GearList) do
-									if CharacterArmory[SlotName] and CharacterArmory[SlotName].EnchantWarning then
-										CharacterArmory[SlotName].EnchantWarning:Size(value)
-									end
-								end
-							end,
-							min = 6,
-							max = 50,
-							step = 1,
+							min = 6, max = 50, step = 1,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
 						WarningIconOnly = {
 							type = 'toggle',
 							name = L["Warning Only As Icons"],
 							order = 3,
-							set = function(_, value)
-								E.db.sle.Armory.Character.Enchant.WarningIconOnly = value
-								
-								CharacterArmory:Update_Gear()
-							end,
+							set = function(_, value) E.db.sle.Armory.Character.Enchant.WarningIconOnly = value; _G["CharacterArmory"]:Update_Gear() end,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end,
 						},
 						Space = {
 							type = 'description',
-							name = ' ',
+							name = '',
 							order = 4
 						},
 						Font = {
 							type = 'select', dialogControl = 'LSM30_Font',
 							name = L["Font"],
 							order = 5,
-							values = function()
-								return AceGUIWidgetLSMlists and AceGUIWidgetLSMlists.font or {}
-							end,
+							values = function() return AceGUIWidgetLSMlists and AceGUIWidgetLSMlists.font or {} end,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
 						FontSize = {
 							type = 'range',
 							name = L["Font Size"],
 							order = 6,
-							desc = '',
-							min = 6,
-							max = 22,
-							step = 1,
+							min = 6, max = 22, step = 1,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
 						FontStyle = {
 							type = 'select',
 							name = L["Font Outline"],
 							order = 7,
-							desc = '',
 							values = FontStyleList,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						}
@@ -553,7 +558,7 @@ local function LoadArmoryConfigTable()
 				},
 				Space5 = {
 					type = 'description',
-					name = ' ',
+					name = '',
 					order = 10
 				},
 				Durability = {
@@ -562,32 +567,13 @@ local function LoadArmoryConfigTable()
 					order = 11,
 					guiInline = true,
 					get = function(info) return E.db.sle.Armory.Character[(info[#info - 1])][(info[#info])] end,
-					set = function(info, value)
-						E.db.sle.Armory.Character[(info[#info - 1])][(info[#info])] = value
-						
-						for _, SlotName in pairs(Info.Armory_Constants.GearList) do
-							if CharacterArmory[SlotName] and CharacterArmory[SlotName].Durability then
-								CharacterArmory[SlotName].Durability:FontTemplate(
-									E.LSM:Fetch('font', E.db.sle.Armory.Character.Durability.Font)
-									,
-									E.db.sle.Armory.Character.Durability.FontSize
-									,
-									E.db.sle.Armory.Character.Durability.FontStyle
-								)
-							end
-						end
-					end,
+					set = function(info, value) E.db.sle.Armory.Character[(info[#info - 1])][(info[#info])] = value; _G["CharacterArmory"]:UpdateSettings("dur") end,
 					args = {
 						Display = {
 							type = 'select',
 							name = L["Visibility"],
 							order = 1,
-							set = function(info, value)
-								E.db.sle.Armory.Character[(info[#info - 1])][(info[#info])] = value
-								
-								CharacterArmory:Update_Durability()
-								CharacterArmory:Update_Display(true)
-							end,
+							set = function(info, value) E.db.sle.Armory.Character[(info[#info - 1])][(info[#info])] = value; _G["CharacterArmory"]:UpdateSettings("gear") end,
 							values = {
 								Always = L["Always Display"],
 								DamagedOnly = L["Only Damaged"],
@@ -598,33 +584,27 @@ local function LoadArmoryConfigTable()
 						},
 						Space = {
 							type = 'description',
-							name = ' ',
+							name = '',
 							order = 2
 						},
 						Font = {
 							type = 'select', dialogControl = 'LSM30_Font',
 							name = L["Font"],
 							order = 3,
-							values = function()
-								return AceGUIWidgetLSMlists and AceGUIWidgetLSMlists.font or {}
-							end,
+							values = function() return AceGUIWidgetLSMlists and AceGUIWidgetLSMlists.font or {} end,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
 						FontSize = {
 							type = 'range',
 							name = L["Font Size"],
 							order = 4,
-							desc = '',
-							min = 6,
-							max = 22,
-							step = 1,
+							min = 6, max = 22, step = 1,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
 						FontStyle = {
 							type = 'select',
 							name = L["Font Outline"],
 							order = 5,
-							desc = '',
 							values = FontStyleList,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						}
@@ -632,7 +612,7 @@ local function LoadArmoryConfigTable()
 				},
 				Space6 = {
 					type = 'description',
-					name = ' ',
+					name = '',
 					order = 12
 				},
 				Gem = {
@@ -646,12 +626,7 @@ local function LoadArmoryConfigTable()
 							type = 'select',
 							name = L["Visibility"],
 							order = 1,
-							set = function(Info, value)
-								E.db.sle.Armory.Character[(Info[#Info - 1])][(Info[#Info])] = value
-								
-								CharacterArmory:Update_Gear()
-								CharacterArmory:Update_Display(true)
-							end,
+							set = function(Info, value) E.db.sle.Armory.Character[(Info[#Info - 1])][(Info[#Info])] = value; _G["CharacterArmory"]:UpdateSettings("gem") end,
 							values = DisplayMethodList,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
@@ -659,40 +634,15 @@ local function LoadArmoryConfigTable()
 							type = 'range',
 							name = L["Socket Size"],
 							order = 2,
-							set = function(_, value)
-								E.db.sle.Armory.Character.Gem.SocketSize = value
-								
-								for _, SlotName in pairs(Info.Armory_Constants.GearList) do
-									for i = 1, MAX_NUM_SOCKETS do
-										if CharacterArmory[SlotName] and CharacterArmory[SlotName]["Socket"..i] then
-											CharacterArmory[SlotName]["Socket"..i]:Size(value)
-										else
-											break
-										end
-									end
-								end
-							end,
-							min = 6,
-							max = 50,
-							step = 1,
+							set = function(_, value) E.db.sle.Armory.Character.Gem.SocketSize = value; _G["CharacterArmory"]:UpdateSettings("gem") end,
+							min = 6, max = 50, step = 1,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
 						WarningSize = {
 							type = 'range',
 							name = L["Warning Size"],
 							order = 3,
-							set = function(_, value)
-								E.db.sle.Armory.Character.Gem.WarningSize = value
-								
-								for _, SlotName in pairs(Info.Armory_Constants.GearList) do
-									if CharacterArmory[SlotName] and CharacterArmory[SlotName].SocketWarning then
-										CharacterArmory[SlotName].SocketWarning:Size(value)
-									end
-								end
-							end,
-							min = 6,
-							max = 50,
-							step = 1,
+							min = 6,max = 50,step = 1,
 							disabled = function() return E.db.sle.Armory.Character.Enable == false end
 						},
 					}
@@ -721,13 +671,8 @@ local function LoadArmoryConfigTable()
 			type = 'toggle',
 			name = L["Inspect Armory"],
 			order = 2,
-			desc = '',
 			get = function() return E.db.sle.Armory.Inspect.Enable end,
-			set = function(_, value)
-				E.db.sle.Armory.Inspect.Enable = value
-				
-				KF.Modules.InspectArmory()
-			end
+			set = function(_, value) E.db.sle.Armory.Inspect.Enable = value; KF.Modules.InspectArmory() end
 		}
 		
 		E.Options.args.sle.args.modules.args.Armory.args.Inspect = {
@@ -739,15 +684,14 @@ local function LoadArmoryConfigTable()
 					type = 'toggle',
 					name = L["Show Missing Enchants or Gems"],
 					order = 1,
-					desc = '',
 					get = function() return E.db.sle.Armory.Inspect.NoticeMissing end,
 					set = function(_, value)
 						E.db.sle.Armory.Inspect.NoticeMissing = value
 						
-						if InspectArmory.LastDataSetting then
-							InspectArmory:InspectFrame_DataSetting(InspectArmory.CurrentInspectData)
+						if _G["InspectArmory"].LastDataSetting then
+							_G["InspectArmory"]:InspectFrame_DataSetting(_G["InspectArmory"].CurrentInspectData)
 						end
-						InspectArmory:Update_Display(true)
+						_G["InspectArmory"]:Update_Display(true)
 					end,
 					disabled = function() return not E.db.sle.Armory.Inspect.Enable end,
 				},
@@ -755,15 +699,14 @@ local function LoadArmoryConfigTable()
 					type = 'toggle',
 					name = L["Show Warning Icon"],
 					order = 2,
-					desc = '',
 					get = function() return E.db.sle.Armory.Inspect.MissingIcon end,
 					set = function(_, value)
 						E.db.sle.Armory.Inspect.MissingIcon = value
 						
-						if InspectArmory.LastDataSetting then
-							InspectArmory:InspectFrame_DataSetting(InspectArmory.CurrentInspectData)
+						if _G["InspectArmory"].LastDataSetting then
+							_G["InspectArmory"]:InspectFrame_DataSetting(_G["InspectArmory"].CurrentInspectData)
 						end
-						InspectArmory:Update_Display(true)
+						_G["InspectArmory"]:Update_Display(true)
 					end,
 					disabled = function() return not E.db.sle.Armory.Inspect.Enable or not E.db.sle.Armory.Inspect.NoticeMissing end,
 				},
@@ -778,18 +721,17 @@ local function LoadArmoryConfigTable()
 							name = L["Select Image"],
 							order = 1,
 							get = function()
-								for Index, Key in pairs(BackdropKeyTable) do
+								for Index, Key in T.pairs(BackdropKeyTable) do
 									if Key == E.db.sle.Armory.Inspect.Backdrop.SelectedBG then
 										return Index
 									end
 								end
-								
 								return '1'
 							end,
 							set = function(_, value)
 								E.db.sle.Armory.Inspect.Backdrop.SelectedBG = BackdropKeyTable[value]
 								
-								InspectArmory:Update_BG()
+								_G["InspectArmory"]:Update_BG()
 							end,
 							values = function() return BackgroundList end,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end
@@ -798,12 +740,11 @@ local function LoadArmoryConfigTable()
 							type = 'input',
 							name = L["Custom Image Path"],
 							order = 2,
-							desc = '',
 							get = function() return E.db.sle.Armory.Inspect.Backdrop.CustomAddress end,
 							set = function(_, value)
 								E.db.sle.Armory.Inspect.Backdrop.CustomAddress = value
 								
-								InspectArmory:Update_BG()
+								_G["InspectArmory"]:Update_BG()
 							end,
 							width = 'double',
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end,
@@ -813,7 +754,7 @@ local function LoadArmoryConfigTable()
 				},
 				Space2 = {
 					type = 'description',
-					name = ' ',
+					name = '',
 					order = 4
 				},
 				Gradation = {
@@ -830,8 +771,8 @@ local function LoadArmoryConfigTable()
 							set = function(_, value)
 								E.db.sle.Armory.Inspect.Gradation.Display = value
 								
-								if InspectArmory and InspectArmory.LastDataSetting then
-									InspectArmory:InspectFrame_DataSetting(InspectArmory.CurrentInspectData)
+								if _G["InspectArmory"] and _G["InspectArmory"].LastDataSetting then
+									_G["InspectArmory"]:InspectFrame_DataSetting(_G["InspectArmory"].CurrentInspectData)
 								end
 							end,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end
@@ -849,8 +790,8 @@ local function LoadArmoryConfigTable()
 							set = function(Info, r, g, b, a)
 								E.db.sle.Armory.Inspect.Gradation.Color = { r, g, b, a }
 								
-								if InspectArmory.LastDataSetting then
-									InspectArmory:InspectFrame_DataSetting(InspectArmory.CurrentInspectData)
+								if _G["InspectArmory"].LastDataSetting then
+									_G["InspectArmory"]:InspectFrame_DataSetting(_G["InspectArmory"].CurrentInspectData)
 								end
 							end,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false or E.db.sle.Armory.Inspect.Gradation.Display == false end
@@ -859,7 +800,7 @@ local function LoadArmoryConfigTable()
 				},
 				Space3 = {
 					type = 'description',
-					name = ' ',
+					name = '',
 					order = 6
 				},
 				Level = {
@@ -868,21 +809,7 @@ local function LoadArmoryConfigTable()
 					order = 7,
 					guiInline = true,
 					get = function(info) return E.db.sle.Armory.Inspect[(info[#info - 1])][(info[#info])] end,
-					set = function(info, value)
-						E.db.sle.Armory.Inspect[(info[#info - 1])][(info[#info])] = value
-						
-						for _, SlotName in pairs(Info.Armory_Constants.GearList) do
-							if InspectArmory[SlotName] and InspectArmory[SlotName].Gradation and InspectArmory[SlotName].Gradation.ItemLevel then
-								InspectArmory[SlotName].Gradation.ItemLevel:FontTemplate(
-									E.LSM:Fetch('font', E.db.sle.Armory.Inspect.Level.Font)
-									,
-									E.db.sle.Armory.Inspect.Level.FontSize
-									,
-									E.db.sle.Armory.Inspect.Level.FontStyle
-								)
-							end
-						end
-					end,
+					set = function(info, value) E.db.sle.Armory.Inspect[(info[#info - 1])][(info[#info])] = value; _G["InspectArmory"]:UpdateSettings("ilvl") end,
 					args = {
 						Display = {
 							type = 'select',
@@ -891,10 +818,10 @@ local function LoadArmoryConfigTable()
 							set = function(info, value)
 								E.db.sle.Armory.Inspect[(info[#info - 1])][(info[#info])] = value
 								
-								if InspectArmory.LastDataSetting then
-									InspectArmory:InspectFrame_DataSetting(InspectArmory.CurrentInspectData)
+								if _G["InspectArmory"].LastDataSetting then
+									_G["InspectArmory"]:InspectFrame_DataSetting(_G["InspectArmory"].CurrentInspectData)
 								end
-								InspectArmory:Update_Display(true)
+								_G["InspectArmory"]:Update_Display(true)
 							end,
 							values = DisplayMethodList,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end
@@ -906,15 +833,15 @@ local function LoadArmoryConfigTable()
 							set = function(_, value)
 								E.db.sle.Armory.Inspect.Level.ShowUpgradeLevel = value
 								
-								if InspectArmory.LastDataSetting then
-									InspectArmory:InspectFrame_DataSetting(InspectArmory.CurrentInspectData)
+								if _G["InspectArmory"].LastDataSetting then
+									_G["InspectArmory"]:InspectFrame_DataSetting(_G["InspectArmory"].CurrentInspectData)
 								end
 							end,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end
 						},
 						Space = {
 							type = 'description',
-							name = ' ',
+							name = '',
 							order = 3
 						},
 						Font = {
@@ -930,17 +857,13 @@ local function LoadArmoryConfigTable()
 							type = 'range',
 							name = L["Font Size"],
 							order = 5,
-							desc = '',
-							min = 6,
-							max = 22,
-							step = 1,
+							min = 6,max = 22,step = 1,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end
 						},
 						FontStyle = {
 							type = 'select',
 							name = L["Font Outline"],
 							order = 6,
-							desc = '',
 							values = FontStyleList,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end
 						}
@@ -948,7 +871,7 @@ local function LoadArmoryConfigTable()
 				},
 				Space4 = {
 					type = 'description',
-					name = ' ',
+					name = '',
 					order = 8
 				},
 				Enchant = {
@@ -957,21 +880,7 @@ local function LoadArmoryConfigTable()
 					order = 9,
 					guiInline = true,
 					get = function(info) return E.db.sle.Armory.Inspect[(info[#info - 1])][(info[#info])] end,
-					set = function(info, value)
-						E.db.sle.Armory.Inspect[(info[#info - 1])][(info[#info])] = value
-						
-						for _, SlotName in pairs(Info.Armory_Constants.GearList) do
-							if InspectArmory[SlotName] and InspectArmory[SlotName].Gradation and InspectArmory[SlotName].Gradation.ItemEnchant then
-								InspectArmory[SlotName].Gradation.ItemEnchant:FontTemplate(
-									E.LSM:Fetch('font', E.db.sle.Armory.Inspect.Enchant.Font)
-									,
-									E.db.sle.Armory.Inspect.Enchant.FontSize
-									,
-									E.db.sle.Armory.Inspect.Enchant.FontStyle
-								)
-							end
-						end
-					end,
+					set = function(info, value) E.db.sle.Armory.Inspect[(info[#info - 1])][(info[#info])] = value; _G["InspectArmory"]:UpdateSettings("ench") end,
 					args = {
 						Display = {
 							type = 'select',
@@ -980,10 +889,10 @@ local function LoadArmoryConfigTable()
 							set = function(info, value)
 								E.db.sle.Armory.Inspect[(info[#info - 1])][(info[#info])] = value
 								
-								if InspectArmory.LastDataSetting then
-									InspectArmory:InspectFrame_DataSetting(InspectArmory.CurrentInspectData)
+								if _G["InspectArmory"].LastDataSetting then
+									_G["InspectArmory"]:InspectFrame_DataSetting(_G["InspectArmory"].CurrentInspectData)
 								end
-								InspectArmory:Update_Display(true)
+								_G["InspectArmory"]:Update_Display(true)
 							end,
 							values = DisplayMethodList,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end
@@ -992,18 +901,7 @@ local function LoadArmoryConfigTable()
 							type = 'range',
 							name = L["Warning Size"],
 							order = 2,
-							set = function(_, value)
-								E.db.sle.Armory.Inspect.Enchant.WarningSize = value
-								
-								for _, SlotName in pairs(Info.Armory_Constants.GearList) do
-									if InspectArmory[SlotName] and InspectArmory[SlotName].EnchantWarning then
-										InspectArmory[SlotName].EnchantWarning:Size(value)
-									end
-								end
-							end,
-							min = 6,
-							max = 50,
-							step = 1,
+							min = 6, max = 50, step = 1,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end
 						},
 						WarningIconOnly = {
@@ -1012,16 +910,15 @@ local function LoadArmoryConfigTable()
 							order = 3,
 							set = function(_, value)
 								E.db.sle.Armory.Inspect.Enchant.WarningIconOnly = value
-								
-								if InspectArmory.LastDataSetting then
-									InspectArmory:InspectFrame_DataSetting(InspectArmory.CurrentInspectData)
+								if _G["InspectArmory"].LastDataSetting then
+									_G["InspectArmory"]:InspectFrame_DataSetting(_G["InspectArmory"].CurrentInspectData)
 								end
 							end,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end,
 						},
 						Space = {
 							type = 'description',
-							name = ' ',
+							name = '',
 							order = 4
 						},
 						Font = {
@@ -1037,17 +934,13 @@ local function LoadArmoryConfigTable()
 							type = 'range',
 							name = L["Font Size"],
 							order = 6,
-							desc = '',
-							min = 6,
-							max = 22,
-							step = 1,
+							min = 6, max = 22, step = 1,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end
 						},
 						FontStyle = {
 							type = 'select',
 							name = L["Font Outline"],
 							order = 7,
-							desc = '',
 							values = FontStyleList,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end
 						}
@@ -1055,7 +948,7 @@ local function LoadArmoryConfigTable()
 				},
 				Space5 = {
 					type = 'description',
-					name = ' ',
+					name = '',
 					order = 10
 				},
 				Gem = {
@@ -1064,6 +957,7 @@ local function LoadArmoryConfigTable()
 					order = 11,
 					guiInline = true,
 					get = function(Info) return E.db.sle.Armory.Inspect[(Info[#Info - 1])][(Info[#Info])] end,
+					set = function(info, value) E.db.sle.Armory.Inspect[(info[#info - 1])][(info[#info])] = value; _G["InspectArmory"]:UpdateSettings("gem") end,
 					args = {
 						Display = {
 							type = 'select',
@@ -1071,11 +965,10 @@ local function LoadArmoryConfigTable()
 							order = 1,
 							set = function(Info, value)
 								E.db.sle.Armory.Inspect[(Info[#Info - 1])][(Info[#Info])] = value
-								
-								if InspectArmory.LastDataSetting then
-									InspectArmory:InspectFrame_DataSetting(InspectArmory.CurrentInspectData)
+								if _G["InspectArmory"].LastDataSetting then
+									_G["InspectArmory"]:InspectFrame_DataSetting(_G["InspectArmory"].CurrentInspectData)
 								end
-								InspectArmory:Update_Display(true)
+								_G["InspectArmory"]:Update_Display(true)
 							end,
 							values = DisplayMethodList,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end
@@ -1084,47 +977,21 @@ local function LoadArmoryConfigTable()
 							type = 'range',
 							name = L["Socket Size"],
 							order = 2,
-							set = function(_, value)
-								E.db.sle.Armory.Inspect.Gem.SocketSize = value
-								
-								for _, SlotName in pairs(Info.Armory_Constants.GearList) do
-									for i = 1, MAX_NUM_SOCKETS do
-										if InspectArmory[SlotName] and InspectArmory[SlotName]["Socket"..i] then
-											InspectArmory[SlotName]["Socket"..i]:Size(value)
-										else
-											break
-										end
-									end
-								end
-							end,
-							min = 6,
-							max = 50,
-							step = 1,
+							min = 6,max = 50,step = 1,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end
 						},
 						WarningSize = {
 							type = 'range',
 							name = L["Warning Size"],
 							order = 3,
-							set = function(_, value)
-								E.db.sle.Armory.Inspect.Gem.WarningSize = value
-								
-								for _, SlotName in pairs(Info.Armory_Constants.GearList) do
-									if InspectArmory[SlotName] and InspectArmory[SlotName].SocketWarning then
-										InspectArmory[SlotName].SocketWarning:Size(value)
-									end
-								end
-							end,
-							min = 6,
-							max = 50,
-							step = 1,
+							min = 6,max = 50,step = 1,
 							disabled = function() return E.db.sle.Armory.Inspect.Enable == false end
 						},
 					}
 				},
 				CreditSpace = {
 					type = 'description',
-					name = ' ',
+					name = '',
 					order = 998
 				},
 				Credit = {

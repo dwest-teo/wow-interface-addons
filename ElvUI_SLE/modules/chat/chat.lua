@@ -1,7 +1,6 @@
 ﻿local SLE, T, E, L, V, P, G = unpack(select(2, ...))
 local CH, LO = SLE:GetElvModules("Chat", "Layout")
 local C = SLE:NewModule("Chat",  'AceHook-3.0', 'AceEvent-3.0', 'AceTimer-3.0')
-local LSM = LibStub("LibSharedMedia-3.0")
 --GLOBALS:  UIParent, LeftChatPanel, LeftChatDataPanel, LeftChatToggleButton, LeftChatTab, RightChatPanel,
 --GLOBALS:  RightChatDataPanel, RightChatToggleButton, RightChatTab, hooksecurefunc
 
@@ -35,9 +34,16 @@ local function PositionChat(self, override)
 	if C.CreatedFrames == 0 then return end
 	if ((T.InCombatLockdown() and not override and self.initialMove) or (IsMouseButtonDown("LeftButton") and not override)) then return end
 	if not RightChatPanel or not LeftChatPanel then return; end
-	if not self.db.lockPositions or E.private.chat.enable ~= true then return end
-	if not E.db.sle.datatexts.chathandle then return end
 	local chat, id, tab, isDocked, point
+	if not self.db.lockPositions or E.private.chat.enable ~= true then
+		for i=1, C.CreatedFrames do
+			chat = _G[T.format("ChatFrame%d", i)]
+			tab = _G[T.format("ChatFrame%sTab", i)]
+			tab.isDocked = chat.isDocked
+		end
+		return
+	end
+	if not E.db.sle.datatexts.chathandle then return end
 	for i=1, C.CreatedFrames do
 		local BASE_OFFSET = 57 + E.Spacing*3
 		chat = _G[T.format("ChatFrame%d", i)]
@@ -253,7 +259,10 @@ function C:UpdateChatMax()
 		local frame = _G[frameName]
 		frame:SetMaxLines(E.private.sle.chat.chatMax)
 	end
+	local whisper = E.db.chat.whisperSound
+	E.db.chat.whisperSound = "None"
 	CH:DisplayChatHistory()
+	E.db.chat.whisperSound = whisper
 end
 hooksecurefunc(CH, "Initialize", C.UpdateChatMax)
 

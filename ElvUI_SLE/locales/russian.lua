@@ -40,8 +40,10 @@ L["SLE_Install_Text_AUTHOR"] = [=[Этот шаг опционален и дол
 |cffFF0000Внимание:|r Пожалуйста помните, что авторы могут не использовать тему/роль, которую вы выбрали, и потому результат не всегда будет хорошим. Также переключение между шаблонами здесь может привести к неоднозначным результатам.]=]
 L["Darth's Config"] = "Опции Дарта"
 L["Repooc's Config"] = "Опции Repooc'а"
+L["Affinitii's Config"] = "Опции Affinitii"
 L["Darth's Default Set"] = "Установлены настройки Дарта"
 L["Repooc's Default Set"] = "Установлены настройки Repooc'а"
+L["Affinitii's Default Set"] = "Установлены настройки Affinitii"
 L["Layout & Settings Import"] = "Импорт расположений и настроек"
 L["You have selected to use %s."] = "Вы выбрали %s"
 L["SLE_INSTALL_LAYOUT_TEXT2"] = [[Данные опции импортируют расположения/настройки аддонов для выбранных опций и роли.
@@ -155,6 +157,14 @@ L["Only Damaged"] = "Только поврежденные"
 L["Gem Sockets"] = "Слоты камней"
 L["Socket Size"] = "Размер слотов"
 L["Inspect Armory"] = "Осмотр"
+L["Full Item Level"] = "Полный уровень предметов"
+L["Show both equipped and average item levels."] = "Отображать и уровень одетых предметов, и общий средний уровень."
+L["Item Level Coloring"] = "Окраска уровней предметов"
+L["Color code item levels values. Equipped will be gradient, avarage - selected color."] = "Окрашивает значения уровней предметов. Цвет уровня одетых вещей будет градиентом, цвет среднего урвоня по выбору."
+L["Color of Average"] = "Цвет стреднего"
+L["Sets the color of avarage item level."] = "Устанавливает цвет среднего уровня предметов."
+L["Only Relevant Stats"] = "Только подходящие"
+L["Show only those primary stats relevant to your spec."] = "Отображает только те основные характеристики, что подходят вашей текущей специализации."
 
 --AFK
 L["You Are Away From Keyboard for"] = "Вы отошли на"
@@ -353,6 +363,7 @@ L["These options are for modifing the Shadow & Light Friends datatext."] = "Оп
 L["Hide In Combat"] = "Скрывать в бою"
 L["Will not show the tooltip while in combat."] = "Не отображать подсказки инфо-текста в бою."
 L["Hide Friends"] = "Скрыть друзей"
+L["Hide Title"] = "Скрыть заголовок"
 L["Minimize the Friend Datatext."] = "Минимизировать список друзей"
 L["Show Totals"] = "Показывать общее"
 L["Show total friends in the datatext."] = "Показывать общее кол-во друзей на инфо-тексте."
@@ -388,6 +399,11 @@ L["Time Played"] = "Времени в игре"
 L["Account Time Played"] = "Время в игре на аккаунте"
 L["Hide panel background"] = "Скрыть фон"
 L["Don't show this panel, only datatexts assinged to it"] = "Не показывать фон панели, а только назначенные инфо-тексты."
+L["SLE_DT_CURRENCY_WARNING_GOLD"] = [[На вашей панели %s включен инфо-текст "Gold" при активном инфо-тексте "S&L Currency". Для корректной работы "S&L Currency" мы отключаем некоторые функции инфо-текста "Gold". Для избежания данного конфликта вам необходимо заменить один из конфликтующих инфо-текстов.]]
+
+--Enhnced Shadows
+L["Enhanced Shadows"] = "Улучшенные тени"
+L["Use shadows on..."] = "Использовать тени на..."
 
 --Equip Manager
 L["Equipment Manager"] = "Менеджер экипировки"
@@ -519,6 +535,8 @@ L["Show texture"] = "Показывать текстуру"
 L["Show instance difficulty info as default texture."] = "Показывать информацию о сложности подземелья в виде стандартной текстуры"
 L["Sets the colors for difficulty abbreviation"] = "Устанавливает цвета для аббревиатур уровней сложности."
 L["Location Panel"] = "Панель локации"
+L["Automatic Width"] = "Автоматическая ширина"
+L["Change width based on the zone name length."] = "Изменять ширину в зависимости от длины текста."
 L["Update Throttle"] = "Частота обновления"
 L["The frequency of coordinates and zonetext updates. Check will be done more often with lower values."] = "Частота обновления координат и текста локации. Проверка проводится чаще с более низким значением."
 L["Full Location"] = "Полный текст"
@@ -533,7 +551,8 @@ L["Right click on the location panel will bring up a menu with available options
 L["Custom Width"] = "Своя ширина"
 L["By default menu's width will be equal to the location panel width. Checking this option will allow you to set own width."] = "По умолчанию ширина меню будет равна ширине панели. Включение данной опции позволит установить свою ширину."
 L["Justify Text"] = "Выравнивание тектса"
-
+L["Hearthstone Location"] = "Привязка камня"
+L["Show the name on location your Heathstone is bound to."] = "Показывать имя локации, к которой привязан камень возвращения."
 
 --Miscs
 L["Error Frame"] = "Фрейм ошибок"
@@ -677,6 +696,14 @@ L["Subpages are blocks of 10 items. This option set how many of subpages will be
 -- L["SLE_QUESTKING_Required"] = "  Required: "
 L["ElvUI Objective Tracker"] = "Список задач ElvUI"
 L["ElvUI Skins"] = "Скины ElvUI"
+L["As List"] = "Списком"
+L["List Style Fonts"] = "Шрифты стиля списка"
+L["Item Name Font"] = "Шрифт названия"
+L["Item Name Size"] = "Размер названия"
+L["Item Name Outline"] = "Граница названия"
+L["Item Info Font"] = "Шрифт информации"
+L["Item Info Size"] = "Размер информации"
+L["Item Info Outline"] = "Граница информации"
 
 --Toolbars
 L["We are sorry, but you can't do this now. Try again after the end of this combat."] = "Извините, но Вы не можете этого сделать сейчас. Попробуйте снова после окончания текущего боя."

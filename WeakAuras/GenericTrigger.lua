@@ -680,6 +680,9 @@ function GenericTrigger.Add(data, region)
             stacksFunc = event_prototypes[trigger.event].stacksFunc;
 
             trigger.unevent = trigger.unevent or "auto";
+            if (event_prototypes[trigger.event].automaticrequired) then
+              trigger.unevent = "auto";
+            end
 
             if(trigger.unevent == "custom") then
               untriggerFuncStr = ConstructFunction(event_prototypes[trigger.event], untrigger);
@@ -2313,6 +2316,8 @@ function GenericTrigger.CreateFallbackState(data, triggernum, state)
   state.show = true;
   state.changed = true;
   local event = events[data.id][triggernum];
+
+  WeakAuras.ActivateAuraEnvironment(data.id, "", state);
   state.name = event.nameFunc and event.nameFunc(data.trigger) or nil;
   state.icon = event.iconFunc and event.iconFunc(data.trigger) or nil;
   state.texture = event.textureFunc and event.textureFunc(data.trigger) or nil;
@@ -2356,6 +2361,7 @@ function GenericTrigger.CreateFallbackState(data, triggernum, state)
     state.value = nil;
     state.total = nil;
   end
+  WeakAuras.ActivateAuraEnvironment(nil);
 end
 
 WeakAuras.RegisterTriggerSystem({"event", "status", "custom"}, GenericTrigger);

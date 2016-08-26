@@ -252,7 +252,10 @@ GTFO.SpellID["200465"] = {
   sound = 3;
 };
 
-
+GTFO.SpellID["181559"] = {
+  --desc = "Gaze of Sargeras (Gul'dan)";
+  sound = 3;
+};
 
 
 -- ************************
@@ -593,3 +596,31 @@ GTFO.SpellID["223029"] = {
   sound = 3;
   test = true; -- possible damage threshold
 };
+
+-- *************
+-- * Nighthold *
+-- *************
+
+GTFO.SpellID["218155"] = {
+  --desc = "Solar Collapse (High Botanist Tel'arn)";
+  sound = 3;
+};
+
+GTFO.SpellID["219235"] = {
+  --desc = "Toxic Spores (Naturalist Tel'arn)";
+  applicationOnly = true;
+  sound = 3;
+};
+
+GTFO.SpellID["224510"] = {
+  --desc = "Crackling Slice (Duskwatch Battle-Magus)";
+  sound = 3;
+  tankSound = 0;
+  test = true;
+};
+
+GTFO.SpellID["213328"] = {
+  --desc = "Detonate: Arcane Orb (Spellblade Aluriel)";
+  sound = 3;
+};
+

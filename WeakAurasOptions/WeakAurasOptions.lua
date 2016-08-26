@@ -489,6 +489,15 @@ function WeakAuras.ConstructOptions(prototype, data, startorder, subPrefix, subS
       if(triggertype == "untrigger") then
         name = "untrigger_"..name;
       end
+      if (arg.type ~= "toggle" and arg.type ~= "tristate") then
+        -- Ensure new line for non-toggle options
+        options["spacer_"..name] = {
+          type = "description",
+          name = "",
+          order = order,
+        }
+        order = order + 1;
+      end
       if(arg.type == "tristate") then
         options["use_"..name] = {
           type = "toggle",
@@ -971,8 +980,10 @@ function WeakAuras.ConstructOptions(prototype, data, startorder, subPrefix, subS
               return trigger[realname].multi[v];
             end
           end,
-          set = function(info, v)
-            if(trigger[realname].multi[v]) then
+          set = function(info, v, calledFromSetAll)
+            if (calledFromSetAll) then
+              trigger[realname].multi[v] = calledFromSetAll;
+            elseif(trigger[realname].multi[v]) then
               trigger[realname].multi[v] = nil;
             else
               trigger[realname].multi[v] = true;
@@ -1586,6 +1597,7 @@ end
 local function getAll(data, info, ...)
   local combinedValues = {};
   local first = true;
+  local debug = false;
   for index, childId in ipairs(data.controlledChildren) do
     local childData = WeakAuras.GetData(childId);
     if(childData) then
@@ -1635,6 +1647,8 @@ local function getAll(data, info, ...)
 end
 
 local function setAll(data, info, ...)
+  WeakAuras.pauseOptionsProcessing(true);
+  local before = getAll(data, info, ...)
   for index, childId in ipairs(data.controlledChildren) do
     local childData = WeakAuras.GetData(childId);
     if(childData) then
@@ -1648,12 +1662,19 @@ local function setAll(data, info, ...)
       end
       for i=#childOptionTable,0,-1 do
         if(childOptionTable[i].set) then
-          childOptionTable[i].set(info, ...);
+          if (childOptionTable[i].type == "multiselect") then
+            childOptionTable[i].set(info, ..., not before);
+          else
+            childOptionTable[i].set(info, ...);
+          end
           break;
         end
       end
     end
   end
+  WeakAuras.pauseOptionsProcessing(false);
+  WeakAuras.ScanForLoads();
+  WeakAuras.SortDisplayButtons();
 end
 
 local function hiddenAll(data, info)
@@ -1726,9 +1747,65 @@ local function disabledAll(data, info)
 end
 
 local function replaceNameDescFuncs(intable, data)
+
+  local function compareTables(tableA, tableB)
+    if(#tableA == #tableB) then
+      for j=1,#tableA do
+        if(type(tableA[j]) == "number" and type(tableB[j]) == "number") then
+          if((math.floor(tableA[j] * 100) / 100) ~= (math.floor(tableB[j] * 100) / 100)) then
+            return false;
+          end
+        else
+          if(tableA[j] ~= tableB[j]) then
+            return false;
+          end
+        end
+      end
+    else
+      return false;
+    end
+    return true;
+  end
+
+  local function combineKeys(info)
+    local combinedKeys = nil;
+    for index, childId in ipairs(data.controlledChildren) do
+      local childData = WeakAuras.GetData(childId);
+      if(childData) then
+        WeakAuras.EnsureOptions(childId);
+        local childOptions = displayOptions[childId];
+        local childOption = childOptions;
+        local childOptionTable = {[0] = childOption};
+        for i=1,#info do
+          childOption = childOption.args[info[i]];
+          childOptionTable[i] = childOption;
+        end
+        for i=#childOptionTable,0,-1 do
+          if(childOptionTable[i].values) then
+            local values;
+            if (type(childOptionTable[i].values) == "function") then
+              values = childOptionTable[i].values(info);
+            elseif (type(childOptionTable[i].values) == "table") then
+              values = childOptionTable[i].values;
+            end
+            if (values) then
+              combinedKeys = combinedKeys or {};
+              for k, v in pairs(values) do
+                combinedKeys[k] = v;
+              end
+            end
+          end
+        end
+      end
+    end
+    return combinedKeys;
+  end
+
   local function sameAll(info)
     local combinedValues = {};
     local first = true;
+    local combinedKeys = combineKeys(info);
+
     for index, childId in ipairs(data.controlledChildren) do
       local childData = WeakAuras.GetData(childId);
       if(childData) then
@@ -1742,34 +1819,29 @@ local function replaceNameDescFuncs(intable, data)
         end
         for i=#childOptionTable,0,-1 do
           if(childOptionTable[i].get) then
-            local values = {childOptionTable[i].get(info)};
-            if(first) then
-              combinedValues = values;
-              first = false;
-            else
-              local same = true;
-              if(#combinedValues == #values) then
-                for j=1,#combinedValues do
-                  if(type(combinedValues[j]) == "number" and type(values[j]) == "number") then
-                    if((math.floor(combinedValues[j] * 100) / 100) ~= (math.floor(values[j] * 100) / 100)) then
-                      same = false;
-                      break;
-                    end
-                  else
-                    if(combinedValues[j] ~= values[j]) then
-                      same = false;
-                      break;
-                    end
+            if (combinedKeys) then
+              for key, _ in pairs(combinedKeys) do
+                local values = {childOptionTable[i].get(info, key)};
+                if (combinedValues[key] == nil) then
+                  combinedValues[key] = values;
+                else
+                  if (not compareTables(combinedValues[key], values)) then
+                    return nil;
                   end
                 end
-              else
-                same = false;
               end
-              if not(same) then
-                return nil;
+            else
+              local values = {childOptionTable[i].get(info)};
+              if(first) then
+                combinedValues = values;
+                first = false;
+              else
+                if (not compareTables(combinedValues, values)) then
+                  return nil;
+                end
               end
             end
-            break;
+            break; -- Found get function
           end
         end
       end
@@ -1867,6 +1939,11 @@ local function replaceNameDescFuncs(intable, data)
           if(sameAll(info)) then
             return descAll(info);
           else
+            local combinedKeys = nil;
+            if (intable.type == "multiselect") then
+              combinedKeys = combineKeys(info)
+            end
+
             local values = {};
             for index, childId in ipairs(data.controlledChildren) do
               local childData = WeakAuras.GetData(childId);
@@ -1903,10 +1980,22 @@ local function replaceNameDescFuncs(intable, data)
                       r, g, b = r or 1, g or 1, b or 1;
                       tinsert(values, ("|cFF%2x%2x%2x%s"):format(r * 220 + 35, g * 220 + 35, b * 220 + 35, childId));
                     elseif(intable.type == "select") then
-                      local selectValues = type(intable.values) == "table" and intable.values or intable.values();
+                      local selectValues = type(intable.values) == "table" and intable.values or intable.values(info);
                       local key = childOptionTable[i].get(info);
                       local display = key and selectValues[key] or L["None"];
                       tinsert(values, "|cFFE0E000"..childId..": |r"..display);
+                    elseif(intable.type == "multiselect") then
+                      local selectedValues = "";
+                      for k, v in pairs(combinedKeys) do
+                        if (childOptionTable[i].get(info, k)) then
+                          if (not selectedValues) then
+                            selectedValues = tostring(v);
+                          else
+                            selectedValues = selectedValues .. ", " .. tostring(v);
+                          end
+                        end
+                      end
+                      tinsert(values, "|cFFE0E000"..childId..": |r"..selectedValues);
                     else
                       local display = childOptionTable[i].get(info) or L["None"];
                       if(type(display) == "number") then
@@ -1979,6 +2068,72 @@ local function replaceImageFuncs(intable, data)
   end
   recurse(intable);
 end
+
+local function replaceValuesFuncs(intable, data)
+  local function valuesAll(info)
+    local combinedValues = {};
+    local handledValues = {};
+    local first = true;
+    for index, childId in ipairs(data.controlledChildren) do
+      local childData = WeakAuras.GetData(childId);
+      if(childData) then
+        WeakAuras.EnsureOptions(childId);
+        local childOption = displayOptions[childId];
+        if not(childOption) then
+          return "error"
+        end
+        for i=1,#info do
+          childOption = childOption.args[info[i]];
+          if not(childOption) then
+            return "error"
+          end
+        end
+        local values;
+        if not(childOption.values) then
+          return {};
+        else
+          values = childOption.values(info);
+        end
+        if(first) then
+          for k, v in pairs(values) do
+            handledValues[k] = handledValues[k] or {};
+            handledValues[k][v] = true;
+            combinedValues[k] = v;
+          end
+          first = false;
+        else
+          for k, v in pairs(values) do
+            if (handledValues[k] and handledValues[k][v]) then
+              -- Already known key/value pair
+            else
+              if (combinedValues[k]) then
+                combinedValues[k] = combinedValues[k] .. "/" .. v;
+              else
+                combinedValues[k] = v;
+              end
+              handledValues[k] = handledValues[k] or {};
+              handledValues[k][v] = true;
+            end
+          end
+        end
+      end
+    end
+
+    return combinedValues;
+  end
+
+  local function recurse(intable)
+    for i,v in pairs(intable) do
+      if(i == "values" and type(v) == "function") then
+        intable[i] = valuesAll;
+      elseif(type(v) == "table" and i ~= "values") then
+        recurse(v);
+      end
+    end
+  end
+  recurse(intable);
+end
+
 
 function WeakAuras.AddOption(id, data)
   local regionOption;
@@ -5627,6 +5782,7 @@ function WeakAuras.ReloadTriggerOptions(data)
       removeFuncs(displayOptions[id].args.trigger);
       replaceNameDescFuncs(displayOptions[id].args.trigger, data);
       replaceImageFuncs(displayOptions[id].args.trigger, data);
+      replaceValuesFuncs(displayOptions[id].args.trigger, data);
 
       if(displayOptions[id].args.trigger.args.unevent) then
         displayOptions[id].args.trigger.args.unevent.set = options_set;
@@ -5672,6 +5828,7 @@ function WeakAuras.ReloadTriggerOptions(data)
 
     replaceNameDescFuncs(displayOptions[id], data);
     replaceImageFuncs(displayOptions[id], data);
+    replaceValuesFuncs(displayOptions[id], data);
 
     local regionOption;
     if (regionOptions[data.regionType]) then
@@ -5726,6 +5883,7 @@ function WeakAuras.ReloadTriggerOptions(data)
     removeFuncs(displayOptions[id].args.load);
     replaceNameDescFuncs(displayOptions[id].args.load, data);
     replaceImageFuncs(displayOptions[id].args.load, data);
+    replaceValuesFuncs(displayOptions[id].args.load, data);
 
     WeakAuras.ReloadGroupRegionOptions(data);
   else -- One aura selected
@@ -5849,6 +6007,7 @@ function WeakAuras.ReloadGroupRegionOptions(data)
     end
     replaceNameDescFuncs(regionOption, data);
     replaceImageFuncs(regionOption, data);
+    replaceValuesFuncs(regionOption, data);
   else
     regionOption = {
       invalid = {
@@ -8517,7 +8676,10 @@ function WeakAuras.UpdateGroupOrders(data)
 end
 
 local previousFilter;
-function WeakAuras.SortDisplayButtons(filter, overrideReset)
+function WeakAuras.SortDisplayButtons(filter, overrideReset, id)
+  if (WeakAuras.IsOptionsProcessingPaused()) then
+    return;
+  end
   local recenter = false;
   filter = filter or (overrideReset and previousFilter or "");
   if(frame.filterInput:GetText() ~= filter) then
