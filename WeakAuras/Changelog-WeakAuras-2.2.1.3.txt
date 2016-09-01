@@ -1,0 +1,55 @@
+tag 2.2.1.3
+0d3984751d780b69c96b38a0ee2cdc72d24bf998
+Benjamin Staneck <staneck@gmail.com>
+2016-08-28 17:52:02 +0200
+
+
+
+--------------------
+
+Benjamin Staneck:
+	- pull in latest LibCompress
+Infus:
+	- Fix regression for Glow Frames
+	If the action was enabled, but no frame of that name could be found.
+	(Or the frame name was empty.)
+	
+	Reported in curse comments
+	- Fix dynamic groups again by releasing clones at a different place
+	A bit of background information:
+	Clones are allocated/released to a clone pool as needed so that
+	they are reused.
+	
+	A long time ago, clones were released in a OnHide event handler.
+	That was wrong, because e.g. movies hide all regions, and there
+	were thus a few bugs where movies would confuse weakauras.
+	
+	I fixed that by decoupling hiding and releasing, and made WA
+	only release the clones if WA is doing the hiding.
+	
+	In that patch, I misunderstood the interaction with dynamic groups,
+	and thus clones from dynamic groups were never released.
+	
+	A recent bug report reported performance problems, which I tracked
+	down to this bug.
+	
+	This patch now moves the releasing to the right place.
+	
+	Ticket-Nr: 674, 708
+	- Templates: Fix two monk bugs
+	Wrong talent on Hit Combo, missing Storm, Earth and Fire.
+	- BuffTrigger: Allow auto icons for auras that have spellids
+	Ticket-Nr: 381
+	- Apply glow to a private frame instead of the frame the user selected
+	This fixes a incompability with Bartender, since that uses LBG too.
+	
+	Ticket-Nr: 677
+	- Collapse: Ensure that hideRegion is called
+	hideRegion releases the clone. It was only called if there was a
+	end animation.
+	
+	Ticket-Nr: 674
+	- Fix custom untriggers for all states functions
+	Same logic as for trigger functions.
+	
+	Ticket-Nr: 604

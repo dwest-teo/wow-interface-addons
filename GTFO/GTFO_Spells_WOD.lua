@@ -1254,11 +1254,6 @@ GTFO.SpellID["184652"] = {
 	sound = 1;
 };
 
-GTFO.SpellID["188852"] = {
-	--desc = "Blood Splatter (Kilrogg)";
-	sound = 1;
-};
-
 GTFO.SpellID["184300"] = {
 	--desc = "Fel Blaze (Gorebound Berserker)";
 	applicationOnly = true;

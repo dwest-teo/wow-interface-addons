@@ -1,0 +1,20 @@
+## Interface: 70000
+## Author: Benik
+## Version: 3.02
+## Title: |cff1784d1ElvUI|r_BenikUI
+## Notes: an ElvUI 10+ decorative/enhancement edit
+## RequiredDeps: ElvUI
+## DefaultState: Enabled
+## OptionalDeps: SharedMedia, ZygorGuidesViewer
+
+libs\load_libs.xml
+media\load_media.xml
+locales\load_locales.xml
+defaults\load_defaults.xml
+core\load_core.xml
+layout\layout.lua
+modules\load_modules.xml
+ 
+ 
+## X-Tukui-ProjectID: 228
+## X-Tukui-ProjectFolders: ElvUI_BenikUI

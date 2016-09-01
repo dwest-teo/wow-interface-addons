@@ -916,6 +916,10 @@ Change Log:
 		- Added Legion spells for The Broken Shore
 	v4.38.5
 		- Added Legion spells for the Demon Invasion Event
+	v4.38.6
+		- Added Legion spells for the Demon Invasion Event
+		- Fixed WoD spells for Hellfire Citadel
+		- Fixed Wrath spells for Icecrown Citadel
 		
 		
 ]]--
@@ -934,8 +938,8 @@ GTFO = {
 		IgnoreOptions = { };
 		TrivialDamagePercent = 2; -- Minimum % of HP lost required for an alert to be trivial
 	};
-	Version = "4.38.5"; -- Version number (text format)
-	VersionNumber = 43805; -- Numeric version number for checking out-of-date clients
+	Version = "4.38.6"; -- Version number (text format)
+	VersionNumber = 43806; -- Numeric version number for checking out-of-date clients
 	DataLogging = nil; -- Indicate whether or not the addon needs to run the datalogging function (for hooking)
 	DataCode = "4"; -- Saved Variable versioning, change this value to force a reset to default
 	CanTank = nil; -- The active character is capable of tanking

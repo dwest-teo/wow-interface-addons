@@ -114,6 +114,7 @@ P['databars'] = {
 		["reverseFill"] = false,
 		["hideAtMaxLevel"] = true,
 		["hideInVehicle"] = false,
+		["hideInCombat"] = false,
 	},
 	['reputation'] = {
 		['enable'] = false,
@@ -125,6 +126,7 @@ P['databars'] = {
 		['orientation'] = 'VERTICAL',
 		["reverseFill"] = false,
 		["hideInVehicle"] = false,
+		["hideInCombat"] = false,
 	},
 	['artifact'] = {
 		['enable'] = true,
@@ -136,6 +138,7 @@ P['databars'] = {
 		['orientation'] = 'VERTICAL',
 		["reverseFill"] = false,
 		["hideInVehicle"] = false,
+		["hideInCombat"] = false,
 	},
 	['honor'] = {
 		['enable'] = true,
@@ -147,6 +150,7 @@ P['databars'] = {
 		['orientation'] = 'VERTICAL',
 		["reverseFill"] = false,
 		["hideInVehicle"] = false,
+		["hideInCombat"] = false,
 	},
 }
 
@@ -197,13 +201,14 @@ P["nameplates"] = {
 	['targetScale'] = 1.15,
 	['nonTargetTransparency'] = 0.35,
 	["motionType"] =  "STACKED",
-	["onlyShowTarget"] = false,
+	["displayStyle"] = "ALL",
 	["lowHealthThreshold"] = 0.4,
 	["showFriendlyCombat"] = "DISABLED",
 	["showEnemyCombat"] = "DISABLED",
 	["showNPCTitles"] = true,
 	["clampToScreen"] = false,
 	["loadDistance"] = 40,
+	["useTargetGlow"] = true,
 	["classbar"] = {
 		["enable"] = true,
 		["attachTo"] = "TARGET",
@@ -229,6 +234,7 @@ P["nameplates"] = {
 		["badScale"] = 1.2,
 		["useThreatColor"] = true,
 	},
+
 	['units'] = {
 		['PLAYER'] = {
 			['enable'] = false,
@@ -255,11 +261,13 @@ P["nameplates"] = {
 				['text'] = {
 					['enable'] = false,
 					['format'] = 'CURRENT',
-				}
+				},
 			},
 			['castbar'] = {
 				['enable'] = true,
 				['height'] = 8,
+				["hideSpellName"] = false,
+				["hideTime"] = false,
 			},
 			['buffs'] = {
 				['enable'] = true,
@@ -309,11 +317,13 @@ P["nameplates"] = {
 				['text'] = {
 					['enable'] = false,
 					['format'] = 'CURRENT',
-				}
+				},
 			},
 			['castbar'] = {
 				['enable'] = true,
 				['height'] = 8,
+				["hideSpellName"] = false,
+				["hideTime"] = false,
 			},
 			['buffs'] = {
 				['enable'] = true,
@@ -365,11 +375,13 @@ P["nameplates"] = {
 				['text'] = {
 					['enable'] = false,
 					['format'] = 'CURRENT',
-				}
+				},
 			},
 			['castbar'] = {
 				['enable'] = true,
 				['height'] = 8,
+				["hideSpellName"] = false,
+				["hideTime"] = false,
 			},
 			['buffs'] = {
 				['enable'] = true,
@@ -420,11 +432,13 @@ P["nameplates"] = {
 				['text'] = {
 					['enable'] = false,
 					['format'] = 'CURRENT',
-				}
+				},
 			},
 			['castbar'] = {
 				['enable'] = true,
 				['height'] = 8,
+				["hideSpellName"] = false,
+				["hideTime"] = false,
 			},
 			['buffs'] = {
 				['enable'] = true,
@@ -473,11 +487,13 @@ P["nameplates"] = {
 				['text'] = {
 					['enable'] = false,
 					['format'] = 'CURRENT',
-				}
+				},
 			},
 			['castbar'] = {
 				['enable'] = false,
 				['height'] = 8,
+				["hideSpellName"] = false,
+				["hideTime"] = false,
 			},
 			['buffs'] = {
 				['enable'] = true,
@@ -500,6 +516,13 @@ P["nameplates"] = {
 					['maxDuration'] = 120,
 					['filter'] = 'CCDebuffs'
 				},
+			},
+			['eliteIcon'] = {
+				['enable'] = false,
+				['size'] = 20,
+				["position"] = "RIGHT",
+				['xOffset'] = 15,
+				['yOffset'] = 0,
 			},
 		},
 		['ENEMY_NPC'] = {
@@ -524,11 +547,13 @@ P["nameplates"] = {
 				['text'] = {
 					['enable'] = false,
 					['format'] = 'CURRENT',
-				}
+				},
 			},
 			['castbar'] = {
 				['enable'] = true,
 				['height'] = 8,
+				["hideSpellName"] = false,
+				["hideTime"] = false,
 			},
 			['buffs'] = {
 				['enable'] = true,
@@ -551,6 +576,13 @@ P["nameplates"] = {
 					['maxDuration'] = 120,
 					['filter'] = 'CCDebuffs'
 				},
+			},
+			['eliteIcon'] = {
+				['enable'] = false,
+				['size'] = 20,
+				["position"] = "RIGHT",
+				['xOffset'] = 15,
+				['yOffset'] = 0,
 			},
 		},
 	},
@@ -626,6 +658,8 @@ P['chat'] = {
 	["useAltKey"] = false,
 	["classColorMentionsChat"] = true,
 	["numAllowedCombatRepeat"] = 5,
+	["useCustomTimeColor"] = true,
+	["customTimeColor"] = {r = 0.7, g = 0.7, b = 0.7},
 
 	['tabFont'] = 'PT Sans Narrow',
 	['tabFontSize'] = 12,

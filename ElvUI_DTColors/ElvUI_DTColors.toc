@@ -1,0 +1,9 @@
+﻿## Interface: 70000
+## Author: Benik
+## Version: 1.15
+## Title: |cff1784d1ElvUI|r DataText Colors
+## Notes: a plugin for ElvUI, that changes the DataText text colors.
+## RequiredDeps: ElvUI
+## DefaultState: Enabled
+
+core.lua

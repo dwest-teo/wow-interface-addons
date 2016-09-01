@@ -493,24 +493,28 @@ GTFO.SpellID["69146"] = {
 	--desc = "Coldflame (Lord Marrowgar - Normal 10)";
 	sound = 1;
 	applicationOnly = true;
+	trivialLevel = 90;
 };
 
 GTFO.SpellID["70823"] = {
 	--desc = "Coldflame (Lord Marrowgar - Normal 25)";
 	sound = 1;
 	applicationOnly = true;
+	trivialLevel = 90;
 };
 
 GTFO.SpellID["70824"] = {
 	--desc = "Coldflame (Lord Marrowgar - Heroic 10)";
 	sound = 1;
 	applicationOnly = true;
+	trivialLevel = 90;
 };
 
 GTFO.SpellID["70825"] = {
 	--desc = "Coldflame (Lord Marrowgar - Heroic 25)";
 	sound = 1;
 	applicationOnly = true;
+	trivialLevel = 90;
 };
 
 GTFO.SpellID["71001"] = {
