@@ -79,6 +79,11 @@ L= DBM:GetModLocalization(1480)
 -----------------------
 L= DBM:GetModLocalization(1490)
 
+L:SetWarningLocalization({
+	specWarnStaticNova			= "Statische Nova - geh auf Sanddüne",
+	specWarnFocusedLightning	= "Gebündelter Blitz - geh ins Wasser"
+})
+
 -----------------------
 -- King Deepbeard --
 -----------------------
@@ -130,6 +135,10 @@ L= DBM:GetModLocalization(1488)
 -- Odyn --
 -----------------------
 L= DBM:GetModLocalization(1489)
+
+L:SetMiscLocalization({
+	tempestModeMessage		=	"Nicht Orkanabfolge: %s. Prüfe erneut in 8 Sekunden."
+})
 
 -----------------------
 --Halls of Valor Trash
@@ -337,7 +346,7 @@ L:SetOptionLocalization({
 })
 
 L:SetMiscLocalization({
-	Malgath		=	"Lord Malgath"--translate/verify (npc name)
+	Malgath		=	"Lord Malgath"
 })
 
 -----------------------
@@ -367,3 +376,74 @@ L= DBM:GetModLocalization(1469)
 -- Cordana --
 -----------------------
 L= DBM:GetModLocalization(1470)
+
+-----------------------
+--Vault of Wardens Trash
+-----------------------
+L = DBM:GetModLocalization("VoWTrash")
+
+L:SetGeneralLocalization({
+	name =	"Trash des Verlieses der Wächterinnen"
+})
+
+-----------------------
+-- <<<Return To Karazhan>>> --
+-----------------------
+-----------------------
+-- Maiden of Virtue --
+-----------------------
+L= DBM:GetModLocalization(1825)
+
+-----------------------
+-- Opera Hall: Wikket  --
+-----------------------
+L= DBM:GetModLocalization(1820)
+
+-----------------------
+-- Opera Hall: Westfall Story --
+-----------------------
+L= DBM:GetModLocalization(1826)
+
+-----------------------
+-- Opera Hall: Beautiful Beast  --
+-----------------------
+L= DBM:GetModLocalization(1827)
+
+-----------------------
+-- Attumen the Huntsman --
+-----------------------
+L= DBM:GetModLocalization(1835)
+
+-----------------------
+-- Moroes --
+-----------------------
+L= DBM:GetModLocalization(1837)
+
+-----------------------
+-- The Curator --
+-----------------------
+L= DBM:GetModLocalization(1836)
+
+-----------------------
+-- Shade of Medivh --
+-----------------------
+L= DBM:GetModLocalization(1817)
+
+-----------------------
+-- Mana Devourer --
+-----------------------
+L= DBM:GetModLocalization(1818)
+
+-----------------------
+-- Viz'aduum the Watcher --
+-----------------------
+L= DBM:GetModLocalization(1838)
+
+-----------------------
+--Return To Karazhan Trash
+-----------------------
+L = DBM:GetModLocalization("RTKTrash")
+
+L:SetGeneralLocalization({
+	name =	"Trash der Rückkehr nach Karazhan"
+})

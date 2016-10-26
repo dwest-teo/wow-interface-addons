@@ -1,6 +1,6 @@
 ﻿--[[
 Name: LibTourist-3.0
-Revision: $Rev: 184 $
+Revision: $Rev: 189 $
 Author(s): Odica (maintainer), originally created by ckknight and Arrowmaster
 Documentation: http://www.wowace.com/addons/libtourist-3-0/
 SVN: svn://svn.wowace.com/wow/libtourist-3-0/mainline/trunk
@@ -9,7 +9,7 @@ License: MIT
 ]]
 
 local MAJOR_VERSION = "LibTourist-3.0"
-local MINOR_VERSION = 90000 + tonumber(("$Revision: 184 $"):match("(%d+)"))
+local MINOR_VERSION = 90000 + tonumber(("$Revision: 189 $"):match("(%d+)"))
 
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub") end
 
@@ -128,6 +128,9 @@ local function PLAYER_LEVEL_UP(self, level)
 	for k in pairs(cost) do
 		cost[k] = nil
 	end
+	
+	UpdateCachedLegionZoneLevels(level)	
+	
 	for zone in pairs(lows) do
 		if not self:IsHostile(zone) then
 			local low, high = self:GetLevel(zone)
@@ -145,6 +148,22 @@ local function PLAYER_LEVEL_UP(self, level)
 				if low <= playerLevel and playerLevel <= high then
 					recInstances[zone] = true
 				end
+			end
+		end
+	end
+end
+
+function UpdateCachedLegionZoneLevels()
+	-- Because the cache for highs and lows is initialized before the player level is known, update the values on PLAYER_LEVEL_UP
+	-- which fires directly after initialization. Is also assures the cache is being updated when the player levels up during play
+	local legionZoneLevel = Tourist:GetLegionZoneLevel()
+	for k in Tourist:IterateBrokenIsles() do
+		if types[k] ~= "Instance" and types[k] ~= "Battleground" and types[k] ~= "Arena" and types[k] ~= "Complex" and types[k] ~= "City" and types[k] ~= "Continent" then
+			-- Exception for Suramar (which is fixed at lvl 110)
+			if k ~= BZ["Suramar"] then
+				lows[k] = legionZoneLevel
+				highs[k] = legionZoneLevel
+				trace("Level for "..tostring(k).." is "..tostring(legionZoneLevel))
 			end
 		end
 	end
@@ -2573,83 +2592,116 @@ do
 	-- TRANSPORT DEFINITIONS ----------------------------------------------------------------
 
 	local transports = {}
-	
+
+	-- Boats
 	transports["BOOTYBAY_RATCHET_BOAT"] = string.format(X_Y_BOAT, BZ["The Cape of Stranglethorn"], BZ["Northern Barrens"])
-	transports["MENETHIL_THERAMORE_BOAT"] = string.format(X_Y_BOAT, BZ["Wetlands"], BZ["Dustwallow Marsh"])
 	transports["MENETHIL_HOWLINGFJORD_BOAT"] = string.format(X_Y_BOAT, BZ["Wetlands"], BZ["Howling Fjord"])
-	transports["DARNASSUS_EXODAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Darnassus"], BZ["The Exodar"])
-	transports["EXODAR_DARNASSUS_PORTAL"] = string.format(X_Y_PORTAL, BZ["The Exodar"], BZ["Darnassus"])
+	transports["MENETHIL_THERAMORE_BOAT"] = string.format(X_Y_BOAT, BZ["Wetlands"], BZ["Dustwallow Marsh"])
+	transports["MOAKI_KAMAGUA_BOAT"] = string.format(X_Y_BOAT, BZ["Dragonblight"], BZ["Howling Fjord"])
+	transports["MOAKI_UNUPE_BOAT"] = string.format(X_Y_BOAT, BZ["Dragonblight"], BZ["Borean Tundra"])
+	transports["STORMWIND_BOREANTUNDRA_BOAT"] = string.format(X_Y_BOAT, BZ["Stormwind City"], BZ["Borean Tundra"])
 	transports["TELDRASSIL_AZUREMYST_BOAT"] = string.format(X_Y_BOAT, BZ["Teldrassil"], BZ["Azuremyst Isle"])
 	transports["TELDRASSIL_STORMWIND_BOAT"] = string.format(X_Y_BOAT, BZ["Teldrassil"], BZ["Stormwind City"])
-	transports["DARNASSUS_BLASTEDLANDS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Darnassus"], BZ["Blasted Lands"])
-	transports["EXODAR_BLASTEDLANDS_PORTAL"] = string.format(X_Y_PORTAL, BZ["The Exodar"], BZ["Blasted Lands"])
-	transports["STORMWIND_BOREANTUNDRA_BOAT"] = string.format(X_Y_BOAT, BZ["Stormwind City"], BZ["Borean Tundra"])
-	transports["STORMWIND_BLASTEDLANDS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Blasted Lands"])
-	transports["STORMWIND_HELLFIRE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Hellfire Peninsula"])
-	transports["IRONFORGE_BLASTEDLANDS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Ironforge"], BZ["Blasted Lands"])
+	
+	-- Zeppelins
 	transports["ORGRIMMAR_BOREANTUNDRA_ZEPPELIN"] = string.format(X_Y_ZEPPELIN, BZ["Orgrimmar"], BZ["Borean Tundra"])
-	transports["ORGRIMMAR_UNDERCITY_ZEPPELIN"] = string.format(X_Y_ZEPPELIN, BZ["Orgrimmar"], BZ["Undercity"])
 	transports["ORGRIMMAR_GROMGOL_ZEPPELIN"] = string.format(X_Y_ZEPPELIN, BZ["Orgrimmar"], BZ["Northern Stranglethorn"])
 	transports["ORGRIMMAR_THUNDERBLUFF_ZEPPELIN"] = string.format(X_Y_ZEPPELIN, BZ["Orgrimmar"], BZ["Thunder Bluff"])
-	transports["ORGRIMMAR_BLASTEDLANDS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Blasted Lands"])
-	transports["ORGRIMMAR_HELLFIRE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Hellfire Peninsula"])
-	transports["UNDERCITY_HOWLINGFJORD_ZEPPELIN"] = string.format(X_Y_ZEPPELIN, BZ["Undercity"], BZ["Howling Fjord"])
+	transports["ORGRIMMAR_UNDERCITY_ZEPPELIN"] = string.format(X_Y_ZEPPELIN, BZ["Orgrimmar"], BZ["Undercity"])
 	transports["UNDERCITY_GROMGOL_ZEPPELIN"] = string.format(X_Y_ZEPPELIN, BZ["Undercity"], BZ["Northern Stranglethorn"])
-	transports["UNDERCITY_BLASTEDLANDS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Undercity"], BZ["Blasted Lands"])
-	transports["THUNDERBLUFF_BLASTEDLANDS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Thunder Bluff"], BZ["Blasted Lands"])
+	transports["UNDERCITY_HOWLINGFJORD_ZEPPELIN"] = string.format(X_Y_ZEPPELIN, BZ["Undercity"], BZ["Howling Fjord"])
+	
+	-- Teleports
 	transports["SILVERMOON_UNDERCITY_TELEPORT"] = string.format(X_Y_TELEPORT, BZ["Silvermoon City"], BZ["Undercity"])
-	transports["SILVERMOON_BLASTEDLANDS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Silvermoon City"], BZ["Blasted Lands"])
-	transports["SHATTRATH_QUELDANAS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shattrath City"], BZ["Isle of Quel'Danas"])
-	transports["SHATTRATH_COT_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shattrath City"], BZ["Caverns of Time"])
-	transports["MOAKI_UNUPE_BOAT"] = string.format(X_Y_BOAT, BZ["Dragonblight"], BZ["Borean Tundra"])
-	transports["MOAKI_KAMAGUA_BOAT"] = string.format(X_Y_BOAT, BZ["Dragonblight"], BZ["Howling Fjord"])
-	transports["DALARAN_COT_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"], BZ["Caverns of Time"])
 	transports["DALARAN_CRYSTALSONG_TELEPORT"] = string.format(X_Y_TELEPORT, BZ["Dalaran"], BZ["Crystalsong Forest"])
-	transports["TWILIGHTHIGHLANDS_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Twilight Highlands"], BZ["Orgrimmar"])
-	transports["ORGRIMMAR_TWILIGHTHIGHLANDS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Twilight Highlands"])
-	transports["ORGRIMMAR_MOUNTHYJAL_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Mount Hyjal"])
-	transports["ORGRIMMAR_DEEPHOLM_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Deepholm"])
-	transports["DEEPHOLM_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Deepholm"], BZ["Orgrimmar"])
-	transports["ORGRIMMAR_ULDUM_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Uldum"])
-	transports["ORGRIMMAR_VASHJIR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Vashj'ir"])
-	transports["ORGRIMMAR_TOLBARAD_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Tol Barad Peninsula"])
-	transports["TOLBARAD_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Tol Barad Peninsula"], BZ["Orgrimmar"])
-	transports["TWILIGHTHIGHLANDS_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Twilight Highlands"], BZ["Stormwind City"])
-	transports["STORMWIND_TWILIGHTHIGHLANDS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Twilight Highlands"])
-	transports["STORMWIND_MOUNTHYJAL_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Mount Hyjal"])
-	transports["STORMWIND_DEEPHOLM_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Deepholm"])
-	transports["DEEPHOLM_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Deepholm"], BZ["Stormwind City"])
-	transports["STORMWIND_ULDUM_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Uldum"])
-	transports["STORMWIND_VASHJIR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Vashj'ir"])
-	transports["STORMWIND_TOLBARAD_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Tol Barad Peninsula"])
-	transports["TOLBARAD_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Tol Barad Peninsula"], BZ["Stormwind City"])
-	transports["HELLFIRE_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Hellfire Peninsula"], BZ["Orgrimmar"])
-	transports["HELLFIRE_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Hellfire Peninsula"], BZ["Stormwind City"])
+	
+	-- Portals
+	transports["DALARAN_COT_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"], BZ["Caverns of Time"])
 	transports["DALARAN_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"], BZ["Orgrimmar"])
 	transports["DALARAN_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"], BZ["Stormwind City"])
-	transports["ORGRIMMAR_JADEFOREST_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["The Jade Forest"])
-	transports["JADEFOREST_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["The Jade Forest"], BZ["Orgrimmar"])
-	transports["STORMWIND_JADEFOREST_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["The Jade Forest"])
-	transports["JADEFOREST_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["The Jade Forest"], BZ["Stormwind City"])
-
-	transports["TOWNLONGSTEPPES_ISLEOFTHUNDER_PORTAL"] = string.format(X_Y_PORTAL, BZ["Townlong Steppes"], BZ["Isle of Thunder"])
-	transports["ISLEOFTHUNDER_TOWNLONGSTEPPES_PORTAL"] = string.format(X_Y_PORTAL, BZ["Isle of Thunder"], BZ["Townlong Steppes"])
-	
-	transports["DARKMOON_MULGORE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Darkmoon Island"], BZ["Mulgore"])
+	transports["DALARANBROKENISLES_COT_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["Caverns of Time"])
+	transports["DALARANBROKENISLES_DARNASSUS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["Darnassus"])
+	transports["DALARANBROKENISLES_DRAGONBLIGHT_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["Dragonblight"])
+	transports["DALARANBROKENISLES_EXODAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["The Exodar"])
+	transports["DALARANBROKENISLES_HILLSBRAD_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["Hillsbrad Foothills"])
+	transports["DALARANBROKENISLES_IRONFORGE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["Ironforge"])
+	transports["DALARANBROKENISLES_KARAZHAN_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["Karazhan"])
+	transports["DALARANBROKENISLES_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["Orgrimmar"])
+	transports["DALARANBROKENISLES_SEVENSTARS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["Shrine of Seven Stars"])
+	transports["DALARANBROKENISLES_SHATTRATH_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["Shattrath City"])
+	transports["DALARANBROKENISLES_SILVERMOON_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["Silvermoon City"])
+	transports["DALARANBROKENISLES_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["Stormwind City"])
+	transports["DALARANBROKENISLES_THUNDERBLUFF_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["Thunder Bluff"])
+	transports["DALARANBROKENISLES_TWOMOONS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["Shrine of Two Moons"])
+	transports["DALARANBROKENISLES_UNDERCITY_PORTAL"] = string.format(X_Y_PORTAL, BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", BZ["Undercity"])
 	transports["DARKMOON_ELWYNNFOREST_PORTAL"] = string.format(X_Y_PORTAL, BZ["Darkmoon Island"], BZ["Elwynn Forest"])
-	transports["MULGORE_DARKMOON_PORTAL"] = string.format(X_Y_PORTAL, BZ["Mulgore"], BZ["Darkmoon Island"])
+	transports["DARKMOON_MULGORE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Darkmoon Island"], BZ["Mulgore"])
+	transports["DARNASSUS_EXODAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Darnassus"], BZ["The Exodar"])
+	transports["DARNASSUS_HELLFIRE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Darnassus"], BZ["Hellfire Peninsula"])
+	transports["DEEPHOLM_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Deepholm"], BZ["Orgrimmar"])
+	transports["DEEPHOLM_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Deepholm"], BZ["Stormwind City"])
 	transports["ELWYNNFOREST_DARKMOON_PORTAL"] = string.format(X_Y_PORTAL, BZ["Elwynn Forest"], BZ["Darkmoon Island"])
-
-	transports["WARSPEAR_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Warspear"], BZ["Orgrimmar"])
-	transports["WARSPEAR_UNDERCITY_PORTAL"] = string.format(X_Y_PORTAL, BZ["Warspear"], BZ["Undercity"])
-	transports["WARSPEAR_THUNDERBLUFF_PORTAL"] = string.format(X_Y_PORTAL, BZ["Warspear"], BZ["Thunder Bluff"])
-	transports["STORMSHIELD_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormshield"], BZ["Stormwind City"])
-	transports["STORMSHIELD_IRONFORGE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormshield"], BZ["Ironforge"])
-	transports["STORMSHIELD_DARNASSUS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormshield"], BZ["Darnassus"])
-	transports["SHADOWMOONVALLEY_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shadowmoon Valley"], BZ["Stormwind City"])
+	transports["EXODAR_DARNASSUS_PORTAL"] = string.format(X_Y_PORTAL, BZ["The Exodar"], BZ["Darnassus"])
+	transports["EXODAR_HELLFIRE_PORTAL"] = string.format(X_Y_PORTAL, BZ["The Exodar"], BZ["Hellfire Peninsula"])
 	transports["FROSTFIRERIDGE_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Frostfire Ridge"], BZ["Orgrimmar"])
-	
-	
+	transports["HELLFIRE_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Hellfire Peninsula"], BZ["Orgrimmar"])
+	transports["HELLFIRE_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Hellfire Peninsula"], BZ["Stormwind City"])
+	transports["IRONFORGE_HELLFIRE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Ironforge"], BZ["Hellfire Peninsula"])
+	transports["ISLEOFTHUNDER_TOWNLONGSTEPPES_PORTAL"] = string.format(X_Y_PORTAL, BZ["Isle of Thunder"], BZ["Townlong Steppes"])
+	transports["JADEFOREST_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["The Jade Forest"], BZ["Orgrimmar"])
+	transports["JADEFOREST_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["The Jade Forest"], BZ["Stormwind City"])
+	transports["MULGORE_DARKMOON_PORTAL"] = string.format(X_Y_PORTAL, BZ["Mulgore"], BZ["Darkmoon Island"])
+	transports["ORGRIMMAR_BLASTEDLANDS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Blasted Lands"])
+	transports["ORGRIMMAR_DALARANBROKENISLES_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Dalaran"].." ("..BZ["Broken Isles"]..")")
+	transports["ORGRIMMAR_DEEPHOLM_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Deepholm"])
+	transports["ORGRIMMAR_HELLFIRE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Hellfire Peninsula"])
+	transports["ORGRIMMAR_JADEFOREST_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["The Jade Forest"])
+	transports["ORGRIMMAR_MOUNTHYJAL_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Mount Hyjal"])
+	transports["ORGRIMMAR_TOLBARAD_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Tol Barad Peninsula"])
+	transports["ORGRIMMAR_TWILIGHTHIGHLANDS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Twilight Highlands"])
+	transports["ORGRIMMAR_ULDUM_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Uldum"])
+	transports["ORGRIMMAR_VASHJIR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Orgrimmar"], BZ["Vashj'ir"])
+	transports["SEVENSTARS_DALARAN_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shrine of Seven Stars"], BZ["Dalaran"])
+	transports["SEVENSTARS_DARNASSUS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shrine of Seven Stars"], BZ["Darnassus"])
+	transports["SEVENSTARS_EXODAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shrine of Seven Stars"], BZ["The Exodar"])
+	transports["SEVENSTARS_IRONFORGE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shrine of Seven Stars"], BZ["Ironforge"])
+	transports["SEVENSTARS_SHATTRATH_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shrine of Seven Stars"], BZ["Shattrath City"])
+	transports["SEVENSTARS_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shrine of Seven Stars"], BZ["Stormwind City"])
+	transports["SHADOWMOONVALLEY_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shadowmoon Valley"], BZ["Stormwind City"])
+	transports["SHATTRATH_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shattrath City"], BZ["Orgrimmar"])
+	transports["SHATTRATH_QUELDANAS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shattrath City"], BZ["Isle of Quel'Danas"])
+	transports["SHATTRATH_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shattrath City"], BZ["Stormwind City"])
+	transports["SILVERMOON_HELLFIRE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Silvermoon City"], BZ["Hellfire Peninsula"])
+	transports["STORMSHIELD_DARNASSUS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormshield"], BZ["Darnassus"])
+	transports["STORMSHIELD_IRONFORGE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormshield"], BZ["Ironforge"])
+	transports["STORMSHIELD_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormshield"], BZ["Stormwind City"])
+	transports["STORMWIND_BLASTEDLANDS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Blasted Lands"])
+	transports["STORMWIND_DALARANBROKENISLES_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Dalaran"].." ("..BZ["Broken Isles"]..")")
+	transports["STORMWIND_DEEPHOLM_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Deepholm"])
+	transports["STORMWIND_HELLFIRE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Hellfire Peninsula"])
+	transports["STORMWIND_JADEFOREST_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["The Jade Forest"])
+	transports["STORMWIND_MOUNTHYJAL_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Mount Hyjal"])
+	transports["STORMWIND_TOLBARAD_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Tol Barad Peninsula"])
+	transports["STORMWIND_TWILIGHTHIGHLANDS_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Twilight Highlands"])
+	transports["STORMWIND_ULDUM_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Uldum"])
+	transports["STORMWIND_VASHJIR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Stormwind City"], BZ["Vashj'ir"])
+	transports["THUNDERBLUFF_HELLFIRE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Thunder Bluff"], BZ["Hellfire Peninsula"])
+	transports["TOLBARAD_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Tol Barad Peninsula"], BZ["Orgrimmar"])
+	transports["TOLBARAD_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Tol Barad Peninsula"], BZ["Stormwind City"])
+	transports["TOWNLONGSTEPPES_ISLEOFTHUNDER_PORTAL"] = string.format(X_Y_PORTAL, BZ["Townlong Steppes"], BZ["Isle of Thunder"])
+	transports["TWILIGHTHIGHLANDS_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Twilight Highlands"], BZ["Orgrimmar"])
+	transports["TWILIGHTHIGHLANDS_STORMWIND_PORTAL"] = string.format(X_Y_PORTAL, BZ["Twilight Highlands"], BZ["Stormwind City"])
+	transports["TWOMOONS_DALARAN_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shrine of Two Moons"], BZ["Dalaran"])
+	transports["TWOMOONS_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shrine of Two Moons"], BZ["Orgrimmar"])
+	transports["TWOMOONS_SHATTRATH_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shrine of Two Moons"], BZ["Shattrath City"])
+	transports["TWOMOONS_SILVERMOON_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shrine of Two Moons"], BZ["Silvermoon City"])
+	transports["TWOMOONS_THUNDERBLUFF_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shrine of Two Moons"], BZ["Thunder Bluff"])
+	transports["TWOMOONS_UNDERCITY_PORTAL"] = string.format(X_Y_PORTAL, BZ["Shrine of Two Moons"], BZ["Undercity"])
+	transports["UNDERCITY_HELLFIRE_PORTAL"] = string.format(X_Y_PORTAL, BZ["Undercity"], BZ["Hellfire Peninsula"])
+	transports["WARSPEAR_ORGRIMMAR_PORTAL"] = string.format(X_Y_PORTAL, BZ["Warspear"], BZ["Orgrimmar"])
+	transports["WARSPEAR_THUNDERBLUFF_PORTAL"] = string.format(X_Y_PORTAL, BZ["Warspear"], BZ["Thunder Bluff"])
+	transports["WARSPEAR_UNDERCITY_PORTAL"] = string.format(X_Y_PORTAL, BZ["Warspear"], BZ["Undercity"])
+
 	
 	
 	local zones = {}
@@ -2758,25 +2810,25 @@ do
 		type = "Transport",
 	}
 
-	zones[transports["UNDERCITY_BLASTEDLANDS_PORTAL"]] = {
+	zones[transports["UNDERCITY_HELLFIRE_PORTAL"]] = {
 		paths = {
-			[BZ["Blasted Lands"]] = true,
+			[BZ["Hellfire Peninsula"]] = true,
 		},
 		faction = "Horde",
 		type = "Transport",
 	}
 
-	zones[transports["THUNDERBLUFF_BLASTEDLANDS_PORTAL"]] = {
+	zones[transports["THUNDERBLUFF_HELLFIRE_PORTAL"]] = {
 		paths = {
-			[BZ["Blasted Lands"]] = true,
+			[BZ["Hellfire Peninsula"]] = true,
 		},
 		faction = "Horde",
 		type = "Transport",
 	}
 
-	zones[transports["SILVERMOON_BLASTEDLANDS_PORTAL"]] = {
+	zones[transports["SILVERMOON_HELLFIRE_PORTAL"]] = {
 		paths = {
-			[BZ["Blasted Lands"]] = true,
+			[BZ["Hellfire Peninsula"]] = true,
 		},
 		faction = "Horde",
 		type = "Transport",
@@ -2819,17 +2871,17 @@ do
 		type = "Transport",
 	}
 
-	zones[transports["DARNASSUS_BLASTEDLANDS_PORTAL"]] = {
+	zones[transports["DARNASSUS_HELLFIRE_PORTAL"]] = {
 		paths = {
-			[BZ["Blasted Lands"]] = true,
+			[BZ["Hellfire Peninsula"]] = true,
 		},
 		faction = "Alliance",
 		type = "Transport",
 	}
 
-	zones[transports["EXODAR_BLASTEDLANDS_PORTAL"]] = {
+	zones[transports["EXODAR_HELLFIRE_PORTAL"]] = {
 		paths = {
-			[BZ["Blasted Lands"]] = true,
+			[BZ["Hellfire Peninsula"]] = true,
 		},
 		faction = "Alliance",
 		type = "Transport",
@@ -2879,9 +2931,9 @@ do
 
 
 
-	zones[transports["IRONFORGE_BLASTEDLANDS_PORTAL"]] = {
+	zones[transports["IRONFORGE_HELLFIRE_PORTAL"]] = {
 		paths = {
-			[BZ["Blasted Lands"]] = true,
+			[BZ["Hellfire Peninsula"]] = true,
 		},
 		faction = "Alliance",
 		type = "Transport",
@@ -2963,10 +3015,18 @@ do
 		type = "Transport",
 	}
 
-	zones[transports["SHATTRATH_COT_PORTAL"]] = {
-		paths = BZ["Caverns of Time"],
+	zones[transports["SHATTRATH_ORGRIMMAR_PORTAL"]] = {
+		paths = BZ["Orgrimmar"],
+		faction = "Horde",
 		type = "Transport",
 	}
+
+	zones[transports["SHATTRATH_STORMWIND_PORTAL"]] = {
+		paths = BZ["Stormwind City"],
+		faction = "Alliance",
+		type = "Transport",
+	}
+
 
 	zones[transports["MOAKI_UNUPE_BOAT"]] = {
 		paths = {
@@ -3292,6 +3352,235 @@ do
 	
 
 	
+	zones[transports["TWOMOONS_ORGRIMMAR_PORTAL"]] = {
+		paths = {
+			[BZ["Orgrimmar"]] = true,
+		},
+		faction = "Horde",
+		type = "Transport",
+	}	
+	
+	zones[transports["TWOMOONS_UNDERCITY_PORTAL"]] = {
+		paths = {
+			[BZ["Undercity"]] = true,
+		},
+		faction = "Horde",
+		type = "Transport",
+	}
+	
+	zones[transports["TWOMOONS_THUNDERBLUFF_PORTAL"]] = {
+		paths = {
+			[BZ["Thunder Bluff"]] = true,
+		},
+		faction = "Horde",
+		type = "Transport",
+	}	
+	
+	zones[transports["TWOMOONS_SILVERMOON_PORTAL"]] = {
+		paths = {
+			[BZ["Silvermoon City"]] = true,
+		},
+		faction = "Horde",
+		type = "Transport",
+	}
+	
+	zones[transports["TWOMOONS_SHATTRATH_PORTAL"]] = {
+		paths = {
+			[BZ["Shattrath City"]] = true,
+		},
+		faction = "Horde",
+		type = "Transport",
+	}
+	
+	zones[transports["TWOMOONS_DALARAN_PORTAL"]] = {
+		paths = {
+			[BZ["Dalaran"]] = true,
+		},
+		faction = "Horde",
+		type = "Transport",
+	}	
+	
+	zones[transports["SEVENSTARS_EXODAR_PORTAL"]] = {
+		paths = {
+			[BZ["The Exodar"]] = true,
+		},
+		faction = "Alliance",
+		type = "Transport",
+	}
+	
+	zones[transports["SEVENSTARS_STORMWIND_PORTAL"]] = {
+		paths = {
+			[BZ["Stormwind City"]] = true,
+		},
+		faction = "Alliance",
+		type = "Transport",
+	}
+	
+	zones[transports["SEVENSTARS_IRONFORGE_PORTAL"]] = {
+		paths = {
+			[BZ["Ironforge"]] = true,
+		},
+		faction = "Alliance",
+		type = "Transport",
+	}
+	
+	zones[transports["SEVENSTARS_DARNASSUS_PORTAL"]] = {
+		paths = {
+			[BZ["Darnassus"]] = true,
+		},
+		faction = "Alliance",
+		type = "Transport",
+	}
+	
+	zones[transports["SEVENSTARS_SHATTRATH_PORTAL"]] = {
+		paths = {
+			[BZ["Shattrath City"]] = true,
+		},
+		faction = "Alliance",
+		type = "Transport",
+	}
+	
+	zones[transports["SEVENSTARS_DALARAN_PORTAL"]] = {
+		paths = {
+			[BZ["Dalaran"]] = true,
+		},
+		faction = "Alliance",
+		type = "Transport",
+	}
+	
+	
+	zones[transports["DALARANBROKENISLES_STORMWIND_PORTAL"]] = {
+		paths = {
+			[BZ["Stormwind City"]] = true,
+		},
+		faction = "Alliance",
+		type = "Transport",
+	}
+
+	zones[transports["DALARANBROKENISLES_EXODAR_PORTAL"]] = {
+		paths = {
+			[BZ["The Exodar"]] = true,
+		},
+		faction = "Alliance",
+		type = "Transport",
+	}
+	
+	zones[transports["DALARANBROKENISLES_DARNASSUS_PORTAL"]] = {
+		paths = {
+			[BZ["Darnassus"]] = true,
+		},
+		faction = "Alliance",
+		type = "Transport",
+	}
+	
+	zones[transports["DALARANBROKENISLES_IRONFORGE_PORTAL"]] = {
+		paths = {
+			[BZ["Ironforge"]] = true,
+		},
+		faction = "Alliance",
+		type = "Transport",
+	}
+	
+	zones[transports["DALARANBROKENISLES_SEVENSTARS_PORTAL"]] = {
+		paths = {
+			[BZ["Shrine of Seven Stars"]] = true,
+		},
+		faction = "Alliance",
+		type = "Transport",
+	}
+
+	zones[transports["DALARANBROKENISLES_ORGRIMMAR_PORTAL"]] = {
+		paths = {
+			[BZ["Orgrimmar"]] = true,
+		},
+		faction = "Horde",
+		type = "Transport",
+	}
+	
+	zones[transports["DALARANBROKENISLES_UNDERCITY_PORTAL"]] = {
+		paths = {
+			[BZ["Undercity"]] = true,
+		},
+		faction = "Horde",
+		type = "Transport",
+	}
+
+	zones[transports["DALARANBROKENISLES_THUNDERBLUFF_PORTAL"]] = {
+		paths = {
+			[BZ["Thunder Bluff"]] = true,
+		},
+		faction = "Horde",
+		type = "Transport",
+	}
+
+	zones[transports["DALARANBROKENISLES_SILVERMOON_PORTAL"]] = {
+		paths = {
+			[BZ["Silvermoon City"]] = true,
+		},
+		faction = "Horde",
+		type = "Transport",
+	}
+
+	zones[transports["DALARANBROKENISLES_TWOMOONS_PORTAL"]] = {
+		paths = {
+			[BZ["Shrine of Two Moons"]] = true,
+		},
+		faction = "Horde",
+		type = "Transport",
+	}	
+	
+	zones[transports["DALARANBROKENISLES_COT_PORTAL"]] = {
+		paths = {
+			[BZ["Caverns of Time"]] = true,
+		},
+		type = "Transport",
+	}	
+	
+	zones[transports["DALARANBROKENISLES_SHATTRATH_PORTAL"]] = {
+		paths = {
+			[BZ["Shattrath City"]] = true,
+		},
+		type = "Transport",
+	}	
+	
+	zones[transports["DALARANBROKENISLES_DRAGONBLIGHT_PORTAL"]] = {
+		paths = {
+			[BZ["Dragonblight"]] = true,
+		},
+		type = "Transport",
+	}	
+	
+	zones[transports["DALARANBROKENISLES_HILLSBRAD_PORTAL"]] = {
+		paths = {
+			[BZ["Hillsbrad Foothills"]] = true,
+		},
+		type = "Transport",
+	}	
+	
+	zones[transports["DALARANBROKENISLES_KARAZHAN_PORTAL"]] = {
+		paths = {
+			[BZ["Karazhan"]] = true,
+		},
+		type = "Transport",
+	}	
+	
+	zones[transports["ORGRIMMAR_DALARANBROKENISLES_PORTAL"]] = {
+		paths = {
+			[BZ["Dalaran"].." ("..BZ["Broken Isles"]..")"] = true,
+		},
+		faction = "Horde",
+		type = "Transport",
+	}	
+	
+	zones[transports["STORMWIND_DALARANBROKENISLES_PORTAL"]] = {
+		paths = {
+			[BZ["Dalaran"].." ("..BZ["Broken Isles"]..")"] = true,
+		},
+		faction = "Alliance",
+		type = "Transport",
+	}	
+
+	
 	-- ZONES, INSTANCES AND COMPLEXES ---------------------------------------------------------
 
 	zones[BZ["Alterac Valley"]] = {
@@ -3330,7 +3619,7 @@ do
 		paths = {
 			[BZ["Dun Morogh"]] = true,
 			[BZ["Deeprun Tram"]] = true,
-			[transports["IRONFORGE_BLASTEDLANDS_PORTAL"]] = true,
+			[transports["IRONFORGE_HELLFIRE_PORTAL"]] = true,
 		},
 		faction = "Alliance",
 		type = "City",
@@ -3344,7 +3633,7 @@ do
 		paths = {
 			[BZ["Eversong Woods"]] = true,
 			[transports["SILVERMOON_UNDERCITY_TELEPORT"]] = true,
-			[transports["SILVERMOON_BLASTEDLANDS_PORTAL"]] = true,
+			[transports["SILVERMOON_HELLFIRE_PORTAL"]] = true,
 		},
 		faction = "Horde",
 		type = "City",
@@ -3370,6 +3659,7 @@ do
 			[transports["STORMWIND_VASHJIR_PORTAL"]] = true,
 			[transports["STORMWIND_TOLBARAD_PORTAL"]] = true,
 			[transports["STORMWIND_JADEFOREST_PORTAL"]] = true,
+			[transports["STORMWIND_DALARANBROKENISLES_PORTAL"]] = true,
 		},
 		faction = "Alliance",
 		type = "City",
@@ -3384,7 +3674,7 @@ do
 		paths = {
 			[BZ["Tirisfal Glades"]] = true,
 			[transports["SILVERMOON_UNDERCITY_TELEPORT"]] = true,
-			[transports["UNDERCITY_BLASTEDLANDS_PORTAL"]] = true,
+			[transports["UNDERCITY_HELLFIRE_PORTAL"]] = true,
 		},
 		faction = "Horde",
 		type = "City",
@@ -4193,7 +4483,7 @@ do
 		continent = Kalimdor,
 		paths = {
 			[BZ["Teldrassil"]] = true,
-			[transports["DARNASSUS_BLASTEDLANDS_PORTAL"]] = true,
+			[transports["DARNASSUS_HELLFIRE_PORTAL"]] = true,
 			[transports["DARNASSUS_EXODAR_PORTAL"]] = true,
 		},
 		faction = "Alliance",
@@ -4239,6 +4529,7 @@ do
 			[transports["ORGRIMMAR_VASHJIR_PORTAL"]] = true,
 			[transports["ORGRIMMAR_TOLBARAD_PORTAL"]] = true,
 			[transports["ORGRIMMAR_JADEFOREST_PORTAL"]] = true,
+			[transports["ORGRIMMAR_DALARANBROKENISLES_PORTAL"]] = true,
 		},
 		faction = "Horde",
 		type = "City",
@@ -4251,7 +4542,7 @@ do
 		continent = Kalimdor,
 		paths = {
 			[BZ["Azuremyst Isle"]] = true,
-			[transports["EXODAR_BLASTEDLANDS_PORTAL"]] = true,
+			[transports["EXODAR_HELLFIRE_PORTAL"]] = true,
 			[transports["EXODAR_DARNASSUS_PORTAL"]] = true,
 		},
 		faction = "Alliance",
@@ -4265,7 +4556,7 @@ do
 		paths = {
 			[BZ["Mulgore"]] = true,
 			[transports["ORGRIMMAR_THUNDERBLUFF_ZEPPELIN"]] = true,
-			[transports["THUNDERBLUFF_BLASTEDLANDS_PORTAL"]] = true,
+			[transports["THUNDERBLUFF_HELLFIRE_PORTAL"]] = true,
 		},
 		faction = "Horde",
 		type = "City",
@@ -4908,8 +5199,9 @@ do
 			[BZ["Terokkar Forest"]] = true,
 			[BZ["Nagrand"]] = true,
 			[transports["SHATTRATH_QUELDANAS_PORTAL"]] = true,
-			--[transports["SHATTRATH_COT_PORTAL"]] = true,
-		},
+			[transports["SHATTRATH_STORMWIND_PORTAL"]] = true,
+			[transports["SHATTRATH_ORGRIMMAR_PORTAL"]] = true,
+			},
 		faction = "Sanctuary",
 		type = "City",
 		battlepet_low = 17,
@@ -6617,6 +6909,12 @@ do
 		continent = Pandaria,
 		paths = {
 			[BZ["Vale of Eternal Blossoms"]] = true,
+			[transports["SEVENSTARS_EXODAR_PORTAL"]] = true,
+			[transports["SEVENSTARS_STORMWIND_PORTAL"]] = true,
+			[transports["SEVENSTARS_IRONFORGE_PORTAL"]] = true,
+			[transports["SEVENSTARS_DARNASSUS_PORTAL"]] = true,
+			[transports["SEVENSTARS_SHATTRATH_PORTAL"]] = true,
+			[transports["SEVENSTARS_DALARAN_PORTAL"]] = true,
 		},
 		faction = "Alliance",
 		type = "City",
@@ -6628,6 +6926,12 @@ do
 		continent = Pandaria,
 		paths = {
 			[BZ["Vale of Eternal Blossoms"]] = true,
+			[transports["TWOMOONS_ORGRIMMAR_PORTAL"]] = true,
+			[transports["TWOMOONS_UNDERCITY_PORTAL"]] = true,
+			[transports["TWOMOONS_THUNDERBLUFF_PORTAL"]] = true,
+			[transports["TWOMOONS_SILVERMOON_PORTAL"]] = true,
+			[transports["TWOMOONS_SHATTRATH_PORTAL"]] = true,
+			[transports["TWOMOONS_DALARAN_PORTAL"]] = true,
 		},
 		faction = "Horde",
 		type = "City",
@@ -7110,8 +7414,8 @@ do
 	}
 
 	zones[BZ["Suramar"]] = {
-		low = Tourist:GetLegionZoneLevel(),
-		high = Tourist:GetLegionZoneLevel(),
+		low = 110,
+		high = 110,
 		continent = BrokenIsles,
 		instances = {
 			[BZ["Court of Stars"]] = true,
@@ -7221,7 +7525,22 @@ do
 		continent = BrokenIsles,
 		paths = {
 			[BZ["The Violet Hold"].." ("..BZ["Broken Isles"]..")"] = true,
-		},
+			[transports["DALARANBROKENISLES_STORMWIND_PORTAL"]] = true,
+			[transports["DALARANBROKENISLES_EXODAR_PORTAL"]] = true,
+			[transports["DALARANBROKENISLES_DARNASSUS_PORTAL"]] = true,
+			[transports["DALARANBROKENISLES_IRONFORGE_PORTAL"]] = true,
+			[transports["DALARANBROKENISLES_SEVENSTARS_PORTAL"]] = true,
+			[transports["DALARANBROKENISLES_ORGRIMMAR_PORTAL"]] = true,
+			[transports["DALARANBROKENISLES_UNDERCITY_PORTAL"]] = true,
+			[transports["DALARANBROKENISLES_THUNDERBLUFF_PORTAL"]] = true,
+			[transports["DALARANBROKENISLES_SILVERMOON_PORTAL"]] = true,
+			[transports["DALARANBROKENISLES_TWOMOONS_PORTAL"]] = true,
+			[transports["DALARANBROKENISLES_COT_PORTAL"]] = true,
+			[transports["DALARANBROKENISLES_SHATTRATH_PORTAL"]] = true,
+			[transports["DALARANBROKENISLES_DRAGONBLIGHT_PORTAL"]] = true,
+			[transports["DALARANBROKENISLES_HILLSBRAD_PORTAL"]] = true,
+			[transports["DALARANBROKENISLES_KARAZHAN_PORTAL"]] = true,
+			},
 		instances = {
 			[BZ["The Violet Hold"].." ("..BZ["Broken Isles"]..")"] = true,
 		},		
@@ -7247,7 +7566,7 @@ do
 	}
 	
 	zones[BZ["Eye of Azshara"]] = {
-		low = 100,
+		low = 98,
 		high = 110,
 		continent = BrokenIsles,
 		paths = BZ["Aszuna"],
@@ -7267,7 +7586,7 @@ do
 	}	
 
 	zones[BZ["Darkheart Thicket"]] = {
-		low = 100,
+		low = 98,
 		high = 110,
 		continent = BrokenIsles,
 		paths = BZ["Val'sharah"],
@@ -7289,7 +7608,7 @@ do
 	}
 	
 	zones[BZ["Neltharion's Lair"]] = {
-		low = 100,
+		low = 98,
 		high = 110,
 		continent = BrokenIsles,
 		paths = BZ["Highmountain"],
@@ -7299,7 +7618,7 @@ do
 	}
 	
 	zones[BZ["Halls of Valor"]] = {
-		low = 100,
+		low = 98,
 		high = 110,
 		continent = BrokenIsles,
 		paths = BZ["Stormheim"],
@@ -7428,6 +7747,11 @@ do
 	zones[BZ["Pandaria"]].x_offset = 12223.65
 	zones[BZ["Pandaria"]].y_offset = 520.24
 	zones[BZ["Pandaria"]].scale = 0.6514
+	
+	zones[BZ["Broken Isles"]].x_offset = 16297
+	zones[BZ["Broken Isles"]].y_offset = 8225.3
+	zones[BZ["Broken Isles"]].scale = 0.4469
+	
 	-- --------------------------------------------------------------------------------------------------------------------------
 
 	

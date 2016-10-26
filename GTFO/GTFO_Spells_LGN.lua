@@ -10,6 +10,11 @@ Author: Zensunim of Malygos
 --- * The Broken Isles *
 --- ********************
 
+GTFO.SpellID["226512"] = {
+  --desc = "Sanguine Ichor (Mythic+ Keystone)";
+  sound = 1;
+};
+
 GTFO.SpellID["203114"] = {
   --desc = "Twilight Whirl (Twilight Bladetwister)";
   sound = 1;
@@ -68,13 +73,6 @@ GTFO.SpellID["202809"] = {
   sound = 1;
 };
 
-GTFO.SpellID["209928"] = {
-  --desc = "Creeping Nightmare (Gorebeak)";
-  applicationOnly = true;
-  sound = 1;
-  test = true; -- Unreliable... sometimes this is applied from unavoidable damage from mobs other than Gorebeak
-};
-
 GTFO.SpellID["192754"] = {
   --desc = "Nightmare Breath (Ysera)";
   sound = 1;
@@ -87,6 +85,192 @@ GTFO.SpellID["220053"] = {
 
 GTFO.SpellID["215604"] = {
   --desc = "Dragon's Breath (Vision of Deathwing)";
+  sound = 1;
+};
+
+GTFO.SpellID["191187"] = {
+  --desc = "Storm Nova (Swirling Storms)";
+  sound = 2;
+};
+
+GTFO.SpellID["212203"] = {
+  --desc = "Fusion Press (Mimiron)";
+  sound = 1;
+};
+
+GTFO.SpellID["212016"] = {
+  --desc = "Lightning Bolt (Prustaga)";
+  sound = 1;
+};
+
+GTFO.SpellID["190620"] = {
+  --desc = "Felblaze Orb (Fel Orb)";
+  sound = 2;
+  tankSound = 0;
+};
+
+GTFO.SpellID["182815"] = {
+  --desc = "Stoneblood Poison (Stoneblood Elderwitch)";
+  applicationOnly = true;
+	minimumStacks = 1;
+	sound = 1;
+};
+
+GTFO.SpellID["186227"] = {
+  --desc = "Raging Fire (Heathrow House)";
+  sound = 1;
+};
+
+GTFO.SpellID["186237"] = {
+  --desc = "Raging Fire (Heathrow House)";
+  sound = 1;
+};
+
+GTFO.SpellID["215707"] = {
+  --desc = "Burning (Tenpak Flametotem)";
+  sound = 1;
+};
+
+GTFO.SpellID["214421"] = {
+  --desc = "Searing Gaze (Inquisitor Tivos)";
+  sound = 1;
+};
+
+GTFO.SpellID["222136"] = {
+  --desc = "Corrosive Maw";
+  sound = 1;
+};
+
+GTFO.SpellID["218866"] = {
+  --desc = "Plagued Ground";
+  sound = 1;
+};
+
+GTFO.SpellID["210584"] = {
+  --desc = "Holy Ground";
+  sound = 1;
+};
+
+GTFO.SpellID["219859"] = {
+  --desc = "Claw Flurry (Bahagar)";
+  sound = 1;
+};
+
+GTFO.SpellID["216498"] = {
+  --desc = "Energy Smash (Orbyth)";
+  sound = 1;
+};
+
+GTFO.SpellID["216495"] = {
+  --desc = "Energy Smash (Orbyth)";
+  sound = 1;
+};
+
+GTFO.SpellID["208639"] = {
+  --desc = "Echo (Nameless King)";
+  sound = 1;
+};
+
+GTFO.SpellID["219173"] = {
+  --desc = "Echo (Nameless King)";
+  sound = 1;
+};
+
+GTFO.SpellID["211022"] = {
+  --desc = "Echo (Nameless King)";
+  sound = 1;
+};
+
+GTFO.SpellID["219177"] = {
+  --desc = "Echo (Nameless King)";
+  sound = 1;
+};
+
+GTFO.SpellID["217529"] = {
+  --desc = "Overflowing Taint (Infernal Lord)";
+  sound = 1;
+};
+
+GTFO.SpellID["216149"] = {
+  --desc = "Barrage (Huntress Estrid)";
+  sound = 1;
+};
+
+GTFO.SpellID["219120"] = {
+  --desc = "Doomfire (Archimonde)";
+  sound = 1;
+};
+
+GTFO.SpellID["214491"] = {
+  --desc = "Hindering Anomaly";
+  sound = 1;
+};
+
+GTFO.SpellID["214123"] = {
+  --desc = "Translocate Field (Arcavellus)";
+  sound = 1;
+};
+
+GTFO.SpellID["225682"] = {
+  --desc = "Furious Swipes (Bahagar)";
+  sound = 1;
+};
+
+GTFO.SpellID["215717"] = {
+  --desc = "Murky Secretion (Congealed Corruption)";
+  sound = 1;
+};
+
+GTFO.SpellID["155865"] = {
+  --desc = "Ravaging Whirl (Urgev the Flayer)";
+  sound = 1;
+};
+
+GTFO.SpellID["220478"] = {
+  --desc = "Boil Back (Boilback Bristlefur)";
+  sound = 1;
+  damageMinimum = 1;
+};
+
+GTFO.SpellID["204478"] = {
+  --desc = "Spray Plague (Forsaken Plaguebringer)";
+  sound = 1;
+};
+
+GTFO.SpellID["206564"] = {
+  --desc = "Fel Storm (Eredar Portal-Lord)";
+  sound = 1;
+};
+
+GTFO.SpellID["202544"] = {
+  --desc = "Burning Rush (Herald Xarbizuld)";
+  sound = 1;
+};
+
+GTFO.SpellID["169002"] = {
+  --desc = "Torrent of Blades (Legion Battlematron)";
+  sound = 1;
+  tankSound = 0;
+};
+
+GTFO.SpellID["206777"] = {
+  --desc = "Nightmare Void";
+  applicationOnly = true;
+  sound = 1;
+};
+
+GTFO.SpellID["209008"] = {
+  --desc = "Fel Firestorm (Destromath)";
+  sound = 1;
+};
+
+GTFO.SpellID["199568"] = {
+  --desc = "Grasping Spirits";
+  sound = 1;
+};
+
+GTFO.SpellID["201832"] = {
+  --desc = "Fel Immolation (Ariden)";
   sound = 1;
 };
 
@@ -184,6 +368,16 @@ GTFO.SpellID["183737"] = {
 -- * Darkheart Thicket *
 -- *********************
 
+GTFO.SpellID["198408"] = {
+  --desc = "Nightfall (Archdruid Glaidalis)";
+  sound = 1;
+};
+
+GTFO.SpellID["218759"] = {
+  --desc = "Corruption Pool (Festerhide Grizzly)";
+  sound = 1;
+};
+
 GTFO.SpellID["191326"] = {
   --desc = "Breath of Corruption (Dresaron)";
   sound = 1;
@@ -211,10 +405,19 @@ GTFO.SpellID["196871"] = {
   sound = 1;
 };
 
+GTFO.SpellID["192053"] = {
+  --desc = "Quicksand (Warlord Parjesh)";
+  sound = 1;
+};
+
+GTFO.SpellID["199948"] = {
+  --desc = "Tempest (Channeler Varisz)";
+  sound = 1;
+};
+
 GTFO.SpellID["195473"] = {
   --desc = "Abrasive Slime (Gritslime Snail)";
   sound = 1;
-  tankSound = 0;
   applicationOnly = true;
 };
 
@@ -235,12 +438,19 @@ GTFO.SpellID["193055"] = {
 
 GTFO.SpellID["183407"] = {
   --desc = "Acid Splatter";
-  sound = 1;
+  soundFunction = function() -- Warn only on multiple hits to keep it from being too spammy
+		if (GTFO_FindEvent("AcidSplatter")) then
+			return 1;
+		end
+		GTFO_AddEvent("AcidSplatter", 1);
+		return 0;
+	end
 };
 
 GTFO.SpellID["192800"] = {
   --desc = "Choking Dust (Rokmora)";
   sound = 1;
+  damageMinimum = 1;
 };
 
 GTFO.SpellID["183566"] = {
@@ -322,7 +532,7 @@ GTFO.SpellID["199818"] = {
 GTFO.SpellID["200682"] = {
   --desc = "Eye of the Storm (Solsten)";
   sound = 1;
-  negatingBuffSpellID = 203963; -- Eye of the Storm
+  negatingDebuffSpellID = 203963; -- Eye of the Storm
 };
 
 GTFO.SpellID["193702"] = {
@@ -361,9 +571,241 @@ GTFO.SpellID["204762"] = {
   sound = 1;
 };
 
--- *********************
--- * The Emerald Dream *
--- *********************
+GTFO.SpellID["202266"] = {
+  --desc = "Icky Goo (Festerface)";
+  sound = 1;
+};
+
+
+
+-- **************
+-- * The Arcway *
+-- **************
+
+-- TODO: Suppression Protocol (Corstilax)
+-- TODO: Force Nova (Advisor Vandros)
+-- TODO: Unstable Mana (Advisor Vandros) - FF when not the target
+
+GTFO.SpellID["194006"] = {
+  --desc = "Ooze Puddle (Unstable Amalgamation)";
+  sound = 1;
+};
+
+GTFO.SpellID["200040"] = {
+  --desc = "Nether Venom (Nal'tira)";
+  sound = 1;
+};
+
+GTFO.SpellID["199812"] = {
+  --desc = "Blink Strikes (Nal'tira)";
+  sound = 1;
+};
+
+GTFO.SpellID["210750"] = {
+  --desc = "Collapsing Rift (Withered Manawraith)";
+  sound = 1;
+};
+
+GTFO.SpellID["220500"] = {
+  --desc = "Destabilized Orb (Corstilax)";
+  sound = 1;
+};
+
+GTFO.SpellID["211209"] = {
+  --desc = "Arcane Slicer (Arcane Anomaly)";
+  sound = 1;
+};
+
+GTFO.SpellID["196824"] = {
+  --desc = "Nether Link (Ivanyr)";
+  sound = 1;
+};
+
+GTFO.SpellID["220597"] = {
+  --desc = "Charged Bolt (Ivanyr)";
+  sound = 1;
+};
+
+GTFO.SpellID["211745"] = {
+  --desc = "Fel Strike (Wrathguard Felblade)";
+  sound = 1;
+};
+
+GTFO.SpellID["220443"] = {
+  --desc = "Wake of Shadows (General Xakal)";
+  sound = 1;
+};
+
+
+-- ****************
+-- * Maw of Souls *
+-- ****************
+
+GTFO.SpellID["216107"] = {
+  --desc = "Convulsive Shadows (Shroudseeker)";
+  sound = 1;
+};
+
+GTFO.SpellID["194102"] = {
+  --desc = "Poisonous Sludge (The Grimewalker)";
+  sound = 1;
+};
+
+GTFO.SpellID["195035"] = {
+  --desc = "Defiant Strike - Charge (Seacursed Soulkeeper)";
+  sound = 1;
+};
+
+GTFO.SpellID["194235"] = {
+  --desc = "Nether Rip (Harbaron)";
+  sound = 1;
+};
+
+GTFO.SpellID["227234"] = {
+  --desc = "Corrupted Bellow (Helya)";
+  sound = 1;
+};
+
+-- ******************
+-- * Court of Stars *
+-- ******************
+
+GTFO.SpellID["207278"] = {
+	--desc = "Arcane Lockdown (Patrol Captain Gerdo)";
+	test = true;
+	alwaysAlert = true;
+	soundFunction = function() 
+		-- Alert if hit more than 3 times
+		if (not GTFO.VariableStore.ArcaneLockdownHitCount) then
+			GTFO.VariableStore.ArcaneLockdownHitCount = 0;
+			GTFO.VariableStore.ArcaneLockdownStackCount = 0;
+		end
+		GTFO_AddEvent("ResetArcaneLockdownCounter", 5, function() GTFO.VariableStore.ArcaneLockdownHitCount = 0; GTFO.VariableStore.ArcaneLockdownStackCount = 0; end);
+		GTFO.VariableStore.ArcaneLockdownHitCount = GTFO.VariableStore.ArcaneLockdownHitCount + 1;
+		local stackCount = GTFO_DebuffStackCount("player", 207278);
+		if (GTFO.VariableStore.ArcaneLockdownStackCount == stackCount) then
+			if (GTFO.VariableStore.ArcaneLockdownHitCount > 2) then
+				return 1;
+			end			
+		else
+			GTFO.VariableStore.ArcaneLockdownStackCount = stackCount;
+			if (stackCount < 3) then			
+				GTFO.VariableStore.ArcaneLockdownHitCount = 1;
+			end
+		end
+	end;
+};
+
+GTFO.SpellID["209027"] = {
+  --desc = "Disrupting Energy (Guardian Construct)";
+  sound = 1;
+};
+
+GTFO.SpellID["211391"] = {
+  --desc = "Felblaze Puddle (Legion Hound)";
+  sound = 1;
+};
+
+-- ************************
+-- * Vault of the Wardens *
+-- ************************
+
+-- TODO: Tormenting Orb (Inquisitor Tormentorum)
+
+GTFO.SpellID["202862"] = {
+  --desc = "Hatred (Tirathon Saltheril)";
+  sound = 1;
+};
+
+GTFO.SpellID["202919"] = {
+  --desc = "Furious Flames (Tirathon Saltheril)";
+  sound = 1;
+};
+
+GTFO.SpellID["194071"] = {
+  --desc = "A Mother's Love (Foul Mother)";
+  sound = 1;
+};
+
+GTFO.SpellID["199916"] = {
+  --desc = "Shadow Crash (Faceless Voidcaster)";
+  sound = 1;
+};
+
+GTFO.SpellID["194945"] = {
+  --desc = "Lingering Gaze (Glazer)";
+  sound = 1;
+};
+
+GTFO.SpellID["202046"] = {
+  --desc = "Beam (Glazer)";
+  sound = 1;
+};
+
+GTFO.SpellID["202608"] = {
+  --desc = "Anguished Souls (Grimhorn the Enslaver)";
+  sound = 1;
+};
+
+GTFO.SpellID["213395"] = {
+  --desc = "Deepening Shadows (Cordana Felsong)";
+  sound = 1;
+};
+
+-- *******************
+-- * Black Rook Hold *
+-- *******************
+
+GTFO.SpellID["200344"] = {
+  --desc = "Arrow Barrage (Risen Archer)";
+  sound = 1;
+};
+
+GTFO.SpellID["221131"] = {
+  --desc = "Arcane Overcharge (Archmage Galeorn)";
+  sound = 4;
+  negatingDebuffSpellID = 221132; -- Arcane Overcharge
+};
+
+GTFO.SpellID["220922"] = {
+  --desc = "Overwhelming Release (Archmage Galeorn)";
+  sound = 1;
+};
+
+GTFO.SpellID["197521"] = {
+  --desc = "Blazing Trail (Illysanna Ravencrest)";
+  sound = 1;
+};
+
+GTFO.SpellID["197821"] = {
+  --desc = "Felblazed Ground (Illysanna Ravencrest)";
+  sound = 1;
+};
+
+GTFO.SpellID["198501"] = {
+  --desc = "Fel Vomitus (Smashspite the Hateful)";
+  sound = 1;
+};
+
+GTFO.SpellID["221680"] = {
+  --desc = "Fel Residue (Braxas the Fleshcarver)";
+  sound = 1;
+};
+
+
+-- *************************
+-- * The Emerald Nightmare *
+-- *************************
+
+GTFO.SpellID["221036"] = {
+  --desc = "Putrid Swarm (Corrupted Vermin)";
+  sound = 1;
+};
+
+GTFO.SpellID["203646"] = {
+  --desc = "Burst of Corruption (Corrupted Vermin)";
+  sound = 1;
+};
 
 GTFO.SpellID["220916"] = {
   --desc = "Tainted Ground";
@@ -373,6 +815,12 @@ GTFO.SpellID["220916"] = {
 GTFO.SpellID["213124"] = {
   --desc = "Venomous Pool";
   sound = 1;
+};
+
+GTFO.SpellID["215489"] = {
+  --desc = "Venomous Pool";
+  sound = 1;
+  test = true;
 };
 
 GTFO.SpellID["212886"] = {
@@ -396,10 +844,55 @@ GTFO.SpellID["202978"] = {
   sound = 1;
 };
 
-GTFO.FFSpellID["203097"] = {
+GTFO.SpellID["203097"] = {
   --desc = "Rot (Nythendra)";
   sound = 4;
   negatingBuffSpellID = 203096; -- Rot
+};
+
+GTFO.SpellID["223946"] = {
+  --desc = "Dark Lightning (Guardian Rurson)";
+  sound = 1;
+};
+
+GTFO.SpellID["205611"] = {
+  --desc = "Miasma (Ursoc)";
+  sound = 1;
+};
+
+GTFO.SpellID["212238"] = {
+  --desc = "Miasma (Ursoc)";
+  sound = 1;
+};
+
+GTFO.SpellID["223596"] = {
+  --desc = "Darkfall (Dreadsoul Corruptor)";
+  sound = 1;
+};
+
+GTFO.SpellID["203788"] = {
+  --desc = "Volatile Infection (Emeriss)";
+  sound = 4;
+};
+
+GTFO.SpellID["211196"] = {
+  --desc = "Rotten Breath (Rotten Drake - Cenarius)";
+  sound = 1;
+};
+
+GTFO.SpellID["210337"] = {
+  --desc = "Nightmare Brambles (Cenarius)";
+  sound = 1;
+};
+
+GTFO.SpellID["214712"] = {
+  --desc = "Nightmares (Cenarius)";
+  sound = 1;
+};
+
+GTFO.SpellID["211634"] = {
+  --desc = "The Infinite Dark (Xavius)";
+  sound = 1;
 };
 
 -- *************

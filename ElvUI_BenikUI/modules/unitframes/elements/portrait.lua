@@ -9,7 +9,9 @@ function UFB:Configure_Portrait(frame, isPlayer)
 	if frame.USE_PORTRAIT then
 		if frame.USE_PORTRAIT_OVERLAY then
 			if db.portrait.style == '3D' then
-				portrait:SetFrameLevel(frame.Health:GetFrameLevel() + 1)
+				portrait:SetFrameLevel(frame.Health:GetFrameLevel())
+			else
+				portrait:SetParent(frame.Health)
 			end
 
 			portrait:SetAllPoints(frame.Health)
@@ -22,6 +24,8 @@ function UFB:Configure_Portrait(frame, isPlayer)
 
 			if db.portrait.style == '3D' then
 				portrait:SetFrameLevel(frame.Health:GetFrameLevel() -4) --Make sure portrait is behind Health and Power
+			else
+				portrait:SetParent(frame)
 			end
 			
 			if frame.PORTRAIT_TRANSPARENCY then
@@ -33,8 +37,8 @@ function UFB:Configure_Portrait(frame, isPlayer)
 			if portrait.backdrop.style then
 				if frame.PORTRAIT_STYLING then
 					portrait.backdrop.style:ClearAllPoints()
-					portrait.backdrop.style:Point('TOPLEFT', portrait.backdrop, 'TOPLEFT', 0, frame.PORTRAIT_STYLING_HEIGHT)
-					portrait.backdrop.style:Point('BOTTOMRIGHT', portrait.backdrop, 'TOPRIGHT', 0, (E.PixelMode and -1 or 1))
+					portrait.backdrop.style:Point('TOPLEFT', portrait, 'TOPLEFT', (E.PixelMode and -1 or -2), frame.PORTRAIT_STYLING_HEIGHT)
+					portrait.backdrop.style:Point('BOTTOMRIGHT', portrait, 'TOPRIGHT', (E.PixelMode and 1 or 2), (E.PixelMode and 0 or 2))
 					portrait.backdrop.style:Show()
 					
 					if isPlayer then
@@ -107,9 +111,8 @@ function UFB:Configure_Portrait(frame, isPlayer)
 						portrait.backdrop:Point("BOTTOMLEFT", frame.Power.backdrop, "BOTTOMRIGHT", -frame.BORDER + frame.SPACING*3, 0)
 					end
 				end
-
-				portrait:SetInside(portrait.backdrop, frame.BORDER)
 			end
+			portrait:SetInside(portrait.backdrop, frame.BORDER)
 		end
 	end
 end
@@ -165,8 +168,6 @@ local function ResetPostUpdate()
 	end
 
 	for _, header in pairs(UF.headers) do
-		local name = header.groupName
-
 		for i = 1, header:GetNumChildren() do
 			local group = select(i, header:GetChildren())
 			--group is Tank/Assist Frames, but for Party/Raid we need to go deeper

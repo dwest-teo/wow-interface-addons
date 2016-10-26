@@ -12,7 +12,7 @@ local LoadAddOn = LoadAddOn
 -- GLOBALS: hooksecurefunc
 
 function BUIS:BlizzardUI_LOD_Skins(event, addon)
-	if E.private.skins.blizzard.enable ~= true or E.db.benikui.general.benikuiStyle ~= true then return end
+	if E.private.skins.blizzard.enable ~= true then return end
 
 	if (event == 'ADDON_LOADED') then
 		if addon == 'Blizzard_AchievementUI' and E.private.skins.blizzard.achievement == true then
@@ -77,7 +77,7 @@ function BUIS:BlizzardUI_LOD_Skins(event, addon)
 			_G["CalendarContextMenu"]:Style('Outside')
 		end
 
-		if addon == 'Blizzard_Collections' and E.private.skins.blizzard.mounts == true then
+		if addon == 'Blizzard_Collections' and E.private.skins.blizzard.collections == true then
 			local frame = _G["CollectionsJournal"]
 			frame:Style('Outside')
 		end
@@ -121,8 +121,8 @@ function BUIS:BlizzardUI_LOD_Skins(event, addon)
 			frame:Style('Outside')
 		end
 		
-		if addon == 'Blizzard_ItemAlterationUI' and E.private.skins.blizzard.transmogrify == true then
-			local frame = _G["TransmogrifyFrame"]
+		if addon == 'Blizzard_Collections' and E.private.skins.blizzard.collections == true then
+			local frame = _G["WardrobeFrame"]
 			frame:Style('Outside')
 		end
 		
@@ -236,7 +236,7 @@ function BUIS:BlizzardUI_LOD_Skins(event, addon)
 		_G["FlightMapFrame"]:Style('Small')
 	end
 
-	if addon == 'Blizzard_TimeManager' and E.private.skins.blizzard.timemanager == true then
+	if E.private.skins.blizzard.timemanager == true then
 		if not _G["TimeManagerFrame"].style then
 			_G["TimeManagerFrame"]:Style('Outside')
 		end
@@ -251,6 +251,12 @@ function BUIS:BlizzardUI_LOD_Skins(event, addon)
 			_G["PVPRewardTooltip"]:Style('Outside')
 		end
 	end
+
+	if addon == 'Blizzard_ObliterumUI' and E.private.skins.blizzard.Obliterum == true then
+		if not _G["ObliterumForgeFrame"].style then
+			_G["ObliterumForgeFrame"]:Style('Outside')
+		end
+	end
 end
 
 local MAX_STATIC_POPUPS = 4
@@ -261,12 +267,13 @@ local tooltips = {
 	ShoppingTooltip1,
 	ShoppingTooltip2,
 	ShoppingTooltip3,
+	FloatingBattlePetTooltip,
+	FloatingPetBattleAbilityTooltip
 }
 
 -- Blizzard Styles
 local function styleFreeBlizzardFrames()
-	if E.db.benikui.general.benikuiStyle ~= true then return end
-	
+
 	ColorPickerFrame:Style('Outside')
 	MinimapRightClickMenu:Style('Outside')
 	
@@ -299,6 +306,10 @@ local function styleFreeBlizzardFrames()
 	
 	if db.dressingroom then
 		DressUpFrame:Style('Outside')
+		if DressUpFrame.style then
+			DressUpFrame.style:Point('TOPLEFT', DressUpFrame, 'TOPLEFT', 6, 4)
+			DressUpFrame.style:Point('BOTTOMRIGHT', DressUpFrame, 'TOPRIGHT', -32, -1)
+		end
 	end
 
 	if db.friends then
@@ -337,6 +348,7 @@ local function styleFreeBlizzardFrames()
 	if db.loot then
 		LootFrame:Style('Outside')
 		MasterLooterFrame:Style('Outside')
+		BonusRollFrame:Style('Outside')
 	end
 	
 	if db.mail then
@@ -346,6 +358,10 @@ local function styleFreeBlizzardFrames()
 	
 	if db.merchant then
 		MerchantFrame:Style('Outside')
+		if MerchantFrame.style then
+			MerchantFrame.style:Point('TOPLEFT', MerchantFrame, 'TOPLEFT', 6, 4)
+			MerchantFrame.style:Point('BOTTOMRIGHT', MerchantFrame, 'TOPRIGHT', 2, -1)
+		end
 	end
 	
 	if db.misc then
@@ -357,8 +373,10 @@ local function styleFreeBlizzardFrames()
 		DropDownList2:Style('Outside')
 		EmoteMenu:Style('Outside')
 		GameMenuFrame:Style('Outside')
+		GuildInviteFrame:Style('Outside')
 		InterfaceOptionsFrame:Style('Outside')
 		LanguageMenu:Style('Outside')
+		LFDRoleCheckPopup:Style('Outside')
 		QueueStatusFrame:Style('Outside')
 		ReadyCheckFrame:Style('Outside')
 		ReadyCheckListenerFrame:Style('Outside')
@@ -385,10 +403,6 @@ local function styleFreeBlizzardFrames()
 	
 	if db.petition then
 		PetitionFrame:Style('Outside')
-	end
-	
-	if db.petpattle then
-		FloatingBattlePetTooltip:Style('Outside')
 	end
 	
 	if db.quest then
@@ -428,10 +442,10 @@ local function styleSpellbook()
 			local tab = _G['SpellBookSkillLineTab'..i]
 			if not tab.style then
 				tab:Style('Inside')
-				-- This causing a lua error after you enter a portal or using your hearthstone
-				-- 3x ElvUI_BenikUI\modules\skins\skins.lua:419: attempt to index a nil value
-				--[[tab:GetNormalTexture():SetTexCoord(unpack(BUI.TexCoords))
-				tab:GetNormalTexture():SetInside()]]
+				if tab:GetNormalTexture() then
+					tab:GetNormalTexture():SetTexCoord(unpack(BUI.TexCoords))
+					tab:GetNormalTexture():SetInside()
+				end
 			end
 		end
 	end)
@@ -449,87 +463,223 @@ local staticAlertFrames = {
 	WorldQuestCompleteAlertFrame,
 	GarrisonFollowerAlertFrame,
 	LegendaryItemAlertFrame,
+	GarrisonTalentAlertFrame,
 }
 
 local function styleAlertFrames()
 	if E.private.skins.blizzard.enable ~= true or E.private.skins.blizzard.alertframes ~= true then return end
 	
 	local function StyleAchievementAlert(frame)
-		if not frame.backdrop.style then
-			frame.backdrop:Style('Outside')
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
 		end
 	end
 	hooksecurefunc(AchievementAlertSystem, "setUpFunction", StyleAchievementAlert) -- needs testing
 	
 	local function StyleCriteriaAlert(frame)
-		if not frame.backdrop.style then
-			frame.backdrop:Style('Outside')
-			frame.Icon.Texture.b:Style('Outside')
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+				frame.Icon.Texture.b:Style('Outside')
+			end
 		end
 	end		
 	hooksecurefunc(CriteriaAlertSystem, "setUpFunction", StyleCriteriaAlert)
 	
 	local function StyleDungeonCompletionAlert(frame)
-		if not frame.backdrop.style then
-			frame.backdrop:Style('Outside')
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
 		end
 	end		
 	hooksecurefunc(DungeonCompletionAlertSystem, "setUpFunction", StyleDungeonCompletionAlert)
 	
 	local function StyleGuildChallengeAlert(frame)
-		if not frame.backdrop.style then
-			frame.backdrop:Style('Outside')
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
 		end
 	end		
 	hooksecurefunc(GuildChallengeAlertSystem, "setUpFunction", StyleGuildChallengeAlert)
 	
+	local function StyleInvasionAlertSystem(frame)
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
+		end
+	end		
+	hooksecurefunc(InvasionAlertSystem, "setUpFunction", StyleInvasionAlertSystem)
+	
 	local function StyleScenarioAlert(frame)
-		if not frame.backdrop.style then
-			frame.backdrop:Style('Outside')
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
 		end
 	end		
 	hooksecurefunc(ScenarioAlertSystem, "setUpFunction", StyleScenarioAlert)
 	
+	local function StyleWorldQuestCompleteAlert(frame)
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
+		end
+	end		
+	hooksecurefunc(WorldQuestCompleteAlertSystem, "setUpFunction", StyleWorldQuestCompleteAlert)
+	
 	local function StyleGarrisonFollowerAlert(frame)
-		if not frame.backdrop.style then
-			frame.backdrop:Style('Outside')
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
 		end
 	end		
 	hooksecurefunc(GarrisonFollowerAlertSystem, "setUpFunction", StyleGarrisonFollowerAlert)
 	
-	local function StyleLegendaryItemAlert(frame)
-		if not frame.backdrop.style then
-			frame.backdrop:Style('Outside')
+	local function StyleGarrisonShipFollowerAlertSystem(frame)
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
 		end
-	end	
-	hooksecurefunc(LegendaryItemAlertSystem, "setUpFunction", StyleLegendaryItemAlert)
+	end		
+	hooksecurefunc(GarrisonShipFollowerAlertSystem, "setUpFunction", StyleGarrisonShipFollowerAlertSystem)
+	
+	local function StyleGarrisonTalentAlertSystem(frame)
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
+		end
+	end		
+	hooksecurefunc(GarrisonTalentAlertSystem, "setUpFunction", StyleGarrisonTalentAlertSystem)
+	
+	local function StyleGarrisonBuildingAlertSystem(frame)
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
+		end
+	end		
+	hooksecurefunc(GarrisonBuildingAlertSystem, "setUpFunction", StyleGarrisonBuildingAlertSystem)
+	
+	local function StyleGarrisonMissionAlertSystem(frame)
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
+		end
+	end		
+	hooksecurefunc(GarrisonMissionAlertSystem, "setUpFunction", StyleGarrisonMissionAlertSystem)
+	
+	local function StyleGarrisonShipMissionAlertSystem(frame)
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
+		end
+	end		
+	hooksecurefunc(GarrisonShipMissionAlertSystem, "setUpFunction", StyleGarrisonShipMissionAlertSystem)
+	
+	local function StyleGarrisonRandomMissionAlertSystem(frame)
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
+		end
+	end		
+	hooksecurefunc(GarrisonRandomMissionAlertSystem, "setUpFunction", StyleGarrisonRandomMissionAlertSystem)
+
+	local function StyleLegendaryItemAlertSystem(frame)
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
+		end
+	end		
+	hooksecurefunc(LegendaryItemAlertSystem, "setUpFunction", StyleLegendaryItemAlertSystem)
 	
 	local function StyleLootWonAlert(frame)
-		if not frame.backdrop.style then
-			frame.backdrop:Style('Outside')
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
 		end
 	end		
 	hooksecurefunc(LootAlertSystem, "setUpFunction", StyleLootWonAlert)
 	
 	local function StyleLootUpgradeAlert(frame)
-		if not frame.backdrop.style then
-			frame.backdrop:Style('Outside')
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
 		end
 	end	
 	hooksecurefunc(LootUpgradeAlertSystem, "setUpFunction", StyleLootUpgradeAlert)
 	
 	local function StyleMoneyWonAlert(frame)
-		if not frame.backdrop.style then
-			frame.backdrop:Style('Outside')
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
 		end
 	end
 	hooksecurefunc(MoneyWonAlertSystem, "setUpFunction", StyleMoneyWonAlert)
-	
-	for _, frame in pairs(staticAlertFrames) do
-		if frame then
-			frame.backdrop:Style('Outside')
+
+	local function StyleStorePurchaseAlert(frame)
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
 		end
 	end
+	hooksecurefunc(StorePurchaseAlertSystem, "setUpFunction", StyleStorePurchaseAlert)
+	
+	local function StyleDigsiteCompleteAlert(frame)
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
+		end
+	end
+	hooksecurefunc(DigsiteCompleteAlertSystem, "setUpFunction", StyleDigsiteCompleteAlert)
+	
+	local function StyleRecipeLearnedAlert(frame)
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
+		end
+	end
+	hooksecurefunc(NewRecipeLearnedAlertSystem, "setUpFunction", StyleRecipeLearnedAlert)
+	
+	for _, frame in pairs(staticAlertFrames) do
+		if frame.backdrop then
+			if not frame.backdrop.style then
+				frame.backdrop:Style('Outside')
+			end
+		end
+	end
+end
+
+-- Order Hall
+local function styleOrderHall()
+	if E.private.skins.blizzard.enable ~= true or E.private.skins.blizzard.orderhall ~= true then return end
+	if (not _G["OrderHallMissionFrame"]) then LoadAddOn("Blizzard_OrderHallUI") end
+
+	_G["OrderHallMissionFrame"]:Style('Small')
+	if _G["AdventureMapQuestChoiceDialog"].backdrop then
+		_G["AdventureMapQuestChoiceDialog"].backdrop:Style('Outside')
+	end
+	_G["OrderHallTalentFrame"]:Style('Outside')
+	_G["GarrisonFollowerAbilityWithoutCountersTooltip"]:Style('Outside')
+	_G["GarrisonFollowerMissionAbilityWithoutCountersTooltip"]:Style('Outside')
 end
 
 -- Garrison Style
@@ -641,7 +791,7 @@ local function MinimizeButton_OnClick(self)
 	end
 end
 
-local function SkinObjeciveTracker()
+local function SkinObjectiveTracker()
 	if not E.db.benikuiSkins.variousSkins.objectiveTracker then return end
 	
 	local button = _G["ObjectiveTrackerFrame"].HeaderMenu.MinimizeButton
@@ -668,10 +818,14 @@ function BUIS:BenikUISkins()
 	-- Garrison Style
 	styleGarrison()
 
+	-- OrderHall Style
+	local reason = select(5, GetAddOnInfo("GarrisonCommander"))
+	if reason == "DISABLED" or reason == "MISSING" then 
+		styleOrderHall()
+	end
+
 	-- Objective Tracker Button
-	SkinObjeciveTracker()
-	
-	if E.db.benikui.general.benikuiStyle ~= true then return end 
+	SkinObjectiveTracker() 
 	
 	-- Blizzard Styles
 	styleFreeBlizzardFrames()
@@ -681,17 +835,6 @@ function BUIS:BenikUISkins()
 	
 	-- Alert Frames
 	styleAlertFrames()
-	
-	-- Style Changes
-	if _G["DressUpFrame"].style then
-		_G["DressUpFrame"].style:Point('TOPLEFT', _G["DressUpFrame"], 'TOPLEFT', 6, 4)
-		_G["DressUpFrame"].style:Point('BOTTOMRIGHT', _G["DressUpFrame"], 'TOPRIGHT', -32, -1)
-	end
-
-	if _G["MerchantFrame"].style then
-		_G["MerchantFrame"].style:Point('TOPLEFT', _G["MerchantFrame"], 'TOPLEFT', 6, 4)
-		_G["MerchantFrame"].style:Point('BOTTOMRIGHT', _G["MerchantFrame"], 'TOPRIGHT', 2, -1)
-	end
 
 	-- Map styling fix
 	local function FixMapStyle()
@@ -700,10 +843,18 @@ function BUIS:BenikUISkins()
 			_G["WorldMapFrame"].BorderFrame.backdrop:Style('Outside')
 		end
 		
-		if not _G["WorldMapTooltip"].style then
-			_G["WorldMapTooltip"]:Style('Outside')
+		if _G["WorldMapTooltip"].BackdropFrame then
+			if not _G["WorldMapTooltip"].BackdropFrame.style then
+				_G["WorldMapTooltip"].BackdropFrame:Style('Outside')
+			end
 		end
 
+		for i, tooltip in ipairs(WorldMapTooltip.ItemTooltip.Tooltip.shoppingTooltips) do
+			if not tooltip.style then
+				tooltip:Style('Outside')
+			end
+		end
+		
 		_G["QuestMapFrame"].QuestsFrame.StoryTooltip:SetTemplate('Transparent')
 		if not _G["QuestMapFrame"].QuestsFrame.StoryTooltip.style then
 			_G["QuestMapFrame"].QuestsFrame.StoryTooltip:Style('Outside')
@@ -768,6 +919,7 @@ function BUIS:BenikUISkins()
 end
 
 function BUIS:Initialize()
+	if E.db.benikui.general.benikuiStyle ~= true then return end
 	self:RegisterEvent('ADDON_LOADED', 'BlizzardUI_LOD_Skins')
 	self:RegisterEvent('PLAYER_ENTERING_WORLD', 'BenikUISkins')
 end

@@ -50,6 +50,7 @@ P['benikui'] = {
 		},
 		['flightMode'] = {
 			['enable'] = true,
+			['cameraRotation'] = false,
 		},
 		['panels'] = {
 			['top'] = {
@@ -130,7 +131,7 @@ P['benikui'] = {
 				['ShowInfoText'] = true,
 				['castText'] = true,
 				['forceTargetText'] = false,
-				['texture'] = 'BuiEmpty',
+				['texture'] = 'BuiFlat',
 				['textColor'] = {r = 1, g = 1, b = 1, a = 1},
 			},
 		},
@@ -143,9 +144,6 @@ P['benikui'] = {
 			['portraitTransparency'] = 0.70,
 		},
 	},
-	
-	-- db
-	['dbCleaned'] = false,
 }
 
 -- Datatexts
@@ -203,6 +201,7 @@ P['benikuiDatabars'] = {
 	['experience'] = {
 		['enable'] = true,
 		['buiStyle'] = true,
+		['buttonStyle'] = "DEFAULT",
 		['color'] = {
 			['default'] = true,
 			['xp'] = { r = 0, g = 0.4, b = 1, a = .8 },
@@ -218,6 +217,7 @@ P['benikuiDatabars'] = {
 	['reputation'] = {
 		['enable'] = true,
 		['buiStyle'] = true,
+		['buttonStyle'] = "DEFAULT",
 		['color'] = {
 			['default'] = true,
 			['friendly'] = {r = 0, g = .6, b = .1, a = .8 },
@@ -235,6 +235,7 @@ P['benikuiDatabars'] = {
 	['artifact'] = {
 		['enable'] = true,
 		['buiStyle'] = true,
+		['buttonStyle'] = "TRANSPARENT",
 		['color'] = {
 			['default'] = true,
 			['af'] = {r = .901, g = .8, b = .601, a = .8 },
@@ -249,6 +250,7 @@ P['benikuiDatabars'] = {
 	['honor'] = {
 		['enable'] = true,
 		['buiStyle'] = true,
+		['buttonStyle'] = "DEFAULT",
 		['color'] = {
 			['default'] = true,
 			['hn'] = {r = .941, g = .447, b = .254, a = .8 },
@@ -274,6 +276,7 @@ P['dashboards'] = {
 			['Durability'] = true,
 			['Volume'] = true,
 		},
+		['latency'] = 2,
 	},
 	
 	['tokens'] = {
@@ -285,9 +288,9 @@ P['dashboards'] = {
 		['weekly'] = true,
 		['flash'] = false,
 		['chooseTokens'] = {
-			['Conquest Points'] = true,
+			['Order Resources'] = true,
 			['Honor Points'] = true,
-			['Apexis Crystal'] = true,
+			['Ancient Mana'] = true,
 			['Garrison Resources'] = true,
 		},
 	},

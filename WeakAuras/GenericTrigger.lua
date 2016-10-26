@@ -154,9 +154,9 @@ function TestForMultiSelect(trigger, arg)
     local any = false;
     for value, _ in pairs(trigger[name].multi) do
       if not arg.test then
-        test = test..name.."=="..(tonumber(value) or "\""..value.."\"").." or ";
+        test = test..name.."=="..(tonumber(value) or "[["..value.."]]").." or ";
       else
-        test = test..arg.test:format(tonumber(value) or "\""..value.."\"").." or ";
+        test = test..arg.test:format(tonumber(value) or "[["..value.."]]").." or ";
       end
       any = true;
     end
@@ -169,9 +169,9 @@ function TestForMultiSelect(trigger, arg)
   elseif(trigger["use_"..name]) then -- single selection
     local value = trigger[name].single;
     if not arg.test then
-      test = trigger[name].single and "("..name.."=="..(tonumber(value) or "\""..value.."\"")..")";
+      test = trigger[name].single and "("..name.."=="..(tonumber(value) or "[["..value.."]]")..")";
     else
-      test = trigger[name].single and "("..arg.test:format(tonumber(value) or "\""..value.."\"")..")";
+      test = trigger[name].single and "("..arg.test:format(tonumber(value) or "[["..value.."]]")..")";
     end
   end
   return test;
@@ -292,15 +292,19 @@ function ConstructFunction(prototype, trigger, inverse)
 end
 
 function WeakAuras.EndEvent(id, triggernum, force, state)
-  if (state.show ~= false and state.show ~= nil) then
-    state.show = false;
-    state.changed = true;
+  if state then
+    if (state.show ~= false and state.show ~= nil) then
+      state.show = false;
+      state.changed = true;
+    end
+    return state.changed;
+  else
+    return false
   end
-  return state.changed;
 end
 
 function WeakAuras.ActivateEvent(id, triggernum, data, state)
-  local changed = false;
+  local changed = state.changed or false;
   if (state.show ~= true) then
     state.show = true;
     changed = true;
@@ -1155,7 +1159,6 @@ end
 -- CD/Rune/GCD Support Code
 do
   local cdReadyFrame;
-  WeakAuras.frames["Cooldown Trigger Handler"] = cdReadyFrame
 
   local spells = {};
   local spellsRune = {}
@@ -1185,14 +1188,19 @@ do
 
   function WeakAuras.InitCooldownReady()
   cdReadyFrame = CreateFrame("FRAME");
+  WeakAuras.frames["Cooldown Trigger Handler"] = cdReadyFrame
   cdReadyFrame:RegisterEvent("SPELL_UPDATE_COOLDOWN");
   cdReadyFrame:RegisterEvent("SPELL_UPDATE_CHARGES");
   cdReadyFrame:RegisterEvent("RUNE_POWER_UPDATE");
   cdReadyFrame:RegisterEvent("RUNE_TYPE_UPDATE");
   cdReadyFrame:RegisterEvent("UNIT_SPELLCAST_SENT");
+  cdReadyFrame:RegisterEvent("PLAYER_TALENT_UPDATE");
+  cdReadyFrame:RegisterEvent("PLAYER_PVP_TALENT_UPDATE");
   cdReadyFrame:SetScript("OnEvent", function(self, event, ...)
 
-    if(event == "SPELL_UPDATE_COOLDOWN" or event == "SPELL_UPDATE_CHARGES" or event == "RUNE_POWER_UPDATE" or event == "RUNE_TYPE_UPDATE") then
+    if(event == "SPELL_UPDATE_COOLDOWN" or event == "SPELL_UPDATE_CHARGES"
+       or event == "RUNE_POWER_UPDATE" or event == "RUNE_TYPE_UPDATE"
+       or event == "PLAYER_TALENT_UPDATE" or event == "PLAYER_PVP_TALENT_UPDATE") then
       WeakAuras.CheckCooldownReady();
     elseif(event == "UNIT_SPELLCAST_SENT") then
       local unit, name = ...;

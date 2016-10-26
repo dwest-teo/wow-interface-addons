@@ -42,7 +42,6 @@ local GameMenuButtonAddons = GameMenuButtonAddons
 -- GLOBALS: LeftChatPanel, RightChatPanel, CopyChatFrame
 
 local PANEL_HEIGHT = 19;
-local SIDE_BUTTON_WIDTH = 16;
 local SPACING = (E.PixelMode and 1 or 3)
 local BUTTON_NUM = 4
 
@@ -70,7 +69,7 @@ menuFrame:SetTemplate('Transparent', true)
 local menuList = {
 	{text = CHARACTER_BUTTON, func = function() ToggleCharacter("PaperDollFrame") end},
 	{text = SPELLBOOK_ABILITIES_BUTTON, func = function() if not SpellBookFrame:IsShown() then ShowUIPanel(SpellBookFrame) else HideUIPanel(SpellBookFrame) end end},
-	{text = TALENTS_BUTTON,
+	{text = SPECIALIZATION,
 	func = function()
 		if not PlayerTalentFrame then
 			TalentFrame_LoadUI()
@@ -78,6 +77,33 @@ local menuList = {
 
 		if not PlayerTalentFrame:IsShown() then
 			ShowUIPanel(PlayerTalentFrame)
+			_G["PlayerTalentFrameTab"..SPECIALIZATION_TAB]:Click()
+		else
+			HideUIPanel(PlayerTalentFrame)
+		end
+	end},
+	{text = TALENTS,
+	func = function()
+		if not PlayerTalentFrame then
+			TalentFrame_LoadUI()
+		end
+
+		if not PlayerTalentFrame:IsShown() then
+			ShowUIPanel(PlayerTalentFrame)
+			_G["PlayerTalentFrameTab"..TALENTS_TAB]:Click()
+		else
+			HideUIPanel(PlayerTalentFrame)
+		end
+	end},
+	{text = PVP_TALENTS,
+	func = function()
+		if not PlayerTalentFrame then
+			TalentFrame_LoadUI()
+		end
+
+		if not PlayerTalentFrame:IsShown() then
+			ShowUIPanel(PlayerTalentFrame)
+			_G["PlayerTalentFrameTab"..PVP_TALENTS_TAB]:Click()
 		else
 			HideUIPanel(PlayerTalentFrame)
 		end

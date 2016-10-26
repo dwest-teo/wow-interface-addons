@@ -28,7 +28,7 @@ local lastPanel;
 local GARRISON_CURRENCY = 824
 local GARRISON_CURRENCY_OIL = 1101
 
-local OnEvent = function(self, event)
+local OnEvent = function(self)
 	
 	local inProgressMissions = {};
 	C_GarrisonGetInProgressMissions(inProgressMissions, LE_FOLLOWER_TYPE_GARRISON_6_0)
@@ -54,6 +54,21 @@ local OnEvent = function(self, event)
 	end
 	
 	lastPanel = self
+end
+
+local garrisonType = LE_GARRISON_TYPE_6_0;
+
+local function OnClick()
+	local isShown = GarrisonLandingPage and GarrisonLandingPage:IsShown();
+	if (not isShown) then
+		ShowGarrisonLandingPage(garrisonType);
+	elseif (GarrisonLandingPage) then
+		local currentGarrType = GarrisonLandingPage.garrTypeID;
+		HideUIPanel(GarrisonLandingPage);
+		if (currentGarrType ~= garrisonType) then
+			ShowGarrisonLandingPage(garrisonType);
+		end
+	end
 end
 
 local function sortFunction(a, b)
@@ -175,4 +190,4 @@ local function ValueColorUpdate(hex, r, g, b)
 end
 E['valueColorUpdateFuncs'][ValueColorUpdate] = true
 
-DT:RegisterDatatext('Garrison+ (BenikUI)', {'PLAYER_ENTERING_WORLD', 'GARRISON_MISSION_STARTED', 'GARRISON_MISSION_FINISHED', 'GARRISON_MISSION_COMPLETE_RESPONSE', 'ZONE_CHANGED_NEW_AREA'}, OnEvent, nil, GarrisonLandingPage_Toggle, OnEnter)
+DT:RegisterDatatext('Garrison+ (BenikUI)', {'PLAYER_ENTERING_WORLD', 'GARRISON_MISSION_STARTED', 'GARRISON_MISSION_FINISHED', 'GARRISON_MISSION_COMPLETE_RESPONSE', 'ZONE_CHANGED_NEW_AREA'}, OnEvent, nil, OnClick, OnEnter)

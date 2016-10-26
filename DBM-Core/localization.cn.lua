@@ -2,7 +2,7 @@
 -- Diablohu(diablohudream@gmail.com)
 -- yleaf(yaroot@gmail.com)
 -- Mini Dragon(projecteurs@gmail.com)
--- Last update: Aug 23 2016, 00:58 UTC@15149
+-- Last update: Oct 08 2016, 02:52 UTC@15334
 
 if GetLocale() ~= "zhCN" then return end
 
@@ -26,10 +26,10 @@ DBM_CORE_WHATS_NEW					= "最新更新：DBM修复了一些配置选项的错误
 DBM_CORE_WHATS_NEW_LINK				= "在接下来的DBM版本中，很多依赖于单位位置的功能，如箭头，距离雷达和HUD会因为暴雪爸爸对API的取缔而精简。想要知道更多可以 |HDBM:forumsnews|h|cff3588ff点击此处|r 访问我们的论坛。"
 
 --Pre Patch 7.1 Notice
-DBM_CORE_NO_RANGE_SOON				= "注意：雷达窗口在7.1版本以后不可用"
+DBM_CORE_NO_RANGE_SOON				= "注意：7.1版本后雷达窗口在副本中不可用"
 --Post Patch 7.1
 DBM_CORE_NO_RANGE					= "距离雷达在副本中无法使用"
-DBM_CORE_NO_ARROW					= "箭头无法在副本中无法使用"
+DBM_CORE_NO_ARROW					= "箭头在副本中无法使用"
 DBM_CORE_NO_HUD						= "HUDMap 在副本中无法使用"
 
 DBM_CORE_DYNAMIC_DIFFICULTY_CLUMP	= "由于玩家数量不足，DBM 无法开启动态距离检测。"
@@ -206,8 +206,10 @@ DBM_CORE_RANGERADAR_HEADER			= "距离%d码 玩家%d人"
 DBM_CORE_RANGERADAR_IN_RANGE_TEXT	= "%d人在监视距离内（%d码）"
 DBM_CORE_RANGERADAR_IN_RANGE_TEXTONE= "%s (%0.1f码)"--One target
 
-
 DBM_CORE_INFOFRAME_SHOW_SELF		= "总是显示你的能量"		-- Always show your own power value even if you are below the threshold
+DBM_CORE_INFOFRAME_SETLINES			= "设置最大行数"
+DBM_CORE_INFOFRAME_LINESDEFAULT		= "由模组设置"
+DBM_CORE_INFOFRAME_LINES_TO			= "%d行"
 
 DBM_LFG_INVITE						= "随机副本确认"
 

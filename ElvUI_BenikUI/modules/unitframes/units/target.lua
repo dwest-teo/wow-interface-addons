@@ -44,7 +44,7 @@ function UFB:RecolorTargetDetachedPortraitStyle()
 
 		if frame.USE_PORTRAIT and portrait.backdrop.style and E.db.benikui.unitframes.target.portraitStyle then
 			local maxValue = UnitPowerMax("target")
-			local pType, pToken, altR, altG, altB = UnitPowerType("target")
+			local _, pToken, altR, altG, altB = UnitPowerType("target")
 			local mu = power.bg.multiplier or 1
 			local color = ElvUF['colors'].power[pToken]
 			local isPlayer = UnitIsPlayer("target")
@@ -111,25 +111,26 @@ function UFB:ArrangeTarget()
 	-- Portrait
 	UFB:Configure_Portrait(frame, false)
 
-	frame:UpdateAllElements()
+	frame:UpdateAllElements("BenikUI_UpdateAllElements")
 end
 
 function UFB:PLAYER_TARGET_CHANGED()
 	self:ScheduleTimer('RecolorTargetDetachedPortraitStyle', 0.02)
 end
 
--- Needed for some post updates
-hooksecurefunc(UF, "Configure_Portrait", function(self, frame)
-	local unitframeType = frame.unitframeType
-
-	if unitframeType == "target" then
-		UFB:Configure_Portrait(frame, false)
-	end
-end)
-
 function UFB:InitTarget()
+	if not E.db.unitframe.units.target.enable then return end
 	self:Construct_TargetFrame()
 	hooksecurefunc(UF, 'Update_TargetFrame', UFB.ArrangeTarget)
 	self:RegisterEvent('PLAYER_TARGET_CHANGED')
 	hooksecurefunc(UF, 'Update_TargetFrame', UFB.RecolorTargetDetachedPortraitStyle)
+
+	-- Needed for some post updates
+	hooksecurefunc(UF, "Configure_Portrait", function(self, frame)
+		local unitframeType = frame.unitframeType
+
+		if unitframeType == "target" then
+			UFB:Configure_Portrait(frame, false)
+		end
+	end)
 end

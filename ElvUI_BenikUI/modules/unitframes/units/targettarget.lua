@@ -13,9 +13,10 @@ function UFB:ArrangeTargetTarget()
 	-- Portrait
 	UFB:Configure_Portrait(frame)
 
-	frame:UpdateAllElements()
+	frame:UpdateAllElements("BenikUI_UpdateAllElements")
 end
 
 function UFB:InitTargetTarget()
+	if not E.db.unitframe.units.targettarget.enable then return end
 	hooksecurefunc(UF, 'Update_TargetTargetFrame', UFB.ArrangeTargetTarget)
 end

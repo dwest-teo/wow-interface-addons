@@ -13,9 +13,10 @@ function UFB:ArrangeFocus()
 	-- Portrait
 	UFB:Configure_Portrait(frame)
 	
-	frame:UpdateAllElements()
+	frame:UpdateAllElements("BenikUI_UpdateAllElements")
 end
 
 function UFB:InitFocus()
+	if not E.db.unitframe.units.focus.enable then return end
 	hooksecurefunc(UF, 'Update_FocusFrame', UFB.ArrangeFocus)
 end

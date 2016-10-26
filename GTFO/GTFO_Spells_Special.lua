@@ -231,11 +231,6 @@ GTFO.SpellID["218507"] = {
   sound = 3;
 };
 
-GTFO.SpellID["205307"] = {
-  --desc = "War Stomp (Fel Reaver - Legion Event)";
-  sound = 3;
-};
-
 GTFO.SpellID["217936"] = {
   --desc = "Hellfire (Mazgoroth - Legion Event)";
   sound = 3;

@@ -1,3 +1,22 @@
+[b]2.21[/b]
+*Fixed coords creation when in instance
+
+[b]2.20[/b]
+*Added option to hide Blizzard ZoneText
+*toc update for patch 7.1
+*LibTourist update
+
+[b]2.19[/b]
+*Updated French and Spanish locales
+*Fixed a visual glitch on texts
+*LibTourist update
+
+[b]2.18[/b]
+*LibTourist update. Fixes the recommended zones for Legion
+
+[b]2.17[/b]
+*Updated professions cap
+
 [b]2.16[/b]
 *Update LibTourist to r184. This contains the Broken Isles continent
 *Added the Nethershard tokens

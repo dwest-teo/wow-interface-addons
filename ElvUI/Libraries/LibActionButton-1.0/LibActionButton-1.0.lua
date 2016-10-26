@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ]]
 local MAJOR_VERSION = "LibActionButton-1.0-ElvUI"
-local MINOR_VERSION = 5
+local MINOR_VERSION = 7
 
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
 local lib, oldversion = LibStub:NewLibrary(MAJOR_VERSION, MINOR_VERSION)
@@ -129,9 +129,12 @@ local DefaultConfig = {
 	outOfRangeColoring = "button",
 	tooltip = "enabled",
 	showGrid = false,
+	useColoring = true,
 	colors = {
 		range = { 0.8, 0.1, 0.1 },
 		mana = { 0.5, 0.5, 1.0 },
+		usable = { 1.0, 1.0, 1.0 },
+		notUsable = { 0.4, 0.4, 0.4 },
 	},
 	hideElements = {
 		macro = false,
@@ -141,6 +144,9 @@ local DefaultConfig = {
 	keyBoundTarget = false,
 	clickOnDown = false,
 	flyoutDirection = "UP",
+	disableCountDownNumbers = false,
+	useDrawBling = true,
+	useDrawSwipeOnCharges = true,
 }
 
 --- Create a new action button.
@@ -1170,22 +1176,24 @@ function UpdateButtonState(self)
 end
 
 function UpdateUsable(self)
-	-- TODO: make the colors configurable
-	-- TODO: allow disabling of the whole recoloring
-	if self.config.outOfRangeColoring == "button" and self.outOfRange then
-		self.icon:SetVertexColor(unpack(self.config.colors.range))
-	else
-		local isUsable, notEnoughMana = self:IsUsable()
-		if isUsable then
-			self.icon:SetVertexColor(1.0, 1.0, 1.0)
-			--self.NormalTexture:SetVertexColor(1.0, 1.0, 1.0)
-		elseif notEnoughMana then
-			self.icon:SetVertexColor(unpack(self.config.colors.mana))
-			--self.NormalTexture:SetVertexColor(0.5, 0.5, 1.0)
+	if self.config.useColoring then
+		if self.config.outOfRangeColoring == "button" and self.outOfRange then
+			self.icon:SetVertexColor(unpack(self.config.colors.range))
 		else
-			self.icon:SetVertexColor(0.4, 0.4, 0.4)
-			--self.NormalTexture:SetVertexColor(1.0, 1.0, 1.0)
+			local isUsable, notEnoughMana = self:IsUsable()
+			if isUsable then
+				self.icon:SetVertexColor(unpack(self.config.colors.usable))
+				--self.NormalTexture:SetVertexColor(1.0, 1.0, 1.0)
+			elseif notEnoughMana then
+				self.icon:SetVertexColor(unpack(self.config.colors.mana))
+				--self.NormalTexture:SetVertexColor(0.5, 0.5, 1.0)
+			else
+				self.icon:SetVertexColor(unpack(self.config.colors.notUsable))
+				--self.NormalTexture:SetVertexColor(1.0, 1.0, 1.0)
+			end
 		end
+	else
+		self.icon:SetVertexColor(unpack(self.config.colors.usable))
 	end
 	lib.callbacks:Fire("OnButtonUsable", self)
 end
@@ -1229,7 +1237,6 @@ local function StartChargeCooldown(parent, chargeStart, chargeDuration)
 			cooldown:SetScript("OnCooldownDone", EndChargeCooldown)
 			cooldown:SetHideCountdownNumbers(true)
 			cooldown:SetDrawEdge(true)
-			cooldown:SetDrawSwipe(false)
 		end
 		cooldown:SetParent(parent)
 		cooldown:SetAllPoints(parent)
@@ -1239,7 +1246,8 @@ local function StartChargeCooldown(parent, chargeStart, chargeDuration)
 		cooldown.parent = parent
 	end
 	-- set cooldown
-	parent.chargeCooldown:SetDrawBling(parent.chargeCooldown:GetEffectiveAlpha() > 0.5)
+	parent.chargeCooldown:SetDrawBling(parent.config.useDrawBling and (parent.chargeCooldown:GetEffectiveAlpha() > 0.5))
+	parent.chargeCooldown:SetDrawSwipe(parent.config.useDrawSwipeOnCharges)
 	parent.chargeCooldown:SetCooldown(chargeStart, chargeDuration)
 
 	-- update charge cooldown skin when masque is used
@@ -1262,7 +1270,7 @@ function UpdateCooldown(self)
 	local start, duration, enable = self:GetCooldown()
 	local charges, maxCharges, chargeStart, chargeDuration = self:GetCharges()
 
-	self.cooldown:SetDrawBling(self.cooldown:GetEffectiveAlpha() > 0.5)
+	self.cooldown:SetDrawBling(self.config.useDrawBling and (self.cooldown:GetEffectiveAlpha() > 0.5))
 
 	if (locStart + locDuration) > (start + duration) then
 		if self.cooldown.currentCooldownType ~= COOLDOWN_TYPE_LOSS_OF_CONTROL then
@@ -1280,7 +1288,7 @@ function UpdateCooldown(self)
 		if self.cooldown.currentCooldownType ~= COOLDOWN_TYPE_NORMAL then
 			self.cooldown:SetEdgeTexture("Interface\\Cooldown\\edge")
 			self.cooldown:SetSwipeColor(0, 0, 0)
-			self.cooldown:SetHideCountdownNumbers(false)
+			self.cooldown:SetHideCountdownNumbers(self.config.disableCountDownNumbers)
 			self.cooldown.currentCooldownType = COOLDOWN_TYPE_NORMAL
 		end
 		if locStart > 0 then

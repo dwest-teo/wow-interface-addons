@@ -56,19 +56,20 @@ function UFB:ArrangePlayer()
 	-- Rest Icon
 	UFB:Configure_RestingIndicator(frame)
 
-	frame:UpdateAllElements()
+	frame:UpdateAllElements("BenikUI_UpdateAllElements")
 end
 
--- Needed for some post updates
-hooksecurefunc(UF, "Configure_Portrait", function(self, frame)
-	local unitframeType = frame.unitframeType
-
-	if unitframeType == "player" then
-		UFB:Configure_Portrait(frame, true)
-	end
-end)
-
 function UFB:InitPlayer()
+	if not E.db.unitframe.units.player.enable then return end
 	self:Construct_PlayerFrame()
 	hooksecurefunc(UF, 'Update_PlayerFrame', UFB.ArrangePlayer)
+	
+	-- Needed for some post updates
+	hooksecurefunc(UF, "Configure_Portrait", function(self, frame)
+		local unitframeType = frame.unitframeType
+
+		if unitframeType == "player" then
+			UFB:Configure_Portrait(frame, true)
+		end
+	end)
 end

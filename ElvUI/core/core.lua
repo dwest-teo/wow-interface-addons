@@ -9,12 +9,11 @@ local tonumber, pairs, ipairs, error, unpack, select, tostring = tonumber, pairs
 local assert, print, type, collectgarbage, pcall, date = assert, print, type, collectgarbage, pcall, date
 local twipe, tinsert, tremove = table.wipe, tinsert, tremove
 local floor = floor
-local format, find, split, match, strrep, len, sub, gsub = string.format, string.find, string.split, string.match, strrep, string.len, string.sub, string.gsub
+local format, find, strrep, len, sub = string.format, string.find, strrep, string.len, string.sub
 --WoW API / Variables
 local CreateFrame = CreateFrame
 local C_Timer_After = C_Timer.After
 local C_PetBattles_IsInBattle = C_PetBattles.IsInBattle
-local DoEmote = DoEmote
 local GetBonusBarOffset = GetBonusBarOffset
 local GetCombatRatingBonus = GetCombatRatingBonus
 local GetCVar, SetCVar, GetCVarBool = GetCVar, SetCVar, GetCVarBool
@@ -27,10 +26,8 @@ local GetSpellInfo = GetSpellInfo
 local InCombatLockdown = InCombatLockdown
 local IsAddOnLoaded = IsAddOnLoaded
 local IsInInstance, IsInGroup, IsInRaid = IsInInstance, IsInGroup, IsInRaid
-local PlayMusic, StopMusic = PlayMusic, StopMusic
 local RequestBattlefieldScoreData = RequestBattlefieldScoreData
 local SendAddonMessage = SendAddonMessage
-local SendChatMessage = SendChatMessage
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local UnitHasVehicleUI = UnitHasVehicleUI
 local UnitLevel, UnitStat, UnitAttackPower = UnitLevel, UnitStat, UnitAttackPower
@@ -39,7 +36,6 @@ local CUSTOM_CLASS_COLORS = CUSTOM_CLASS_COLORS
 local ERR_NOT_IN_COMBAT = ERR_NOT_IN_COMBAT
 local LE_PARTY_CATEGORY_HOME = LE_PARTY_CATEGORY_HOME
 local LE_PARTY_CATEGORY_INSTANCE = LE_PARTY_CATEGORY_INSTANCE
-local NUM_PET_ACTION_SLOTS = NUM_PET_ACTION_SLOTS
 local RAID_CLASS_COLORS = RAID_CLASS_COLORS
 
 --Global variables that we don't cache, list them here for the mikk's Find Globals script
@@ -47,6 +43,7 @@ local RAID_CLASS_COLORS = RAID_CLASS_COLORS
 -- GLOBALS: ElvUIPlayerBuffs, ElvUIPlayerDebuffs, LeftChatPanel, RightChatPanel
 -- GLOBALS: ElvUI_StaticPopup1, ElvUI_StaticPopup1Button1, OrderHallCommandBar
 -- GLOBALS: ElvUI_StanceBar, ObjectiveTrackerFrame, GameTooltip, Minimap
+-- GLOBALS: ElvUIParent, ElvUI_TopPanel, hooksecurefunc, InterfaceOptionsCameraPanelMaxDistanceSlider
 
 
 --Constants
@@ -285,7 +282,7 @@ function E:UpdateMedia()
 end
 
 E.LockedCVars = {}
-function E:PLAYER_REGEN_ENABLED(event)
+function E:PLAYER_REGEN_ENABLED(_)
 	if(self.CVarUpdate) then
 		for cvarName, value in pairs(self.LockedCVars) do
 			if(GetCVar(cvarName) ~= value) then
@@ -332,7 +329,7 @@ local MasqueGroupToTableElement = {
 	["Debuffs"] = {"auras", "debuffs"},
 }
 
-local function MasqueCallback(Addon, Group, SkinID, Gloss, Backdrop, Colors, Disabled)
+local function MasqueCallback(_, Group, _, _, _, _, Disabled)
 	if not E.private then return; end
 	local element = MasqueGroupToTableElement[Group]
 
@@ -492,7 +489,7 @@ end
 --This frame everything in ElvUI should be anchored to for Eyefinity support.
 E.UIParent = CreateFrame('Frame', 'ElvUIParent', UIParent);
 E.UIParent:SetFrameLevel(UIParent:GetFrameLevel());
-E.UIParent:SetPoint('BOTTOM', UIParent, 'BOTTOM');
+E.UIParent:SetPoint('CENTER', UIParent, 'CENTER');
 E.UIParent:SetSize(UIParent:GetSize());
 E.UIParent.origHeight = E.UIParent:GetHeight()
 E['snapBars'][#E['snapBars'] + 1] = E.UIParent
@@ -853,7 +850,6 @@ function E:SplitString(s, delim)
 end
 
 function E:SendMessage()
-	local _, instanceType = IsInInstance()
 	if IsInRaid() then
 		SendAddonMessage("ELVUI_VERSIONCHK", E.version, (not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "RAID")
 	elseif IsInGroup() then
@@ -868,9 +864,8 @@ end
 
 local myName = E.myname.."-"..E.myrealm;
 myName = myName:gsub("%s+", "")
-local frames = {}
 
-local function SendRecieve(self, event, prefix, message, channel, sender)
+local function SendRecieve(_, event, prefix, message, _, sender)
 
 	if event == "CHAT_MSG_ADDON" then
 		if(sender == myName) then return end
@@ -911,7 +906,13 @@ function E:UpdateAll(ignoreInstall)
 	self.db.theme = nil;
 	self.db.install_complete = nil;
 
+	--The mover is positioned before it is resized, which causes issues for unitframes
+	--Allow movers to be "pushed" outside the screen, when they are resized they should be back in the screen area.
+	--We set movers to be clamped again at the bottom of this function.
+	self:SetMoversClampedToScreen(false)
+
 	self:SetMoversPositions()
+
 	self:UpdateMedia()
 	self:UpdateCooldownSettings()
 	if self.RefreshGUI then self:RefreshGUI() end --Refresh Config
@@ -928,6 +929,7 @@ function E:UpdateAll(ignoreInstall)
 	local AB = self:GetModule('ActionBars')
 	AB.db = self.db.actionbar
 	AB:UpdateButtonSettings()
+	AB:UpdatePetCooldownSettings()
 	AB:UpdateMicroPositionDimensions()
 	AB:Extra_SetAlpha()
 	AB:Extra_SetScale()
@@ -936,7 +938,6 @@ function E:UpdateAll(ignoreInstall)
 	bags.db = self.db.bags
 	bags:Layout();
 	bags:Layout(true);
-	bags:PositionBagFrames()
 	bags:SizeAndPositionBagBar()
 	bags:UpdateItemLevelDisplay()
 	bags:UpdateCountDisplay()
@@ -999,7 +1000,9 @@ function E:UpdateAll(ignoreInstall)
 	LO:TopPanelVisibility()
 	LO:SetDataPanelStyle()
 
-	self:GetModule('Blizzard'):ObjectiveFrameHeight()
+	self:GetModule('Blizzard'):SetObjectiveFrameHeight()
+	
+	self:SetMoversClampedToScreen(true) --Go back to using clamp after resizing has taken place.
 
 	collectgarbage('collect');
 end
@@ -1014,7 +1017,7 @@ function E:RemoveNonPetBattleFrames()
 	self:RegisterEvent("PLAYER_REGEN_DISABLED", "AddNonPetBattleFrames")
 end
 
-function E:AddNonPetBattleFrames(event)
+function E:AddNonPetBattleFrames()
 	if InCombatLockdown() then return end
 	for object, data in pairs(E.FrameLocks) do
 		local obj = _G[object] or object
@@ -1078,7 +1081,7 @@ function E:UnregisterPetBattleHideFrames(object)
 	E.FrameLocks[object] = nil
 end
 
-function E:EnterVehicleHideFrames(event, unit)
+function E:EnterVehicleHideFrames(_, unit)
 	if unit ~= "player" then return; end
 	
 	for object in pairs(E.VehicleLocks) do
@@ -1086,7 +1089,7 @@ function E:EnterVehicleHideFrames(event, unit)
 	end
 end
 
-function E:ExitVehicleShowFrames(event, unit)
+function E:ExitVehicleShowFrames(_, unit)
 	if unit ~= "player" then return; end
 	
 	for object, originalParent in pairs(E.VehicleLocks) do
@@ -1206,168 +1209,7 @@ function E:InitializeModules()
 end
 
 --DATABASE CONVERSIONS
-function E:DBConversions()
-	--Boss Frame auras have been changed to support friendly/enemy filters in case there is an encounter with a friendly boss
-	--Try to convert any filter settings the user had to the new format
-	if not E.db.bossAuraFiltersConverted then
-		local tempBuffs = E.db.unitframe.units.boss.buffs
-		local tempDebuffs = E.db.unitframe.units.boss.debuffs
-		local filterSettings = {
-			"playerOnly",
-			"useBlacklist",
-			"useWhitelist",
-			"noDuration",
-			"onlyDispellable",
-			"bossAuras",
-		}
-
-		--Buffs
-		for _, setting in pairs(filterSettings) do
-			if type(E.db.unitframe.units.boss.buffs[setting]) == "boolean" then
-				E.db.unitframe.units.boss.buffs[setting] = {friendly = tempBuffs[setting], enemy = tempBuffs[setting]}
-			elseif type(E.db.unitframe.units.boss.buffs[setting]) ~= "table" or
-			 (type(E.db.unitframe.units.boss.buffs[setting]) == "table" and (E.db.unitframe.units.boss.buffs[setting].friendly == nil or E.db.unitframe.units.boss.buffs[setting].enemy == nil)) then
-				--Something went wrong here, reset filter setting to default
-				E.db.unitframe.units.boss.buffs[setting] = nil
-			end
-		end
-
-		--Debuffs
-		for _, setting in pairs(filterSettings) do
-			if not setting == "noConsolidated" then --There is no noConsolidated setting for Debuffs
-				if type(E.db.unitframe.units.boss.debuffs[setting]) == "boolean" then
-					E.db.unitframe.units.boss.debuffs[setting] = {friendly = tempDebuffs[setting], enemy = tempDebuffs[setting]}
-				elseif type(E.db.unitframe.units.boss.debuffs[setting]) ~= "table" or
-				 (type(E.db.unitframe.units.boss.debuffs[setting]) == "table" and (E.db.unitframe.units.boss.debuffs[setting].friendly == nil or E.db.unitframe.units.boss.debuffs[setting].enemy == nil)) then
-					--Something went wrong here, reset filter setting to default
-					E.db.unitframe.units.boss.debuffs[setting] = nil
-				end
-			end
-		end
-
-		E.db.bossAuraFiltersConverted = true
-	end
-
-	--Convert stored mover strings to use the new comma delimiter
-	if E.db.movers then
-		for mover, moverString in pairs(E.db.movers) do
-		   if find(moverString, "\031") then --Old delimiter found
-			  moverString = gsub(moverString, "\031", ",") --Replace with new delimiter
-			  E.db.movers[mover] = moverString --Store updated mover string
-		   end
-		end
-	end
-
-	--Convert stored BuffIndicator key/value pairs to use spellID as key
-	if not E.global.unitframe.buffwatchBackup then E.global.unitframe.buffwatchBackup = {} end
-	local shouldRemove
-	for class in pairs(E.global.unitframe.buffwatch) do
-		if not E.global.unitframe.buffwatchBackup[class] then E.global.unitframe.buffwatchBackup[class] = {} end
-		shouldRemove = {}
-		for i, values in pairs(E.global.unitframe.buffwatch[class]) do
-			if values.id then --Added by user, all info stored in SavedVariables
-				if i ~= values.id then
-					--Mark entry for removal
-					shouldRemove[i] = true
-				end
-				E.global.unitframe.buffwatch[class][values.id] = values
-				if not E.global.unitframe.buffwatchBackup[class][values.id] then E.global.unitframe.buffwatchBackup[class][values.id] = values end --Store a copy in case something goes wrong
-
-			elseif G.oldBuffWatch[class] and G.oldBuffWatch[class][i] then
-				--Default BuffIndicator, grab info from legacy table
-				local spellID = G.oldBuffWatch[class][i].id
-				if spellID then
-					--Store a copy in case something goes wrong
-					if not E.global.unitframe.buffwatchBackup[class][spellID] then
-						E.global.unitframe.buffwatchBackup[class][spellID] = G.oldBuffWatch[class][i]
-						E:CopyTable(E.global.unitframe.buffwatchBackup[class][spellID], values)
-					end
-					E.global.unitframe.buffwatch[class][spellID] = G.oldBuffWatch[class][i] --Store default info under new spellID key
-					E:CopyTable(E.global.unitframe.buffwatch[class][spellID], values) --Transfer user-changed settings to new table
-					E.global.unitframe.buffwatch[class][i] = nil --Remove old entry
-				end
-			end
-		end
-		--Remove old entries of user-added BuffIndicators
-		for id in pairs(shouldRemove) do
-			E.global.unitframe.buffwatch[class][id] = nil
-		end
-	end
-	
-	--Move spells from the "Whitelist (Strict)" filter to the "Whitelist" filter
-	if E.global.unitframe['aurafilters']['Whitelist (Strict)'] and E.global.unitframe['aurafilters']['Whitelist (Strict)'].spells then
-		for spell, spellInfo in pairs(E.global.unitframe['aurafilters']['Whitelist (Strict)'].spells) do
-			if type(spellInfo) == 'table' then
-				local enabledValue = spellInfo.enable
-				--We don't care about old defaults, as the only default entries in the Whitelist (Strict) filter were from an MoP raid instance. No need to copy that information over.
-
-				if spellInfo.spellID then --Spell the user added himself, all needed info is available and should be copied over
-					local spellID = tonumber(spellInfo.spellID)
-					E.global.unitframe['aurafilters']['Whitelist']['spells'][spellID] = {['enable'] = enabledValue}
-				end
-			end
-			--Remove old entry
-			E.global.unitframe['aurafilters']['Whitelist (Strict)']["spells"][spell] = nil
-		end
-		--Finally remove old table
-		E.global.unitframe['aurafilters']['Whitelist (Strict)'] = nil
-	end
-
-	--Move spells from the "Blacklist (Strict)" filter to the "Blacklist" filter
-	--This one is easier, as all spells have been stored with spellID as key
-	if E.global.unitframe.InvalidSpells then
-		for spellID, enabledValue in pairs(E.global.unitframe.InvalidSpells) do
-			--Copy over information
-			E.global.unitframe['aurafilters']['Blacklist']['spells'][spellID] = {['enable'] = enabledValue}
-			--Remove old entry
-			E.global.unitframe.InvalidSpells[spellID] = nil
-		end
-		--Finally remove old table
-		E.global.unitframe.InvalidSpells = nil
-	end
-	
-	--Because default filters now store spells with spellID as key, any default spells the user has changed will show up as a duplicate entry but with spellName as key.
-	--We will copy over the information and remove old default entries stored with spell name as key.
-	local filters = {
-		"CCDebuffs",
-		"TurtleBuffs",
-		"PlayerBuffs",
-		"Blacklist",
-		"Whitelist",
-		"RaidDebuffs",
-	}
-	for _, filterName in pairs(filters) do
-		for spellID, spellInfo in pairs(G.unitframe["aurafilters"][filterName].spells) do --Use spellIDs from current default table
-			local spellName = GetSpellInfo(spellID) --Get spell name and try to match it to existing entry in table
-
-			if spellName and E.global.unitframe["aurafilters"][filterName]["spells"][spellName] then --Match found
-				local spell = E.global.unitframe["aurafilters"][filterName]["spells"][spellName]
-				local enabledValue = spell.enable
-				local priority = spell.priority
-				local stackThreshold = spell.stackThreshold
-				
-				--Fallback to default values if value is nil
-				if enabledValue == nil then enabledValue = (spellInfo.enable or true) end
-				if priority == nil then priority = (spellInfo.priority or 0) end
-				if stackThreshold == nil then stackThreshold = (spellInfo.stackThreshold or 0) end
-
-				--Copy over information from old entry to new entry stored with spellID as key
-				E.global.unitframe["aurafilters"][filterName]["spells"][spellID] = {["enabled"] = enabledValue, ["priority"] = priority, ["stackThreshold"] = stackThreshold}
-				--Remove old entry
-				E.global.unitframe["aurafilters"][filterName]["spells"][spellName] = nil
-			end
-		end
-	end
-
-	--Add missing .point, .xOffset and .yOffset values to Buff Indicators that are missing them for whatever reason
-	for class in pairs(E.global.unitframe.buffwatch) do
-		for _, values in pairs(E.global.unitframe.buffwatch[class]) do
-			if not values.point then values.point = "TOPLEFT" end
-			if not values.xOffset then values.xOffset = 0 end
-			if not values.yOffset then values.yOffset = 0 end
-		end
-	end
-	
+function E:DBConversions()	
 	--Convert actionbar button spacing to backdrop spacing, so users don't get any unwanted changes
 	if not E.db.actionbar.backdropSpacingConverted then
 		for i = 1, 10 do
@@ -1410,7 +1252,7 @@ function E:DBConversions()
 end
 
 local CPU_USAGE = {}
-local function CompareCPUDiff(showall, module, minCalls)
+local function CompareCPUDiff(showall, minCalls)
 	local greatestUsage, greatestCalls, greatestName, newName, newFunc
 	local greatestDiff, lastModule, mod, newUsage, calls, differance = 0;
 
@@ -1473,7 +1315,7 @@ function E:GetTopCPUFunc(msg)
 		end
 	end
 
-	self:Delay(delay, CompareCPUDiff, showall, module, minCalls)
+	self:Delay(delay, CompareCPUDiff, showall, minCalls)
 	self:Print("Calculating CPU Usage differences (module: "..(module or "?")..", showall: "..tostring(showall)..", minCalls: "..tostring(minCalls)..", delay: "..tostring(delay)..")")
 end
 
@@ -1547,34 +1389,42 @@ function E:Initialize()
 		print(select(2, E:GetModule('Chat'):FindURL("CHAT_MSG_DUMMY", format(L["LOGIN_MSG"]:gsub("ElvUI", E.UIName), self["media"].hexvaluecolor, self["media"].hexvaluecolor, self.version)))..'.')
 	end
 
-	--Resize ElvUIParent when entering/leaving Class Hall (stupid Class Hall Command Bar)
-	local function HookForResize()
-		OrderHallCommandBar:HookScript("OnShow", function()
-			local height = E.UIParent.origHeight - OrderHallCommandBar:GetHeight()
-			E.UIParent:SetHeight(height)
-		end)
-		OrderHallCommandBar:HookScript("OnHide", function()
-			E.UIParent:SetHeight(E.UIParent.origHeight)
-		end)
+	--Disable OrderHall Bar or resize ElvUIParent if needed
+	local function HandleCommandBar()
+		if E.global.general.commandBarSetting == "DISABLED" then
+			local bar = OrderHallCommandBar
+			bar:UnregisterAllEvents()
+			bar:SetScript("OnShow", bar.Hide)
+			bar:Hide()
+			UIParent:UnregisterEvent("UNIT_AURA")--Only used for OrderHall Bar
+		elseif E.global.general.commandBarSetting == "ENABLED_RESIZEPARENT" then
+			E.UIParent:SetPoint("BOTTOM", UIParent, "BOTTOM");
+			OrderHallCommandBar:HookScript("OnShow", function()
+				local height = E.UIParent.origHeight - OrderHallCommandBar:GetHeight()
+				E.UIParent:SetHeight(height)
+			end)
+			OrderHallCommandBar:HookScript("OnHide", function()
+				E.UIParent:SetHeight(E.UIParent.origHeight)
+			end)
+		end
 	end
-
 	if OrderHallCommandBar then
-		HookForResize()
+		HandleCommandBar()
 	else
 		local f = CreateFrame("Frame")
 		f:RegisterEvent("ADDON_LOADED")
 		f:SetScript("OnEvent", function(self, event, addon)
-			if addon == "Blizzard_OrderHallUI" then
-				HookForResize()
+			if event == "ADDON_LOADED" and addon == "Blizzard_OrderHallUI" then
+				if InCombatLockdown() then
+					self:RegisterEvent("PLAYER_REGEN_ENABLED")
+				else
+					HandleCommandBar()
+				end
+				self:UnregisterEvent(event)
+			elseif event == "PLAYER_REGEN_ENABLED" then
+				HandleCommandBar()
+				self:UnregisterEvent(event)
 			end
 		end)
 	end
-
-	--We need to set the real max distance after the slider control has been set up because it is reset at this point
-	--We only do this if the user had set max camera distance to "Far" in the options. At some point Blizzard will fix the resetting.
-	hooksecurefunc("BlizzardOptionsPanel_SetupControl", function(control)
-		if control == InterfaceOptionsCameraPanelMaxDistanceSlider and E:Round(tonumber(GetCVar("cameraDistanceMaxFactor")), 1) == 1.9 then
-			SetCVar("cameraDistanceMaxFactor", 2.6)
-		end
-	end)
 end

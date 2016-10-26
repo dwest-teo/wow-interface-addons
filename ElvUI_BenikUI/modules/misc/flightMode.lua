@@ -1,13 +1,12 @@
 local E, L, V, P, G = unpack(ElvUI);
 local BUI = E:GetModule('BenikUI');
 local BFM = E:NewModule('BUIFlightMode', 'AceTimer-3.0', 'AceEvent-3.0');
-local B = E:GetModule("Bags")
 
 local _G = _G 
 local GetTime = GetTime
-local tonumber, pcall, unpack = tonumber, pcall, unpack
+local tonumber, unpack = tonumber, unpack
 local floor = floor
-local format, strsub = string.format, string.sub
+local join = string.join
 
 local GameTooltip = _G["GameTooltip"]
 local WorldMapFrame = _G["WorldMapFrame"]
@@ -49,7 +48,6 @@ local menuFrame = CreateFrame('Frame', 'BuiGameClickMenu', E.UIParent)
 menuFrame:SetTemplate('Transparent', true)
 menuFrame:CreateWideShadow()
 
-local SPACING = (E.PixelMode and 1 or 3)
 local LOCATION_WIDTH = 400
 local classColor = E.myclass == 'PRIEST' and E.PriestColors or (CUSTOM_CLASS_COLORS and CUSTOM_CLASS_COLORS[E.myclass] or RAID_CLASS_COLORS[E.myclass])
 local CAMERA_SPEED = 0.035
@@ -61,10 +59,6 @@ local menuList = {
 	func = function()
 		if not PlayerTalentFrame then
 			TalentFrame_LoadUI()
-		end
-
-		if not GlyphFrame then
-			GlyphFrame_LoadUI()
 		end
 
 		if not PlayerTalentFrame:IsShown() then
@@ -93,7 +87,9 @@ local menuList = {
 	{text = PET_JOURNAL, func = function() ToggleCollectionsJournal(2) end},
 	{text = TOY_BOX, func = function() ToggleCollectionsJournal(3) end},
 	{text = HEIRLOOMS, func = function() ToggleCollectionsJournal(4) end},
+	{text = WARDROBE, func = function() ToggleCollectionsJournal(5) end},
 	{text = MACROS, func = function() GameMenuButtonMacros:Click() end},
+	{text = TIMEMANAGER_TITLE, func = function() ToggleFrame(TimeManagerFrame) end},
 	{text = ENCOUNTER_JOURNAL, func = function() if not IsAddOnLoaded('Blizzard_EncounterJournal') then EncounterJournal_LoadUI(); end ToggleFrame(EncounterJournal) end},
 	{text = SOCIAL_BUTTON, func = function() ToggleFriendsFrame() end},
 	{text = MAINMENU_BUTTON,
@@ -117,7 +113,7 @@ local menuList = {
 		end
 	end},
 	{text = HELP_BUTTON, func = function() ToggleHelpFrame() end},
-	{text = BLIZZARD_STORE, func = function() StoreMicroButton:Click() end},
+	{text = BLIZZARD_STORE, func = function() StoreMicroButton:Click() end}
 }
 
 local function AutoColoring()
@@ -192,14 +188,36 @@ end
 
 function BFM:UpdateTimer()
 	local time = GetTime() - self.startTime
-	self.FlightMode.bottom.timeFlying:SetFormattedText("%02d:%02d", floor(time/60), time % 60)
+	self.FlightMode.bottom.timeFlying.txt:SetFormattedText("%02d:%02d", floor(time/60), time % 60)
 end
 
-local bagYoffset = E.db.bags.yOffset
+local statusColors = {
+	'|cff0CD809',	-- green
+	'|cffE8DA0F',	-- yellow
+	'|cffD80909'	-- red
+}
+
+function BFM:UpdateFps()	
+	local value = floor(GetFramerate())
+	local fpscolor = 3
+	local max = 120
+
+	if(value * 100 / max >= 45) then
+		fpscolor = 1
+	elseif value * 100 / max < 45 and value * 100 / max > 30 then
+		fpscolor = 2
+	else
+		fpscolor = 3
+	end
+	local displayFormat = join('', statusColors[fpscolor], '%d|rFps')
+	self.FlightMode.bottom.fps.txt:SetFormattedText(displayFormat, value)
+end
 
 function BFM:SetFlightMode(status)
 	if(status) then
-		MoveViewLeftStart(CAMERA_SPEED);
+		if E.db.benikui.misc.flightMode.cameraRotation then
+			MoveViewLeftStart(CAMERA_SPEED);
+		end
 		self.FlightMode:Show()
 		E.UIParent:Hide()
 
@@ -213,8 +231,6 @@ function BFM:SetFlightMode(status)
 		
 		-- Bags
 		if ElvUI_ContainerFrame then
-			E.db.bags.yOffset = 30
-			B:PositionBagFrames()
 			ElvUI_ContainerFrame:SetParent(self.FlightMode)
 			ElvUI_ContainerFrame.shadow:Show()
 		end
@@ -225,6 +241,13 @@ function BFM:SetFlightMode(status)
 		LeftChatPanel.backdrop.shadow:Show()
 		LeftChatPanel:ClearAllPoints()
 		LeftChatPanel:Point("BOTTOMLEFT", self.FlightMode.bottom, "TOPLEFT", 24, 24)
+		
+		-- Hide SquareMinimapButtonBar
+		if IsAddOnLoaded("SquareMinimapButtons") then
+			if SquareMinimapButtonOptions.BarEnabled == true then
+				SquareMinimapButtonBar:Hide()
+			end
+		end
 
 		-- Disable Blizz location messsages
 		ZoneTextFrame:UnregisterAllEvents()
@@ -233,6 +256,7 @@ function BFM:SetFlightMode(status)
 		self.timer = self:ScheduleRepeatingTimer('UpdateTimer', 1)
 		self.locationTimer = self:ScheduleRepeatingTimer('UpdateLocation', 0.2)
 		self.coordsTimer = self:ScheduleRepeatingTimer('UpdateCoords', 0.2)
+		self.fpsTimer = self:ScheduleRepeatingTimer('UpdateFps', 1)
 
 		self.inFlightMode = true
 	elseif(self.inFlightMode) then
@@ -246,16 +270,22 @@ function BFM:SetFlightMode(status)
 		self.FlightMode:Hide()
 		MoveViewLeftStop();
 
-		-- Enable Blizz location messsages
-		ZoneTextFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
-		ZoneTextFrame:RegisterEvent("ZONE_CHANGED_INDOORS")
-		ZoneTextFrame:RegisterEvent("ZONE_CHANGED")
+		-- Enable Blizz location messsages.
+		-- Added support for LocationPlus & LocationLite
+		if (IsAddOnLoaded('ElvUI_LocPlus') and E.db.locplus.zonetext) or (IsAddOnLoaded('ElvUI_LocLite') and not E.db.loclite.zonetext) then
+			ZoneTextFrame:UnregisterAllEvents()
+		else
+			ZoneTextFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+			ZoneTextFrame:RegisterEvent("ZONE_CHANGED_INDOORS")
+			ZoneTextFrame:RegisterEvent("ZONE_CHANGED")
+		end
 
 		self:CancelTimer(self.locationTimer)
 		self:CancelTimer(self.coordsTimer)
 		self:CancelTimer(self.timer)
+		self:CancelTimer(self.fpsTimer)
 
-		self.FlightMode.bottom.timeFlying:SetText("00:00")
+		self.FlightMode.bottom.timeFlying.txt:SetText("00:00")
 		self.FlightMode.bottom.requestStop:EnableMouse(true)
 		self.FlightMode.bottom.requestStop.img:SetVertexColor(1, 1, 1, .7)
 		self.FlightMode.message:Hide()
@@ -265,15 +295,17 @@ function BFM:SetFlightMode(status)
 
 		-- Revert Bags
 		if ElvUI_ContainerFrame then
-			E.db.bags.yOffset = bagYoffset
-			B:PositionBagFrames()
 			ElvUI_ContainerFrame:SetParent(E.UIParent)
 			ElvUI_ContainerFrame.shadow:Hide()
 		end
 
 		if IsAddOnLoaded('AddOnSkins') then
-			local AS = unpack(AddOnSkins) or nil			
-			if E.private.addonskins.EmbedSystem or E.private.addonskins.EmbedSystemDual then AS:Embed_Show() end
+			local AS = unpack(AddOnSkins) or nil
+			if GetAddOnMetadata("AddOnSkins", "Version") <= "3.39" then 
+				if E.private.addonskins.EmbedSystem or E.private.addonskins.EmbedSystemDual then AS:Embed_Show() end
+			else
+				if AS.db.EmbedSystem or AS.db.EmbedSystemDual then AS:Embed_Show() end
+			end
 		end
 
 		-- revert Left Chat
@@ -282,6 +314,13 @@ function BFM:SetFlightMode(status)
 		LeftChatPanel.backdrop.shadow:Hide()
 		LeftChatPanel:ClearAllPoints()
 		LeftChatPanel:Point("BOTTOMLEFT", LeftChatMover, "BOTTOMLEFT")
+		
+		-- Show SquareMinimapButtonBar
+		if IsAddOnLoaded("SquareMinimapButtons") then
+			if SquareMinimapButtonOptions.BarEnabled == true then
+				SquareMinimapButtonBar:Show()
+			end
+		end
 
 		self.inFlightMode = false
 	end
@@ -426,8 +465,8 @@ function BFM:Initialize()
 	
 	self.FlightMode.top.location.y.text = self.FlightMode.top.location.y:CreateFontString(nil, 'OVERLAY')
 	self.FlightMode.top.location.y.text:FontTemplate(nil, 18)
-	self.FlightMode.top.location.y.text:Point('CENTER')	
-
+	self.FlightMode.top.location.y.text:Point('CENTER')
+	
 	-- Bottom frame
 	self.FlightMode.bottom = CreateFrame("Frame", nil, self.FlightMode)
 	self.FlightMode.bottom:SetFrameLevel(0)
@@ -621,13 +660,27 @@ function BFM:Initialize()
 		PlaySound("igMainMenuOptionCheckBoxOff");
 		ToggleAllBags()
 	end)
-	
+
 	-- Time flying
-	self.FlightMode.bottom.timeFlying = self.FlightMode.bottom:CreateFontString(nil, 'OVERLAY')
-	self.FlightMode.bottom.timeFlying:FontTemplate(nil, 16)
-	self.FlightMode.bottom.timeFlying:SetText("00:00")
+	self.FlightMode.bottom.timeFlying = CreateFrame('Frame', nil, self.FlightMode.bottom)
 	self.FlightMode.bottom.timeFlying:Point("RIGHT", self.FlightMode.bottom, "RIGHT", -10, 0)
-	self.FlightMode.bottom.timeFlying:SetTextColor(1, 1, 1)
+	self.FlightMode.bottom.timeFlying:SetTemplate("Default")
+	self.FlightMode.bottom.timeFlying:Size(70,30)	
+	self.FlightMode.bottom.timeFlying.txt = self.FlightMode.bottom.timeFlying:CreateFontString(nil, 'OVERLAY')
+	self.FlightMode.bottom.timeFlying.txt:FontTemplate(nil, 14)
+	self.FlightMode.bottom.timeFlying.txt:SetText("00:00")
+	self.FlightMode.bottom.timeFlying.txt:Point("CENTER", self.FlightMode.bottom.timeFlying, "CENTER")
+	self.FlightMode.bottom.timeFlying.txt:SetTextColor(1, 1, 1)
+	
+	-- fps
+	self.FlightMode.bottom.fps = CreateFrame('Frame', nil, self.FlightMode.bottom)
+	self.FlightMode.bottom.fps:Point('RIGHT', self.FlightMode.bottom.timeFlying, 'LEFT', -10, 0)
+	self.FlightMode.bottom.fps:SetTemplate("Default")
+	self.FlightMode.bottom.fps:Size(70,30)
+	self.FlightMode.bottom.fps.txt = self.FlightMode.bottom.fps:CreateFontString(nil, 'OVERLAY')
+	self.FlightMode.bottom.fps.txt:FontTemplate(nil, 14)
+	self.FlightMode.bottom.fps.txt:Point('CENTER', self.FlightMode.bottom.fps, 'CENTER')
+	self.FlightMode.bottom.fps.txt:SetText("")
 	
 	-- Add Shadow at the bags
 	if ElvUI_ContainerFrame then

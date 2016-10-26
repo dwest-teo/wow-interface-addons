@@ -168,72 +168,92 @@ local function modify(parent, region, data)
             regionIndex = regionIndex + 1;
         end
 
+        local function expirationTime(region)
+          if (region.region and region.region.state) then
+             local expires = region.region.state.expirationTime;
+             if (expires and expires > 0 and expires > GetTime()) then
+               return expires;
+             end
+          end
+          return nil;
+        end
+
+        local function compareExpirationTimes(regionA, regionB)
+          local aExpires = expirationTime(regionA);
+          local bExpires = expirationTime(regionB);
+
+
+          if (aExpires and bExpires) then
+            if (aExpires == bExpires) then
+              return nil;
+            end
+            return aExpires < bExpires;
+          end
+
+          if (aExpires) then
+            return false;
+          end
+
+          if (bExpires) then
+            return true;
+          end
+
+          return nil;
+        end
+
         if(data.sort == "ascending") then
           table.sort(region.controlledRegions, function(a, b)
-            return (
-                a.region
-                    and a.region.state
-                    and a.region.state.expirationTime
-                    and a.region.state.expirationTime > 0
-                    and a.region.state.expirationTime
-                or math.huge
-            ) < (
-                b.region
-                    and b.region.state
-                    and b.region.state.expirationTime
-                    and b.region.state.expirationTime > 0
-                    and b.region.state.expirationTime
-                or math.huge
-              )
-            end);
+            local result = compareExpirationTimes(a, b);
+            if (result == nil) then
+              return a.dataIndex < b.dataIndex;
+            end
+            return result;
+        end);
         elseif(data.sort == "descending") then
-            table.sort(region.controlledRegions, function(a, b)
-                return (
-                    a.region
-                    and a.region.state
-                    and a.region.state.expirationTime
-                    and a.region.state.expirationTime > 0
-                    and a.region.state.expirationTime
-                    or math.huge
-                ) > (
-                    b.region
-                    and b.region.state
-                    and b.region.state.expirationTime
-                    and b.region.state.expirationTime > 0
-                    and b.region.state.expirationTime
-                    or math.huge
-                )
-            end);
+          table.sort(region.controlledRegions, function(a, b)
+            local result = compareExpirationTimes(a, b);
+            if (result == nil) then
+              return a.dataIndex < b.dataIndex;
+            end
+            return not result;
+        end);
         elseif(data.sort == "hybrid") then
             table.sort(region.controlledRegions, function(a, b)
-                local aTime;
-                local bTime;
+                if (not b) then return true; end
+                if (not a) then return false; end;
+                local aIndex;
+                local bIndex;
                 if (data.sortHybridTable and data.sortHybridTable[a.dataIndex]) then
-                    aTime = a.dataIndex - 1000;
-                else
-                    aTime = a.region and a.region.state
-                        and a.region.state.expirationTime and a.region.state.expirationTime > 0
-                        and a.region.state.expirationTime or math.huge
-                end;
+                    aIndex = a.dataIndex;
+                end
 
                 if (data.sortHybridTable and data.sortHybridTable[b.dataIndex]) then
-                    bTime = b.dataIndex - 1000;
-                else
-                    bTime = b.region and b.region.state
-                        and b.region.state.expirationTime and b.region.state.expirationTime > 0
-                        and b.region.state.expirationTime or math.huge
+                    bIndex = b.dataIndex;
                 end
-                return (
-                    (aTime) > (bTime)
-                )
+
+                if (aIndex and bIndex) then
+                  return aIndex < bIndex;
+                end
+
+                if (aIndex) then
+                  return data.hybridPosition == "hybridFirst";
+                end
+
+                if (bIndex) then
+                  return data.hybridPosition ~= "hybridFirst";
+                end
+
+                local result = compareExpirationTimes(a, b);
+                if (result == nil) then
+                  return a.dataIndex < b.dataIndex;
+                end
+                if (data.hybridSortMode == "descending") then
+                  result = not result;
+                end
+                return result;
             end);
         elseif(anyIndexInfo) then
             table.sort(region.controlledRegions, function(a, b)
-                if not(a) then
-                    return 1 < 2;
-                elseif not(b) then
-                    return 2 < 1;
-                end
                 return (
                     (
                         a.dataIndex == b.dataIndex
@@ -256,11 +276,10 @@ local function modify(parent, region, data)
                 tray:SetWidth(regionData.data.width);
                 tray:SetHeight(regionData.data.height);
 
-                if (tray.region ~= regionData.region or tray.selfPoint ~= selfPoint) then
+                local point, relativeTo, relativePoint, xOfs, yOfs = regionData.region:GetPoint();
+                if (relativeTo ~= tray or relativePoint ~= selfPoint or point ~= selfPoint or xOfs ~= 0 or yOfs ~= 0) then
                     regionData.region:ClearAllPoints();
-                    regionData.region:SetPoint(selfPoint, region.trays[regionData.key], selfPoint);
-                    tray.region = regionData.region;
-                    tray.selfPoint = selfPoint;
+                    regionData.region:SetPoint(selfPoint, tray, selfPoint);
                 end
             end
         end
@@ -445,6 +464,10 @@ local function modify(parent, region, data)
                     end
                     region.trays[regionData.key]:ClearAllPoints();
                     region.trays[regionData.key]:SetPoint(selfPoint, region, selfPoint, xOffset, yOffset);
+                    -- Fix for ticket 686: Somehow calling any function that requires the position here
+                    -- actually ensures that we get the right position in DoResize
+                    local tmp = region.trays[regionData.key]:GetBottom();
+
                     if(data.grow == "RIGHT") then
                         xOffset = xOffset + (childData.width + data.space);
                         yOffset = yOffset + data.stagger;
@@ -621,15 +644,12 @@ local function modify(parent, region, data)
     region:PositionChildren();
 
     -- Adjust frame-level sorting
-    local lowestRegion = WeakAuras.regions[data.controlledChildren[#data.controlledChildren]] and WeakAuras.regions[data.controlledChildren[#data.controlledChildren]].region
-    if(lowestRegion) then
-        local frameLevel = lowestRegion:GetFrameLevel()
-        for i=1,#region.controlledRegions do
-            local childRegion = region.controlledRegions[i].region
-            if(childRegion) then
-                frameLevel = frameLevel + 1
-                childRegion:SetFrameLevel(frameLevel)
-            end
+    local frameLevel = 1;
+    for i=1,#region.controlledRegions do
+        local childRegion = region.controlledRegions[i].region
+        if(childRegion) then
+            frameLevel = frameLevel + 4
+            childRegion:SetFrameLevel(frameLevel)
         end
     end
 

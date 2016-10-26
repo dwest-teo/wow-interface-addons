@@ -19,7 +19,6 @@ local SELECT_LOOT_SPECIALIZATION, LOOT_SPECIALIZATION_DEFAULT = SELECT_LOOT_SPEC
 
 local lastPanel, active
 local displayString = '';
-local talent = {}
 local activeString = join("", "|cff00FF00" , ACTIVE_PETS, "|r")
 local inactiveString = join("", "|cffFF0000", FACTION_INACTIVE, "|r")
 
@@ -43,7 +42,7 @@ local specList = {
 	{ notCheckable = true }
 }
 
-local function OnEvent(self, event)
+local function OnEvent(self)
 	lastPanel = self
 
 	local specIndex = GetSpecialization();
@@ -78,7 +77,7 @@ local function OnEnter(self)
 		local specIndex = GetSpecialization();
 
 		if specIndex then
-			local specID, name = GetSpecializationInfo(specIndex);
+			local _, name = GetSpecializationInfo(specIndex);
 			DT.tooltip:AddLine(format('|cffFFFFFF%s:|r %s', SELECT_LOOT_SPECIALIZATION, format(LOOT_SPECIALIZATION_DEFAULT, name)))
 		end
 	else
@@ -95,14 +94,6 @@ local function OnEnter(self)
 	DT.tooltip:Show()
 end
 
-local function SetSpec(id)
-	local spec = _G["PlayerTalentFrameSpecializationSpecButton"..id]
-	SpecButton_OnClick(spec)
-	local learn = PlayerTalentFrameSpecializationLearnButton
-
-	StaticPopup_Show("CONFIRM_LEARN_SPEC", nil, nil, learn:GetParent())
-end
-
 local function OnClick(self, button)
 	local specIndex = GetSpecialization();
 	if not specIndex then return end
@@ -115,7 +106,7 @@ local function OnClick(self, button)
 			local id, name, _, texture = GetSpecializationInfo(index);
 			if ( id ) then
 				specList[index + 1].text = format('|T%s:14:14:0:0:64:64:4:60:4:60|t  %s', texture, name)
-				specList[index + 1].func = function() SetSpec(index) end
+				specList[index + 1].func = function() SetSpecialization(index) end
 			else
 				specList[index + 1] = nil
 			end

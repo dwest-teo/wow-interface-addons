@@ -102,14 +102,13 @@ function BUIT:CreateTokensHolder()
 		tholder:CreateBackdrop('Transparent')
 		tholder:SetFrameStrata('BACKGROUND')
 		tholder:SetFrameLevel(5)
-		tholder:Width(DASH_WIDTH)
 		if E.db.dashboards.system.enableSystem then
 			tholder:Point('TOPLEFT', sysHolder, 'BOTTOMLEFT', 0, -10)
 		else
 			tholder:Point('TOPLEFT', E.UIParent, 'TOPLEFT', 2, -30)
 		end
 		tholder.backdrop:Style('Outside')
-		tholder.backdrop:Hide()
+		tholder:Hide()
 	end
 	
 	if db.combat then
@@ -149,7 +148,7 @@ function BUIT:UpdateTokens()
 			tokenFrames[i]:Kill()
 		end
 		twipe( tokenFrames )
-		tokenHolder.backdrop:Hide()
+		tokenHolder:Hide()
 	end
 
 	for i, id in ipairs(BUIcurrency) do
@@ -161,8 +160,13 @@ function BUIT:UpdateTokens()
 			
 			if db.chooseTokens[name] == true then
 				if db.zeroamount or amount > 0 then
+					tokenHolder:Show()
+					tokenHolder:Width(DASH_WIDTH)
 					tokenHolder:Height(((DASH_HEIGHT + (E.PixelMode and 1 or DASH_SPACING)) * (#tokenFrames + 1)) + DASH_SPACING + (E.PixelMode and 0 or 2))
-					tokenHolder.backdrop:Show()
+					if tokenHolderMover then
+						tokenHolderMover:Size(tokenHolder:GetSize())
+						tokenHolder:Point('TOPLEFT', tokenHolderMover, 'TOPLEFT')
+					end
 					
 					local token = CreateFrame('Frame', nil, tokenHolder)
 					token:Height(DASH_HEIGHT)
@@ -281,7 +285,6 @@ end
 
 function BUIT:TokenEvents()
 	self:RegisterEvent('PLAYER_ENTERING_WORLD', 'UpdateTokens')
-	self:RegisterEvent('PLAYER_HONOR_GAIN', 'UpdateTokens')
 	self:RegisterEvent('CURRENCY_DISPLAY_UPDATE', 'UpdateTokens')
 	self:SecureHook('BackpackTokenFrame_Update', 'UpdateTokens')
 	self:SecureHook('TokenFrame_Update', 'UpdateTokens')

@@ -46,7 +46,7 @@ function BUIP:CreateProHolder()
 			pholder:Point('TOPLEFT', E.UIParent, 'TOPLEFT', 2, -120)
 		end
 		pholder.backdrop:Style('Outside')
-		pholder.backdrop:Hide()
+		pholder:Hide()
 	end
 	
 	if E.db.dashboards.professions.combat then
@@ -78,6 +78,8 @@ function BUIP:EnableDisableCombat()
 	end
 end
 
+local capRank = 800
+
 function BUIP:UpdateProfessions()
 	local db = E.db.dashboards.professions
 	if( BuiProfessions[1] ) then
@@ -85,10 +87,9 @@ function BUIP:UpdateProfessions()
 			BuiProfessions[i]:Kill()
 		end
 		wipe( BuiProfessions )
-		proHolder.backdrop:Hide()
+		proHolder:Hide()
 	end
-	
-	local capRank = 700
+
 	local prof1, prof2, archy, fishing, cooking, firstAid = GetProfessions()
 	
 	if (prof1 or prof2 or archy or fishing or cooking or firstAid) then
@@ -99,8 +100,12 @@ function BUIP:UpdateProfessions()
 
 			if name and (rank < capRank or (not db.capped)) then
 				if db.choosePofessions[name] == true then
-					proHolder.backdrop:Show()
+					proHolder:Show()
 					proHolder:Height(((DASH_HEIGHT + (E.PixelMode and 1 or DASH_SPACING)) * (#BuiProfessions + 1)) + DASH_SPACING + (E.PixelMode and 0 or 2))
+					if ProfessionsMover then
+						ProfessionsMover:Size(proHolder:GetSize())
+						proHolder:Point('TOPLEFT', ProfessionsMover, 'TOPLEFT')
+					end
 
 					local ProFrame = CreateFrame('Frame', nil, proHolder)
 					ProFrame:Height(DASH_HEIGHT)
@@ -203,7 +208,6 @@ end
 
 function BUIP:ProEvents()
 	self:RegisterEvent('PLAYER_ENTERING_WORLD', 'UpdateProfessions')
-	self:RegisterEvent('TRADE_SKILL_UPDATE', 'UpdateProfessions')
 	self:RegisterEvent('SKILL_LINES_CHANGED', 'UpdateProfessions')
 	self:RegisterEvent('CHAT_MSG_SKILL', 'UpdateProfessions')
 end

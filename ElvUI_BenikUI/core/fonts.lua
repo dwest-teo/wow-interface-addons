@@ -1,5 +1,4 @@
 local E, L, V, P, G = unpack(ElvUI);
-local BUI = E:GetModule('BenikUI');
 local LSM = LibStub('LibSharedMedia-3.0')
 
 -- GLOBALS: CHAT_FONT_HEIGHTS, GameTooltipHeader, NumberFont_OutlineThick_Mono_Small, SystemFont_Shadow_Large_Outline
@@ -31,7 +30,6 @@ function E:UpdateBlizzardFonts()
 	local NORMAL     = self["media"].normFont
 	local COMBAT     = LSM:Fetch('font', self.private.general.dmgfont)
 	local NUMBER     = self["media"].normFont
-	local NAMEFONT		 = LSM:Fetch('font', self.private.general.namefont)
 	local MONOCHROME = ''
 	local SHADOWCOLOR = 0, 0, 0, .4 	-- add alpha for shadows
 	local NO_OFFSET = 0, 0
@@ -103,12 +101,18 @@ function E:UpdateBlizzardFonts()
 		SetFont(SystemFont_Huge1, 					NORMAL, 20);								 -- Garrison Mission XP
 		SetFont(SystemFont_Huge1_Outline, 			NORMAL, 18, MONOCHROME.."OUTLINE");			 -- Garrison Mission Chance
 		SetFont(Fancy22Font,						NORMAL, 20)									 -- Talking frame Title font
+		SetFont(Fancy24Font,						NORMAL, 20)									 -- Artifact frame - weapon name
+		SetFont(Game30Font,							NORMAL, 28)									 -- Mission Level
+		SetFont(SystemFont_Shadow_Med2,				NORMAL, 15)									 -- Shows Order resourses on OrderHallTalentFrame
+		SetFont(WhiteNormalNumberFont,				NORMAL, self.db.general.fontSize);			 -- Statusbar Numbers on TradeSkill frame
+		SetFont(GameFontHighlightSmall2,			NORMAL, self.db.general.fontSize);			 -- Skill or Recipe description on TradeSkill frame
+		--SetFont(GameFontHighlightLeft,				NORMAL, 16)
 		--SetFont(GameFontHighlightMed2, 				NORMAL, self.db.general.fontSize*1.1);		
 		--SetFont(GameFontNormalSmall, 				NORMAL, 10);
 		--SetFont(GameFontHighlightSmall, 			NORMAL, 10);
 		--SetFont(GameFontHighlight, 					NORMAL, self.db.general.fontSize);
 		--SetFont(GameFontHighlightLarge,				NORMAL, 15);
-		--SetFont(GameFontNormalHuge,					NORMAL, 16);		
+		--SetFont(GameFontNormalHuge,					NORMAL, 16);
 		
 		--SetFont(SystemFont_InverseShadow_Small, 	NORMAL, 10);
 

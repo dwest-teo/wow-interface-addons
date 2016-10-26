@@ -5,11 +5,10 @@ local mod = E:GetModule('DataBars');
 --Lua functions
 local _G = _G
 local format = format
-
 --WoW API / Variables
 local UnitHonor, UnitHonorMax, UnitHonorLevel, GetMaxPlayerHonorLevel, CanPrestige = UnitHonor, UnitHonorMax, UnitHonorLevel, GetMaxPlayerHonorLevel, CanPrestige
 local UnitLevel = UnitLevel
-local MAX_PLAYER_LEVEL = 110 --Hardcoded until Legion is released properly, then use MAX_PLAYER_LEVEL
+local MAX_PLAYER_LEVEL = MAX_PLAYER_LEVEL
 local PVP_HONOR_PRESTIGE_AVAILABLE = PVP_HONOR_PRESTIGE_AVAILABLE
 local HONOR = HONOR
 local MAX_HONOR_LEVEL = MAX_HONOR_LEVEL
@@ -31,10 +30,12 @@ function mod:UpdateHonor(event, unit)
 		local current = UnitHonor("player");
 		local max = UnitHonorMax("player");
 		local level = UnitHonorLevel("player");
-        local levelmax = GetMaxPlayerHonorLevel();
+		local levelmax = GetMaxPlayerHonorLevel();
 
-		
-        if (level == levelmax) then
+		--Guard against division by zero, which appears to be an issue when zoning in/out of dungeons
+		if max == 0 then max = 1 end
+
+		if (level == levelmax) then
 			-- Force the bar to full for the max level
 			bar.statusBar:SetMinMaxValues(0, 1)
 			bar.statusBar:SetValue(1)
@@ -65,7 +66,7 @@ function mod:UpdateHonor(event, unit)
 				text = PVP_HONOR_PRESTIGE_AVAILABLE
 			elseif (level == levelmax) then
 				text = MAX_HONOR_LEVEL
-			else		
+			else
 				text = format('%s - %s', E:ShortValue(current), E:ShortValue(max))
 			end
 		elseif textFormat == 'CURPERC' then
@@ -76,9 +77,33 @@ function mod:UpdateHonor(event, unit)
 			else
 				text = format('%s - %d%%', E:ShortValue(current), current / max * 100)
 			end
-		end		
+		elseif textFormat == 'CUR' then
+			if (CanPrestige()) then
+				text = PVP_HONOR_PRESTIGE_AVAILABLE
+			elseif (level == levelmax) then
+				text = MAX_HONOR_LEVEL
+			else
+				text = format('%s', E:ShortValue(current))
+			end
+		elseif textFormat == 'REM' then
+			if (CanPrestige()) then
+				text = PVP_HONOR_PRESTIGE_AVAILABLE
+			elseif (level == levelmax) then
+				text = MAX_HONOR_LEVEL
+			else
+				text = format('%s', E:ShortValue(max-current))
+			end
+		elseif textFormat == 'CURREM' then
+			if (CanPrestige()) then
+				text = PVP_HONOR_PRESTIGE_AVAILABLE
+			elseif (level == levelmax) then
+				text = MAX_HONOR_LEVEL
+			else
+				text = format('%s - %s', E:ShortValue(current), E:ShortValue(max-current))
+			end
+		end
 
-		bar.text:SetText(text)	
+		bar.text:SetText(text)
 	end
 end
 
@@ -110,17 +135,21 @@ function mod:HonorBar_OnEnter()
 	GameTooltip:Show()
 end
 
+function mod:HonorBar_OnClick()
+
+end
+
 function mod:UpdateHonorDimensions()
 	self.honorBar:Width(self.db.honor.width)
 	self.honorBar:Height(self.db.honor.height)
 	self.honorBar.statusBar:SetOrientation(self.db.honor.orientation)
 	self.honorBar.statusBar:SetReverseFill(self.db.honor.reverseFill)
-
+	self.honorBar.text:FontTemplate(nil, self.db.honor.textSize)
 	if self.db.honor.mouseover then
 		self.honorBar:SetAlpha(0)
 	else
 		self.honorBar:SetAlpha(1)
-	end		
+	end
 end
 
 function mod:EnableDisable_HonorBar()
@@ -137,7 +166,7 @@ function mod:EnableDisable_HonorBar()
 end
 
 function mod:LoadHonorBar()
-	self.honorBar = self:CreateBar('ElvUI_HonorBar', self.HonorBar_OnEnter, 'RIGHT', RightChatPanel, 'LEFT', E.Border - E.Spacing*3, 0)
+	self.honorBar = self:CreateBar('ElvUI_HonorBar', self.HonorBar_OnEnter, self.HonorBar_OnClick, 'RIGHT', RightChatPanel, 'LEFT', E.Border - E.Spacing*3, 0)
 	self.honorBar.statusBar:SetStatusBarColor(240/255, 114/255, 65/255)
 	self.honorBar.statusBar:SetMinMaxValues(0, 325)
 

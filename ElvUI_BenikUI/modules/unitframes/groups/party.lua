@@ -30,10 +30,11 @@ function UFB:Update_PartyFrames(frame, db)
 
 	end
 	
-	frame:UpdateAllElements()
+	frame:UpdateAllElements("BenikUI_UpdateAllElements")
 end
 
 function UFB:InitParty()
+	if not E.db.unitframe.units.party.enable then return end
 	hooksecurefunc(UF, 'Update_PartyFrames', UFB.Update_PartyFrames)
 end
 

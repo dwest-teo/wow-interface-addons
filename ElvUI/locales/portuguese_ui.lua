@@ -61,6 +61,11 @@ L["says"] = "diz"
 L["whispers"] = "sussurra"
 L["yells"] = "grita"
 
+--DataBars
+L["Current Level:"] = true;
+L["Honor XP:"] = true;
+L["Honor Remaining:"] = true;
+
 --DataTexts
 L["(Hold Shift) Memory Usage"] = "(Segurar Shift) Memória em Uso"
 L["AP"] = "PA"
@@ -102,6 +107,7 @@ L["Offhand"] = "Mão Secundária"
 L["Profit:"] = "Lucro:"
 L["Reset Data: Hold Shift + Right Click"] = "Redefinir Dados: Segurar Shifr + Clique Direito"
 L["Saved Raid(s)"] = "Raide(s) Salva(s)"
+L["Saved Dungeon(s)"] = true;
 L["Server: "] = "Servidor: "
 L["Session:"] = "Sessão:"
 L["Shoulder"] = "Ombros"
@@ -118,6 +124,7 @@ L["Waist"] = "Cintura"
 L["Wrist"] = "Pulsos"
 L["|cffFFFFFFLeft Click:|r Change Talent Specialization"] = "|cffFFFFFFClique Esquerdo:|r Altera Especialização de Talento";
 L["|cffFFFFFFRight Click:|r Change Loot Specialization"] = "|cffFFFFFFClique Direito:|r Altera a Especialização de Saque";
+L["|cffFFFFFFShift + Left Click:|r Show Talent Specialization UI"] = true;
 
 --DebugTools
 L["%s: %s tried to call the protected function '%s'."] = "%s: %s tentou chamar a função protegida '%s'."
@@ -181,7 +188,7 @@ L["Skip Process"] = "Pular Processo"
 L["Sticky Frames"] = "Quadros Pegadiços"
 L["Tank"] = "Tanque"
 L["The chat windows function the same as Blizzard standard chat windows, you can right click the tabs and drag them around, rename, etc. Please click the button below to setup your chat windows."] = "As janelas de bate-papo funcionam da mesma forma das da Blizzard, você pode usar o botão direito nas guias para os arrastar, mudar o nome, etc. Por favor clique no botão abaixo para configurar as suas janelas de bate-papo"
-L["The in-game configuration menu can be accesses by typing the /ec command or by clicking the 'C' button on the minimap. Press the button below if you wish to skip the installation process."] = "O modo configuração em jogo pode ser acessado escrevendo o comando /ec ou clicando no botão 'C' no minimapa. Pressione o botão abaixo se desejar pular o processo de instalação"
+L["The in-game configuration menu can be accessed by typing the /ec command or by clicking the 'C' button on the minimap. Press the button below if you wish to skip the installation process."] = "O modo configuração em jogo pode ser acessado escrevendo o comando /ec ou clicando no botão 'C' no minimapa. Pressione o botão abaixo se desejar pular o processo de instalação"
 L["Theme Set"] = "Tema configurado"
 L["Theme Setup"] = "Configuração do Tema"
 L["This install process will help you learn some of the features in ElvUI has to offer and also prepare your user interface for usage."] = "Este processo de instalação vai mostrar-lhe algumas das opções que a ElvUI tem para oferecer e também vai preparar a sua interface para ser usada."
@@ -229,7 +236,12 @@ L["Alternative Power"] = "Recurso Alternativo"
 L["Archeology Progress Bar"] = true;
 L["Arena Frames"] = "Quadros de Arenas"
 L["Artifact Bar"] = true;
+L["Bag Mover (Grow Down)"] = true;
+L["Bag Mover (Grow Up)"] = true;
+L["Bag Mover"] = true;
 L["Bags"] = "Bolsas"
+L["Bank Mover (Grow Down)"] = true;
+L["Bank Mover (Grow Up)"] = true;
 L["Bar "] = "Barra "
 L["BNet Frame"] = "Quadro do Bnet"
 L["Boss Button"] = "Botão de Chefe"
@@ -277,6 +289,7 @@ L["TargetTarget Frame"] = "Quadro do Alvo do Alvo"
 L["TargetTargetTarget Frame"] = true;
 L["Tooltip"] = "Tooltip"
 L["Vehicle Seat Frame"] = "Quadro de Assento de Veículo"
+L["Zone Ability"] = true
 L["DESC_MOVERCONFIG"] = [=[Movedores destravados. Mova-os agora e clique Travar quando acabar.
 
 Options:
@@ -313,6 +326,7 @@ L["|cFFE30000Lua error recieved. You can view the error message when you exit co
 
 --Static Popups
 L["A setting you have changed will change an option for this character only. This setting that you have changed will be uneffected by changing user profiles. Changing this setting requires that you reload your User Interface."] = "A definição que você alterou afetará apenas este personagem. Esta definição que você alterou não será afetada por mudanças de perfil. Alterar esta difinição requer que você recarregue a sua interface."
+L["Are you sure you want to apply this font to all ElvUI elements?"] = true;
 L["Are you sure you want to delete all your gray items?"] = "Tem a certeza de que deseja destruir todos os seus itens cinzentos?"
 L["Are you sure you want to disband the group?"] = "Tem a certeza de que quer dissolver o grupo?"
 L["Are you sure you want to reset all the settings on this profile?"] = "Tem certeza que quer redefinir todas as configurações desse perfil?"
@@ -367,5 +381,6 @@ L["You can toggle the microbar by using your middle mouse button on the minimap 
 L["You can use the /resetui command to reset all of your movers. You can also use the command to reset a specific mover, /resetui <mover name>.\nExample: /resetui Player Frame"] = "Você pode usar o comando /resetui para restaurar todos os movedores. Pode usar este comando também para restaurar um movedor especifico escrevendo /resetui <nome do movedor> \nExemplo: /resetui Player Frame"
 
 --UnitFrames
+L["Dead"] = true;
 L["Ghost"] = "Fantasma"
 L["Offline"] = "Desconectado"

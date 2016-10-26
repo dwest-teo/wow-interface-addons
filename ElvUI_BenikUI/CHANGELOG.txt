@@ -1,3 +1,87 @@
+[b]3.10[/b]
+*toc update for wow patch 7.1
+*Temporary disable iLevel in wow 7.03 till 7.1 goes live
+*New AddOnSkins defaults per addon. Due to AddOnSkins profile changes, BenikUI install must run again in order to apply embedds.
+*Revampet the afkMode timers. It's gonna show a simple 30mins logoff timer now. Also removed the mouse movement check.
+*Apply Recount profile on the fly
+*Apply MSBT profile on the fly
+*Added Details profile
+*Added profile for SquareMinimap Buttons
+*iLevel issues should be fixed by using the new GetDetailedItemLevelInfo api
+*Fixed detached portrait position during install
+*Styled some missing alert frames
+
+[b]3.09[/b]
+*Added support for LocationPlus & LocationLite feature to hide Bliz Zonetext
+*Unitframe position fixes during install
+*Actionbar position fixes during install
+*Updated datatext positions during install
+*Changed tokens defaults
+*Fixed Power text position for Uintframes-2 layout
+*Fixed the transmog frame style
+*Prevent a map lua error in wow 7.1
+*Guard against a skin error. This sould fix #52. Also added styling safety check on all Alert frames
+*Follow ElvUI portrait changes
+*Set Mission level font to ElvUI default font
+
+[b]3.08[/b]
+*Fixed detached portrait style height and also lowered the minimum height option from 4 to 3
+*Added Order Hall Datatext. This will show missions instead
+*Removed Roadway font. Merathilis has his own ui now :P 
+*Guard against a rare lua error in the experience databar notifier 
+*Fixed max player level for Honor Databar. This should deal with #51 
+*AFK mode: Added backdrops under XP remaining string
+*Game Menu: Added Talents, Specialization, PvP Talents
+*Clicking the Honor button will show the PvP Talents frame 
+*Added fps in FlightMode 
+*Databar buttons now have their own backdrop option
+*Adopted ElvUI beta oUF changes 
+*Added tab chat flash 
+*Changed the default castbar texture to a non transparent one, so that the interrupt casts color shows
+*Fixed a copy/paste error in experience databar. This should fix #50 
+*Disable OrdeHall styling when GarrisonCommander addon is loaded. This should fix #47 
+*Styled all order hall mission tooltips
+*Fixed World Quest tooltips style
+*Updated donor list 
+*Prevent tooltip style to go off screen
+*Fixed code to prevent a HonorBar error
+*Added option on System Dashboard to show World or Home Latency. Default is World. Also added tooltip.
+*Styled Obliterum Forge Frame, Garrison Talent AlertFrame, Bonus Roll frame, Guild Invite frame
+
+[b]3.07[/b]
+*Fixed a honorbar lua error
+*BenikUI Style for the BattlePet Ability Tooltip
+*Added checks to prevent lua error when the unitframe is disabled via ElvUI options
+*Change BenikUI style for Battlepet tooltip 
+
+[b]3.06[/b]
+*Fixed styling for OrderHall Mission frame
+
+[b]3.05[/b]
+*Proper styling for OrderHall Mission frame
+*Bag changes in ElvUI break flightMode. Releasing with a temp fix before ElvUI.
+
+[b]3.04[/b]
+*Fixed Professions and Tokens Dashboards movers
+*Replace Blizzard font in the Artifact frame - weapon name
+*Styled the Adventure map dialog
+*OrderHall Mission frame styled
+
+[b]3.03[/b]
+*Updated max profession level
+*Proper way to show/hide the ArticaftFrame. (Merathilis)
+*Added option to Enable/Disable camera rotation during FlightMode. Disabled by default.
+*Alert frames skin styling
+*Fixed the flightMode Game Menu
+*Fixed Professions Dashboard not showing when a char learns a new profession
+*Fixed Tokens Dashboard not showing when a new char discovers a token
+*Fixed Clock not getting styled
+*Fixed Collections frame not getting styled
+*Changed BenikUI color in the character select AddOn Manager. (Merathilis)
+*Automatically set the Skada profile in install. (Merathilis)
+*Style for the LFDRoleCheckPopup. (Merathilis)
+*Raid frames install fixes
+
 [b]3.02[/b]
 *Don't update the Dashboard Memory module while in combat
 *Talking Head frame styled

@@ -20,6 +20,7 @@ L['light blue color.'] = true
 L['Splash Screen'] = true
 
 -- Misc
+L['Camera rotation'] = true
 L['iLevel'] = true
 L['Show item level per slot, on the character info frame'] = true
 
@@ -98,7 +99,6 @@ L['LeftClick to Request Stop'] = true
 L['RightClick to Hide'] = true
 
 -- afk Mode
-L["Cursor moved. Timer reset."] = true
 L["Logout Timer"] = true
 L["Random Stats"] = true
 L["remaining till level"] = true
@@ -114,6 +114,7 @@ L['Enable the Tokens Dashboard.'] = true
 L['Enable/Disable '] = true
 L['Flash on updates'] = true
 L['Framerate drop has been reported with Zygor Guides\nand the Memory module while in an instance.\nMemory module updates have been temporarily disabled.'] = true
+L['Latency (MS)'] = true
 L['Memory: '] = true
 L['MouseWheel :'] = true
 L['RightClick :'] = true
@@ -143,6 +144,8 @@ L['Show BenikUI decorative bars on the default ElvUI XP bar'] = true
 L['Show BenikUI decorative bars on the default ElvUI Artifact bar'] = true
 L['Show BenikUI decorative bars on the default ElvUI Reputation bar'] = true
 L['Show BenikUI decorative bars on the default ElvUI Honor bar'] = true
+L['Button Backdrop'] = true
+L['Without Backdrop'] = true
 
 -- Skins Options
 L['AddOnSkins'] = true

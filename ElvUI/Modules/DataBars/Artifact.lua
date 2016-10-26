@@ -7,14 +7,18 @@ local _G = _G
 local format = format
 
 --WoW API / Variables
-local HasArtifactEquipped = HasArtifactEquipped
-local MainMenuBar_GetNumArtifactTraitsPurchasableFromXP = MainMenuBar_GetNumArtifactTraitsPurchasableFromXP
 local C_ArtifactUIGetEquippedArtifactInfo = C_ArtifactUI.GetEquippedArtifactInfo
-local ARTIFACT_POWER = ARTIFACT_POWER
+local HasArtifactEquipped = HasArtifactEquipped
+local HideUIPanel = HideUIPanel
 local InCombatLockdown = InCombatLockdown
+local MainMenuBar_GetNumArtifactTraitsPurchasableFromXP = MainMenuBar_GetNumArtifactTraitsPurchasableFromXP
+local ShowUIPanel = ShowUIPanel
+local SocketInventoryItem = SocketInventoryItem
+local ARTIFACT_POWER = ARTIFACT_POWER
+local ARTIFACT_POWER_TOOLTIP_BODY = ARTIFACT_POWER_TOOLTIP_BODY
 
 --Global variables that we don't cache, list them here for mikk's FindGlobals script
--- GLOBALS: GameTooltip, CreateFrame
+-- GLOBALS: GameTooltip, CreateFrame, ArtifactFrame
 
 function mod:UpdateArtifact(event)
 	if not mod.db.artifact.enable then return end
@@ -33,8 +37,8 @@ function mod:UpdateArtifact(event)
 		end
 
 		local text = ''
-		local itemID, altItemID, name, icon, totalXP, pointsSpent, quality, artifactAppearanceID, appearanceModID, itemAppearanceID, altItemAppearanceID, altOnTop = C_ArtifactUIGetEquippedArtifactInfo();
-		local numPointsAvailableToSpend, xp, xpForNextPoint = MainMenuBar_GetNumArtifactTraitsPurchasableFromXP(pointsSpent, totalXP);
+		local _, _, _, _, totalXP, pointsSpent = C_ArtifactUIGetEquippedArtifactInfo();
+		local _, xp, xpForNextPoint = MainMenuBar_GetNumArtifactTraitsPurchasableFromXP(pointsSpent, totalXP);
 		bar.statusBar:SetMinMaxValues(0, xpForNextPoint)
 		bar.statusBar:SetValue(xp)
 
@@ -45,6 +49,12 @@ function mod:UpdateArtifact(event)
 			text = format('%s - %s', E:ShortValue(xp), E:ShortValue(xpForNextPoint))
 		elseif textFormat == 'CURPERC' then
 			text = format('%s - %d%%', E:ShortValue(xp), xp / xpForNextPoint * 100)
+		elseif textFormat == 'CUR' then
+			text = format('%s', E:ShortValue(totalXP))
+		elseif textFormat == 'REM' then
+			text = format('%s', E:ShortValue(xpForNextPoint - xp))
+		elseif textFormat == 'CURREM' then
+			text = format('%s - %s', E:ShortValue(xp), E:ShortValue(xpForNextPoint - xp))
 		end
 
 		bar.text:SetText(text)
@@ -61,13 +71,23 @@ function mod:ArtifactBar_OnEnter()
 	GameTooltip:AddLine(ARTIFACT_POWER)
 	GameTooltip:AddLine(' ')
 
-	local itemID, altItemID, name, icon, totalXP, pointsSpent, quality, artifactAppearanceID, appearanceModID, itemAppearanceID, altItemAppearanceID, altOnTop = C_ArtifactUIGetEquippedArtifactInfo();
+	local _, _, _, _, totalXP, pointsSpent = C_ArtifactUIGetEquippedArtifactInfo();
 	local numPointsAvailableToSpend, xp, xpForNextPoint = MainMenuBar_GetNumArtifactTraitsPurchasableFromXP(pointsSpent, totalXP);
 
 	GameTooltip:AddDoubleLine(L["XP:"], format(' %d / %d (%d%%)', xp, xpForNextPoint, xp/xpForNextPoint * 100), 1, 1, 1)
-	GameTooltip:AddDoubleLine(L["Remaining:"], format(' %d (%d%% - %d '..L["Bars"]..')', xpForNextPoint - xp, (xpForNextPoint - xp) / xpForNextPoint * 100, 20 * (xpForNextPoint - xp) / xpForNextPoint), 1, 1, 1)
+	GameTooltip:AddDoubleLine(L["Remaining:"], format(' %d (%d%% - %d %s)', xpForNextPoint - xp, (xpForNextPoint - xp) / xpForNextPoint * 100, 20 * (xpForNextPoint - xp) / xpForNextPoint, L["Bars"]), 1, 1, 1)
+	GameTooltip:AddLine(" ")
+	GameTooltip:AddLine(format(ARTIFACT_POWER_TOOLTIP_BODY, numPointsAvailableToSpend), nil, nil, nil, true)
 
 	GameTooltip:Show()
+end
+
+function mod:ArtifactBar_OnClick()
+	if not ArtifactFrame or not ArtifactFrame:IsShown() then
+		ShowUIPanel(SocketInventoryItem(16))
+	elseif ArtifactFrame and ArtifactFrame:IsShown() then
+		HideUIPanel(ArtifactFrame)
+	end
 end
 
 function mod:UpdateArtifactDimensions()
@@ -98,7 +118,7 @@ function mod:EnableDisable_ArtifactBar()
 end
 
 function mod:LoadArtifactBar()
-	self.artifactBar = self:CreateBar('ElvUI_ArtifactBar', self.ArtifactBar_OnEnter, 'RIGHT', self.honorBar, 'LEFT', E.Border - E.Spacing*3, 0)
+	self.artifactBar = self:CreateBar('ElvUI_ArtifactBar', self.ArtifactBar_OnEnter, self.ArtifactBar_OnClick, 'RIGHT', self.honorBar, 'LEFT', E.Border - E.Spacing*3, 0)
 	self.artifactBar.statusBar:SetStatusBarColor(.901, .8, .601)
 	self.artifactBar.statusBar:SetMinMaxValues(0, 325)
 

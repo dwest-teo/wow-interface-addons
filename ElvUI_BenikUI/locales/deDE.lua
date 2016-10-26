@@ -20,6 +20,7 @@ L['light blue color.'] = "hell blau"
 L['Splash Screen'] = "Startbildschirm"
 
 -- Misc
+L['Camera rotation'] = "Kamerarotation"
 L['iLevel'] = true
 L['Show item level per slot, on the character info frame'] = "Zeigt das Itemlevel pro Slot, im Spielerfenster"
 
@@ -98,7 +99,6 @@ L['LeftClick to Request Stop'] = "Links-Klick um am nächsten Flugpunkt zu lande
 L['RightClick to Hide'] = "Rechts-Klick zum verstecken"
 
 -- afk Mode
-L["Cursor moved. Timer reset."] = "Cursor bewegt. Timer zurückgesetzt."
 L["Logout Timer"] = "Auslogzeit"
 L["Random Stats"] = "Zufällige Werte"
 L["remaining till level"] = "verbleibend bis zum Level"
@@ -114,6 +114,7 @@ L['Enable the Tokens Dashboard.'] = "Aktivert das Abzeichen Dashboard."
 L['Enable/Disable '] = "Aktivieren/Deaktivieren"
 L['Flash on updates'] = "Beim Updaten blinken"
 L['Framerate drop has been reported with Zygor Guides\nand the Memory module while in an instance.\nMemory module updates have been temporarily disabled.'] = "Es wurde berichtet dass die Bildrate sinkt mit Zygor Guide\nund dem Speicher Modul während man in einer Instanz ist.\nSpeicher Modul Aktualisierung wird vorübergehend deaktiviert."
+L['Latency (MS)'] = "Latenz (MS)"
 L['Memory: '] = "Speicher"
 L['MouseWheel :'] = "Mausrad :"
 L['RightClick :'] = "Rechtsklick :"
@@ -143,6 +144,8 @@ L['Show BenikUI decorative bars on the default ElvUI XP bar'] = "Zeige BenikUI d
 L['Show BenikUI decorative bars on the default ElvUI Artifact bar'] = "Zeige BenikUI dekorative Leisten auf der standard ElvUI Artefaktleiste"
 L['Show BenikUI decorative bars on the default ElvUI Reputation bar'] = "Zeige BenikUI dekorative Leisten auf der standard ElvUI Rufleiste"
 L['Show BenikUI decorative bars on the default ElvUI Honor bar'] = "Zeige BenikUI dekorative Leisten auf der standard ElvUI Ehrenleiste"
+L['Button Backdrop'] = "Tasten Hintergrund"
+L['Without Backdrop'] = "Ohne Hintergrund"
 
 -- Skins Options
 L['AddOnSkins'] = true

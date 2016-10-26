@@ -18,7 +18,6 @@ local function LoadSkin()
 		"StaticPopup2",
 		"StaticPopup3",
 		"StaticPopup4",
-		"GameMenuFrame",
 		"InterfaceOptionsFrame",
 		"VideoOptionsFrame",
 		"AudioOptionsFrame",
@@ -41,6 +40,9 @@ local function LoadSkin()
 		_G[skins[i]]:SetTemplate("Transparent")
 	end
 
+	if not IsAddOnLoaded("ConsolePort") then
+		GameMenuFrame:SetTemplate("Transparent")
+	end
 
 	local ChatMenus = {
 		"ChatMenu",
@@ -93,34 +95,36 @@ local function LoadSkin()
 		end
 	end
 
-	-- reskin all esc/menu buttons
-	local BlizzardMenuButtons = {
-		"Options",
-		"SoundOptions",
-		"UIOptions",
-		"Keybindings",
-		"Macros",
-		"AddOns",
-		"WhatsNew",
-		"Ratings",
-		"Addons",
-		"Logout",
-		"Quit",
-		"Continue",
-		"MacOptions",
-		"Store",
-		"Help"
-	}
+	if not IsAddOnLoaded("ConsolePort") then
+		-- reskin all esc/menu buttons
+		local BlizzardMenuButtons = {
+			"GameMenuButtonOptions",
+			"GameMenuButtonSoundOptions",
+			"GameMenuButtonUIOptions",
+			"GameMenuButtonKeybindings",
+			"GameMenuButtonMacros",
+			"GameMenuButtonAddOns",
+			"GameMenuButtonWhatsNew",
+			"GameMenuButtonRatings",
+			"GameMenuButtonAddons",
+			"GameMenuButtonLogout",
+			"GameMenuButtonQuit",
+			"GameMenuButtonContinue",
+			"GameMenuButtonMacOptions",
+			"GameMenuButtonStore",
+			"GameMenuButtonHelp"
+		}
 
-	for i = 1, getn(BlizzardMenuButtons) do
-		local ElvuiMenuButtons = _G["GameMenuButton"..BlizzardMenuButtons[i]]
-		if ElvuiMenuButtons then
-			S:HandleButton(ElvuiMenuButtons)
+		for i = 1, #BlizzardMenuButtons do
+			local menuButton = _G[BlizzardMenuButtons[i]]
+			if menuButton then
+				S:HandleButton(menuButton)
+			end
 		end
-	end
 
-	-- Skin the ElvUI Menu Button
-	S:HandleButton(GameMenuFrame.ElvUI)
+		-- Skin the ElvUI Menu Button
+		S:HandleButton(GameMenuFrame.ElvUI)
+	end
 
 	if IsAddOnLoaded("OptionHouse") then
 		S:HandleButton(GameMenuButtonOptionHouse)
@@ -158,7 +162,6 @@ local function LoadSkin()
 
 	-- hide header textures and move text/buttons.
 	local BlizzardHeader = {
-		"GameMenuFrame",
 		"InterfaceOptionsFrame",
 		"AudioOptionsFrame",
 		"VideoOptionsFrame",
@@ -175,6 +178,12 @@ local function LoadSkin()
 				title:Point("TOP", BlizzardHeader[i], 0, 0)
 			end
 		end
+	end
+
+	if not IsAddOnLoaded("ConsolePort") then
+		GameMenuFrameHeader:SetTexture("")
+		GameMenuFrameHeader:ClearAllPoints()
+		GameMenuFrameHeader:Point("TOP", GameMenuFrame, 0, 7)
 	end
 
 	-- here we reskin all "normal" buttons
@@ -597,18 +606,17 @@ local function LoadSkin()
 		end
 	end)
 
-	--[[GuildInviteFrame:StripTextures()
+	GuildInviteFrame:StripTextures()
 	GuildInviteFrame:SetTemplate('Transparent')
-	GuildInviteFrameLevel:StripTextures()
-	GuildInviteFrameLevel:ClearAllPoints()
-	GuildInviteFrameLevel:Point('TOP', GuildInviteFrame, 'CENTER', -15, -25)
+	GuildInviteFrame.Points:ClearAllPoints()
+	GuildInviteFrame.Points:Point('TOP', GuildInviteFrame, 'CENTER', 15, -25)
 	S:HandleButton(GuildInviteFrameJoinButton)
 	S:HandleButton(GuildInviteFrameDeclineButton)
 	GuildInviteFrame:Height(225)
 	GuildInviteFrame:HookScript("OnEvent", function()
 		GuildInviteFrame:Height(225)
 	end)
-	GuildInviteFrameWarningText:Kill()]]
+	GuildInviteFrameWarningText:Kill()
 
 	--[[local function SkinWatchFrameItems()
 		for i=1, WATCHFRAME_NUM_ITEMS do
@@ -909,19 +917,23 @@ local function LoadSkin()
 		"RecordLoopbackSoundButton",
 		"PlayLoopbackSoundButton",
 		"AudioOptionsVoicePanelChatMode1KeyBindingButton",
-		"CompactUnitFrameProfilesSaveButton",
-		"CompactUnitFrameProfilesDeleteButton",
 		"InterfaceOptionsSocialPanelTwitterLoginButton",
 		"InterfaceOptionsDisplayPanelResetTutorials",
 		"InterfaceOptionsSocialPanelRedockChat"
 	}
 	for _, button in pairs(buttons) do
-		S:HandleButton(_G[button])
+		if _G[button] then
+			S:HandleButton(_G[button])
+		end
 	end
 	AudioOptionsVoicePanelChatMode1KeyBindingButton:ClearAllPoints()
 	AudioOptionsVoicePanelChatMode1KeyBindingButton:Point("CENTER", AudioOptionsVoicePanelBinding, "CENTER", 0, -10)
-	S:HandleCheckBox(CompactUnitFrameProfilesRaidStylePartyFrames)
-	S:HandleButton(CompactUnitFrameProfilesGeneralOptionsFrameResetPositionButton)
+	if CompactUnitFrameProfiles then --Some addons disable the Blizzard addon
+		S:HandleCheckBox(CompactUnitFrameProfilesRaidStylePartyFrames)
+		S:HandleButton(CompactUnitFrameProfilesGeneralOptionsFrameResetPositionButton)
+		S:HandleButton(CompactUnitFrameProfilesSaveButton)
+		S:HandleButton(CompactUnitFrameProfilesDeleteButton)
+	end
 	GraphicsButton:StripTextures()
 	RaidButton:StripTextures()
 	local raidcheckbox = {
@@ -990,8 +1002,11 @@ local function LoadSkin()
 		"CompactUnitFrameProfilesGeneralOptionsFrameWidthSlider"
 	}
 
-	for _, slider in pairs(sliders) do
-		S:HandleSliderFrame(_G[slider])
+	for i = 1, #sliders do
+		local slider = _G[sliders[i]]
+		if slider then
+			S:HandleSliderFrame(slider)
+		end
 	end
 
 	-- mac option
@@ -1063,25 +1078,10 @@ local function LoadSkin()
 				S:HandleNextPrevButton(navButton.MenuArrowButton, true)
 			end
 
-			navButton.xoffset = 1 --Make a 1px gap between each navbutton
 			navButton.isSkinned = true
 		end
 	end
 	hooksecurefunc("NavBar_AddButton", SkinNavBarButtons)
-	
-	--This is necessary to fix position of button right next to homebutton.
-	local function SetHomeButtonOffsetX(self)
-		local homeButton = self.homeButton
-		if homeButton then
-			homeButton.xoffset = 1
-		end
-	end
-	hooksecurefunc("NavBar_Initialize", SetHomeButtonOffsetX)
-
-	--WorldMapFrameNavBar loads before this file, so our hook has no effect on this one.
-	if WorldMapFrameNavBar then
-		SetHomeButtonOffsetX(WorldMapFrameNavBar)
-	end
 end
 
-S:RegisterSkin('ElvUI', LoadSkin)
+S:AddCallback("Misc", LoadSkin)

@@ -114,6 +114,8 @@ V['skins'] = {
 		["orderhall"] = true,
 		["artifact"] = true,
 		["talkinghead"] = true,
+		["AdventureMap"] = true,
+		["Obliterum"] = true,
 	},
 }
 

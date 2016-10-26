@@ -31,6 +31,12 @@ local function miscTable()
 						name = L['Enable'],
 						desc = L['Display the Flight Mode screen when taking flight paths'],
 					},
+					cameraRotation = {
+						order = 2,
+						type = 'toggle',
+						name = L['Camera rotation'],
+						disabled = function() return not E.db.benikui.misc.flightMode.enable end,
+					},
 				},
 			},
 			ilevel = {
@@ -39,7 +45,7 @@ local function miscTable()
 				guiInline = true,
 				name = L['iLevel'],
 				get = function(info) return E.db.benikui.misc.ilevel[ info[#info] ] end,
-				set = function(info, value) E.db.benikui.misc.ilevel[ info[#info] ] = value; BUI:update_iLevelItems() end,
+				set = function(info, value) E.db.benikui.misc.ilevel[ info[#info] ] = value; if E.wowbuild >= 22882 then BUI:update_iLevelItems() end; end,
 				args = {
 					enable = {
 						order = 1,

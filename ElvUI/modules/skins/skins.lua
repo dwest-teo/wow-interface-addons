@@ -1,10 +1,28 @@
 local E, L, V, P, G = unpack(select(2, ...)); --Inport: Engine, Locales, PrivateDB, ProfileDB, GlobalDB
 local S = E:NewModule('Skins', 'AceTimer-3.0', 'AceHook-3.0', 'AceEvent-3.0')
 
+--Cache global variables
+--Lua functions
+local _G = _G
+local unpack, assert, pairs, select, type, pcall = unpack, assert, pairs, select, type, pcall
+local tinsert, wipe = table.insert, table.wipe
+--WoW API / Variables
+local SquareButton_SetIcon = SquareButton_SetIcon
+local CreateFrame = CreateFrame
+local SetDesaturation = SetDesaturation
+local hooksecurefunc = hooksecurefunc
+local IsAddOnLoaded = IsAddOnLoaded
+local GetCVarBool = GetCVarBool
+
+--Global variables that we don't cache, list them here for mikk's FindGlobals script
+-- GLOBALS: ScriptErrorsFrame_OnError
+
 E.Skins = S
 S.addonsToLoad = {}
 S.nonAddonsToLoad = {}
 S.allowBypass = {}
+S.addonCallbacks = {}
+S.nonAddonCallbacks = {}
 
 local find = string.find
 
@@ -41,6 +59,15 @@ end
 
 function S:HandleScrollBar(frame, thumbTrim)
 	if frame:GetName() then
+		if frame.Background then frame.Background:SetTexture(nil) end
+		if frame.trackBG then frame.trackBG:SetTexture(nil) end
+		if frame.Middle then frame.Middle:SetTexture(nil) end
+		if frame.Top then frame.Top:SetTexture(nil) end
+		if frame.Bottom then frame.Bottom:SetTexture(nil) end
+		if frame.ScrollBarTop then frame.ScrollBarTop:SetTexture(nil) end
+		if frame.ScrollBarBottom then frame.ScrollBarBottom:SetTexture(nil) end
+		if frame.ScrollBarMiddle then frame.ScrollBarMiddle:SetTexture(nil) end
+
 		if _G[frame:GetName().."BG"] then _G[frame:GetName().."BG"]:SetTexture(nil) end
 		if _G[frame:GetName().."Track"] then _G[frame:GetName().."Track"]:SetTexture(nil) end
 
@@ -172,7 +199,6 @@ function S:HandleTab(tab)
 end
 
 function S:HandleNextPrevButton(btn, useVertical, inverseDirection)
-	local norm, pushed, disabled
 	local inverseDirection = inverseDirection or btn:GetName() and (find(btn:GetName():lower(), 'left') or find(btn:GetName():lower(), 'prev') or find(btn:GetName():lower(), 'decrement') or find(btn:GetName():lower(), 'back'))
 
 	btn:StripTextures()
@@ -299,10 +325,10 @@ function S:HandleDropDownBox(frame, width)
 	if(button) then
 		button:ClearAllPoints()
 		button:Point("RIGHT", frame, "RIGHT", -10, 3)
-		hooksecurefunc(button, "SetPoint", function(self, point, attachTo, anchorPoint, xOffset, yOffset, noReset)
+		hooksecurefunc(button, "SetPoint", function(self, _, _, _, _, _, noReset)
 			if not noReset then
-				button:ClearAllPoints()
-				button:SetPoint("RIGHT", frame, "RIGHT", E:Scale(-10), E:Scale(3), true)
+				self:ClearAllPoints()
+				self:SetPoint("RIGHT", frame, "RIGHT", E:Scale(-10), E:Scale(3), true)
 			end
 		end)
 
@@ -380,7 +406,7 @@ end
 function S:HandleItemButton(b, shrinkIcon)
 	if b.isSkinned then return; end
 
-	local icon = b.icon or b.IconTexture or b.iconTexture
+	local icon = b.icon or b.Icon or b.IconTexture or b.iconTexture
 	local texture
 	if b:GetName() and _G[b:GetName()..'IconTexture'] then
 		icon = _G[b:GetName()..'IconTexture']
@@ -472,18 +498,97 @@ function S:HandleSliderFrame(frame)
 	end
 end
 
+function S:HandleFollowerPage(follower, hasItems)
+	local abilities = follower.followerTab.AbilitiesFrame.Abilities
+	if follower.numAbilitiesStyled == nil then
+		follower.numAbilitiesStyled = 1
+	end
+	local numAbilitiesStyled = follower.numAbilitiesStyled
+	local ability = abilities[numAbilitiesStyled]
+	while ability do
+		local icon = ability.IconButton.Icon
+		S:HandleIcon(icon, ability.IconButton)
+		icon:SetDrawLayer("BORDER", 0)
+		numAbilitiesStyled = numAbilitiesStyled + 1
+		ability = abilities[numAbilitiesStyled]
+	end
+	follower.numAbilitiesStyled = numAbilitiesStyled
+
+	if hasItems then
+		local weapon = follower.followerTab.ItemWeapon
+		local armor = follower.followerTab.ItemArmor
+		if not weapon.backdrop then
+			S:HandleIcon(weapon.Icon, weapon)
+			weapon.Border:SetTexture(nil)
+			weapon.backdrop:SetFrameLevel(weapon:GetFrameLevel())
+		end
+		if not armor.backdrop then
+			S:HandleIcon(armor.Icon, armor)
+			armor.Border:SetTexture(nil)
+			armor.backdrop:SetFrameLevel(armor:GetFrameLevel())
+		end
+	end
+
+	local xpbar = follower.followerTab.XPBar
+	xpbar:StripTextures()
+	xpbar:SetStatusBarTexture(E["media"].normTex)
+	xpbar:CreateBackdrop("Transparent")
+end
+
+function S:HandleShipFollowerPage(followerTab)
+	local traits = followerTab.Traits
+	for i = 1, #traits do
+		local icon = traits[i].Portrait
+		local border = traits[i].Border
+		border:SetTexture(nil) -- I think the default border looks nice, not sure if we want to replace that
+		-- The landing page icons display inner borders
+		if followerTab.isLandingPage then
+			icon:SetTexCoord(unpack(E.TexCoords))
+		end
+	end
+
+	local equipment = followerTab.EquipmentFrame.Equipment
+	for i = 1, #equipment do
+		local icon = equipment[i].Icon
+		local border = equipment[i].Border
+		border:SetAtlas("ShipMission_ShipFollower-TypeFrame") -- This border is ugly though, use the traits border instead
+		-- The landing page icons display inner borders
+		if followerTab.isLandingPage then
+			icon:SetTexCoord(unpack(E.TexCoords))
+		end
+	end
+end
+
 function S:ADDON_LOADED(event, addon)
 	if self.allowBypass[addon] then
-		S.addonsToLoad[addon]()
-		S.addonsToLoad[addon] = nil
+		if S.addonsToLoad[addon] then
+			--Load addons using the old deprecated register method
+			S.addonsToLoad[addon]()
+			S.addonsToLoad[addon] = nil
+		elseif S.addonCallbacks[addon] then
+			--Fire events to the skins that rely on this addon
+			for event in pairs(S.addonCallbacks[addon]) do
+				S.addonCallbacks[addon][event] = nil;
+				E.callbacks:Fire(event)
+			end
+		end
 		return
 	end
 
-	if not E.initialized or not S.addonsToLoad[addon] then return end
-	S.addonsToLoad[addon]()
-	S.addonsToLoad[addon] = nil
+	if not E.initialized then return end
+
+	if S.addonsToLoad[addon] then
+		S.addonsToLoad[addon]()
+		S.addonsToLoad[addon] = nil
+	elseif S.addonCallbacks[addon] then
+		for event in pairs(S.addonCallbacks[addon]) do
+			S.addonCallbacks[addon][event] = nil;
+			E.callbacks:Fire(event)
+		end
+	end
 end
 
+--Old deprecated register function. Keep it for the time being for any plugins that may need it.
 function S:RegisterSkin(name, loadFunc, forceLoad, bypass)
 	if bypass then
 		self.allowBypass[name] = true;
@@ -499,8 +604,89 @@ function S:RegisterSkin(name, loadFunc, forceLoad, bypass)
 	end
 end
 
+--Add callback for skin that relies on another addon.
+--These events will be fired when the addon is loaded.
+function S:AddCallbackForAddon(addonName, eventName, loadFunc, forceLoad, bypass)
+	if not addonName or type(addonName) ~= "string" then
+		E:Print("Invalid argument #1 to S:AddCallbackForAddon (string expected)")
+		return
+	elseif not eventName or type(eventName) ~= "string" then
+		E:Print("Invalid argument #2 to S:AddCallbackForAddon (string expected)")
+		return
+	elseif not loadFunc or type(loadFunc) ~= "function" then
+		E:Print("Invalid argument #3 to S:AddCallbackForAddon (function expected)")
+		return
+	end
+
+	if bypass then
+		self.allowBypass[addonName] = true;
+	end
+
+	--Create an event registry for this addon, so that we can fire multiple events when this addon is loaded
+	if not self.addonCallbacks[addonName] then
+		self.addonCallbacks[addonName] = {}
+	end
+	
+	if self.addonCallbacks[addonName][eventName] then
+		--Don't allow a registered callback to be overwritten
+		E:Print("Invalid argument #2 to S:AddCallbackForAddon (event name is already registered, please use a unique event name)")
+		return
+	end
+
+	--Register loadFunc to be called when event is fired
+	E.RegisterCallback(E, eventName, loadFunc)
+
+	if forceLoad then
+		E.callbacks:Fire(eventName)
+	else
+		--Insert eventName in this addons' registry
+		self.addonCallbacks[addonName][eventName] = true
+	end
+end
+
+--Add callback for skin that does not rely on a another addon.
+--These events will be fired when the Skins module is initialized.
+function S:AddCallback(eventName, loadFunc)
+	if not eventName or type(eventName) ~= "string" then
+		E:Print("Invalid argument #1 to S:AddCallback (string expected)")
+		return
+	elseif not loadFunc or type(loadFunc) ~= "function" then
+		E:Print("Invalid argument #2 to S:AddCallback (function expected)")
+		return
+	end
+
+	if self.nonAddonCallbacks[eventName] then
+		--Don't allow a registered callback to be overwritten
+		E:Print("Invalid argument #1 to S:AddCallback (event name is already registered, please use a unique event name)")
+		return
+	end
+
+	--Add event name to registry
+	self.nonAddonCallbacks[eventName] = true
+
+	--Register loadFunc to be called when event is fired
+	E.RegisterCallback(E, eventName, loadFunc)
+end
+
 function S:Initialize()
 	self.db = E.private.skins
+
+	--Fire events for Blizzard addons that are already loaded
+	for addon, events in pairs(self.addonCallbacks) do
+		if IsAddOnLoaded(addon) then
+			for event in pairs(events) do
+				self.addonCallbacks[addon][event] = nil;
+				E.callbacks:Fire(event)
+			end
+		end
+	end
+	--Fire event for all skins that doesn't rely on a Blizzard addon
+	for eventName in pairs(self.nonAddonCallbacks) do
+		self.addonCallbacks[eventName] = nil;
+		E.callbacks:Fire(eventName)
+	end
+
+	--Old deprecated load functions. We keep this for the time being in case plugins make use of it.
 	for addon, loadFunc in pairs(self.addonsToLoad) do
 		if IsAddOnLoaded(addon) then
 			self.addonsToLoad[addon] = nil;

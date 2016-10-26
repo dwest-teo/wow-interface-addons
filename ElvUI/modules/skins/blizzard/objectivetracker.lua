@@ -10,17 +10,15 @@ local function LoadSkin()
 
 	ObjectiveTrackerBlocksFrame.QuestHeader:StripTextures()
 	ObjectiveTrackerBlocksFrame.QuestHeader.Text:FontTemplate()
-
-
 	ObjectiveTrackerBlocksFrame.AchievementHeader:StripTextures()
 	ObjectiveTrackerBlocksFrame.AchievementHeader.Text:FontTemplate()
-
-
 	ObjectiveTrackerBlocksFrame.ScenarioHeader:StripTextures()
 	ObjectiveTrackerBlocksFrame.ScenarioHeader.Text:FontTemplate()
 
 	BONUS_OBJECTIVE_TRACKER_MODULE.Header:StripTextures()
 	BONUS_OBJECTIVE_TRACKER_MODULE.Header.Text:FontTemplate()
+	WORLD_QUEST_TRACKER_MODULE.Header:StripTextures()
+	WORLD_QUEST_TRACKER_MODULE.Header.Text:FontTemplate()
 
 	local function OnClick(self)
 		local textObject = self.text
@@ -98,6 +96,26 @@ local function LoadSkin()
 			item.skinned = true
 		end
 	end)
+	
+	hooksecurefunc(WORLD_QUEST_TRACKER_MODULE, "AddObjective", function(_, block)
+		local item = block.itemButton
+		if item and not item.skinned then
+			item:SetSize(25, 25)
+			item:SetTemplate("Transparent")
+			item:StyleButton()
+			item:SetNormalTexture(nil)
+			item.icon:SetTexCoord(unpack(E.TexCoords))
+			item.icon:SetPoint("TOPLEFT", item, 2, -2)
+			item.icon:SetPoint("BOTTOMRIGHT", item, -2, 2)
+			item.Cooldown:SetAllPoints(item.icon)
+			item.Count:ClearAllPoints()
+			item.Count:SetPoint("TOPLEFT", 1, -1)
+			item.Count:SetFont(E["media"].normFont, 14, "OUTLINE")
+			item.Count:SetShadowOffset(5, -5)
+			E:RegisterCooldown(item.Cooldown)
+			item.skinned = true
+		end
+	end)
 end
 
-S:RegisterSkin('ElvUI', LoadSkin)
+S:AddCallback("ObjectiveTracker", LoadSkin)

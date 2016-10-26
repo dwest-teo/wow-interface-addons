@@ -37,7 +37,12 @@ The following search keywords can also be used:
     • bou : Bind on use items.
     • boe : Bind on equip items.
     • boa : Bind on account items.
-    • quest : Quest bound items.]=];
+    • quest : Quest bound items.
+    • reagents, reagent, crafting : Profession reagents.
+    • naval : Naval equipment.
+    • follower, followe, follow : Follower items.
+    • relic, reli, rel : Artifact Relics.
+    • power, powe, pow : Items granting Artifact Power.]=];
 L["TEXT_FORMAT_DESC"] = [=[請填入代碼以變更文字格式。
 
 範例：
@@ -59,16 +64,6 @@ L["TEXT_FORMAT_DESC"] = [=[請填入代碼以變更文字格式。
 'name:long' - 名稱上限為 20 個字元
 
 若要停用此功能，此欄位請留空。如需更多資訊，請至 http://www.tukui.org]=];
-L["IGNORE_ITEMS_DESC"] = [=[Valid entries:
-
-Item links or item names
-
-Terms from Search Syntax. Examples:
-q:epic
-s:Tank Set
-q:epic&lvl:>300
-
-See "Bags->Search Syntax" for more.]=];
 
 --ActionBars
 L["Action Paging"] = "快捷列翻頁"
@@ -83,8 +78,10 @@ L["Button Spacing"] = "按鈕間距"
 L["Buttons Per Row"] = "每行按鈕數"
 L["Buttons"] = "按鈕數"
 L["Change the alpha level of the frame."] = "改變框架透明度."
+L["Color of the actionbutton when not usable."] = true;
 L["Color of the actionbutton when out of power (Mana, Rage, Focus, Holy Power)."] = "施放能量 (法力、怒氣、集中值、聖能) 不足的技能快捷鍵顏色."
 L["Color of the actionbutton when out of range."] = "超出施放範圍的技能快捷鍵顏色."
+L["Color of the actionbutton when usable."] = true;
 L["Color when the text is about to expire"] = "即將冷卻完畢的數字顏色."
 L["Color when the text is in the days format."] = "以天顯示的文字顏色."
 L["Color when the text is in the hours format."] = "以小時顯示的文字顏色."
@@ -114,12 +111,14 @@ L["Masque Support"] = true;
 L["Minutes"] = "分"
 L["Mouse Over"] = "滑鼠滑過顯示"
 L["Multiply the backdrops height or width by this value. This is usefull if you wish to have more than one bar behind a backdrop."] = "根據此值增加背景的高度或寬度. 一般用來設定在一個背景框裡放置多條快捷列."
+L["Not Usable"] = true;
 L["Out of Power"] = "施放能量不足"
 L["Out of Range"] = "超出施放範圍"
 L["Restore Bar"] = "還原快捷列"
 L["Restore the actionbars default settings"] = "恢復此快捷列的預設設定"
 L["Seconds"] = "秒"
 L["Show Empty Buttons"] = true;
+L["Shows a swipe animation when a spell is recharging but still has charges left."] = true;
 L["The amount of buttons to display per row."] = "每行按鈕顯示數量."
 L["The amount of buttons to display."] = "快捷列按鈕顯示數量."
 L["The button you must hold down in order to drag an ability to another action button."] = "需按住此按鈕，才可將技能拖曳至另一快捷鈕中."
@@ -130,8 +129,13 @@ L["This setting will be updated upon changing stances."] = true;
 L["Threshold before text turns red and is in decimal form. Set to -1 for it to never turn red"] = "冷卻時間低於此秒數後將變為紅色數字, 並以小數顯示, 設為- 1 冷卻時間將不會變為紅色."
 L["Toggles the display of the actionbars backdrop."] = "顯示/隱藏快捷列背景框."
 L["Transparency level when not in combat, no target exists, full health, not casting, and no focus target exists."] = true;
+L["Usable"] = true;
+L["Use Draw Swipe"] = true;
+L["Use Position Override"] = true;
 L["Visibility State"] = "顯示狀態"
+L["When enabled it will use the Anchor Point setting to determine growth direction, otherwise it will be determined by where the bar is positioned."] = true;
 L["Width Multiplier"] = "寬度倍增"
+L["Zone Ability"] = true;
 L[ [=[This works like a macro, you can run different situations to get the actionbar to page differently.
  Example: '[combat] 2;']=] ] = [=[此功能與巨集概念類似，可根據不同情境，切換至不同的快捷列設置。
 例如：'[combat] 2;']=]
@@ -140,10 +144,11 @@ L[ [=[This works like a macro, you can run different situations to get the actio
 例如：'[combat] show;hide']=]
 
 --Bags
+L["Add an item or search syntax to the ignored list. Items matching the search syntax will be ignored."] = true;
+L["Add Item or Search Syntax"] = true;
 L["Adjust the width of the bag frame."] = '調整背包框架寬度.'
 L["Adjust the width of the bank frame."] = '調整銀行框架寬度.'
 L["Align the width of the bag frame to fit inside the chat box."] = '調整背包框架寬度以適應對話框.'
-L["Align To Chat"] = '對齊對話框架'
 L["Ascending"] = "升序"
 L["Bag Sorting"] = true;
 L["Bag-Bar"] = "背包條"
@@ -152,23 +157,29 @@ L["Blizzard Style"] = true;
 L["Bottom to Top"] = "底部至頂部"
 L["Button Size (Bag)"] = '單個格子尺寸 (背包)'
 L["Button Size (Bank)"] = '單個格子尺寸 (銀行)'
+L["Clear Search On Close"] = true;
 L["Condensed"] = true;
 L["Currency Format"] = '貨幣格式'
 L["Descending"] = "降序"
 L["Direction the bag sorting will use to allocate the items."] = "整理背包物品時，將依此排序方向排放物品."
+L["Disable Bag Sort"] = true;
+L["Disable Bank Sort"] = true;
 L["Display Item Level"] = true;
 L["Display the junk icon on all grey items that can be vendored."] = true;
+L["Display the upgrade icon on items that WoW considers an upgrade for your character."] = true;
 L["Displays item level on equippable items."] = true;
 L["Enable/Disable the all-in-one bag."] = "啟用/停用整合背包."
 L["Enable/Disable the Bag-Bar."] = "啟用/停用背包條."
 L["Full"] = true;
+L["Global"] = true;
+L["Here you can add items or search terms that you want to be excluded from sorting. To remove an item just click on its name in the list."] = true;
 L["Icons and Text (Short)"] = true;
 L["Icons and Text"] = '圖示與文字'
-L["Ignore Items"] = "忽略項目"
+L["Ignored Items and Search Syntax (Global)"] = true;
+L["Ignored Items and Search Syntax (Profile)"] = true;
 L["Item Count Font"] = true;
 L["Item Level Threshold"] = true;
 L["Item Level"] = true;
-L["Items in this list or items that match any Search Syntax query in this list will be ignored when sorting. Separate each entry with a comma."] = true;
 L["Money Format"] = true;
 L["Panel Width (Bags)"] = '框架寬度 (背包)'
 L["Panel Width (Bank)"] = '框架寬度 (銀行)'
@@ -178,6 +189,7 @@ L["Short (Whole Numbers)"] = true;
 L["Short"] = true;
 L["Show Coins"] = true;
 L["Show Junk Icon"] = true;
+L["Show Upgrade Icon"] = true;
 L["Smart"] = true;
 L["Sort Direction"] = "整理排序方向"
 L["Sort Inverted"] = '倒序排列'
@@ -194,10 +206,6 @@ L["This makes the item level display more reliable but uses more resources. If t
 L["Top to Bottom"] = "頂部至底部"
 L["Use coin icons instead of colored text."] = true;
 L["Use Tooltip Scanning"] = true;
-L["X Offset Bags"] = true;
-L["X Offset Bank"] = true;
-L["Y Offset Bags"] = true;
-L["Y Offset Bank"] = true;
 
 --Buffs and Debuffs
 L["Begin a new row or column after this many auras."] = "在這些光環旁開始新的行或列."
@@ -324,12 +332,14 @@ L["ELVUI_CREDITS"] = "我想透過這個特別方式, 向那些協助測試、�
 L["Testing:"] = "測試："
 
 --DataBars
-L["DATABAR_DESC"] = "Setup on-screen display of information bars."
+L["Current - Remaining"] = true;
 L["DataBars"] = true;
+L["DATABAR_DESC"] = "Setup on-screen display of information bars."
 L["Hide in Combat"] = true;
 
 --DataTexts
 L["24-Hour Time"] = "24小時制"
+L["Add Currency ID"] = true;
 L["Battleground Texts"] = "戰場資訊"
 L["Block Combat Click"] = true;
 L["Block Combat Hover"] = true;
@@ -338,12 +348,14 @@ L["Blocks datatext tooltip from showing in combat."] = true;
 L["BottomLeftMiniPanel"] = "Minimap BottomLeft (Inside)"
 L["BottomMiniPanel"] = "Minimap Bottom (Inside)"
 L["BottomRightMiniPanel"] = "Minimap BottomRight (Inside)"
-L["Change settings for the display of the location text that is on the minimap."] = "改變小地圖所在位置文字的顯示設定."
+L["Custom Currencies"] = true;
+L["Custom Currency"] = true;
 L["Datatext Panel (Left)"] = "左側資訊框"
 L["Datatext Panel (Right)"] = "右側資訊框"
 L["DataTexts"] = "資訊文字"
 L["Display data panels below the chat, used for datatexts."] = "在對話框下顯示用於資訊的框架."
 L["Display minimap panels below the minimap, used for datatexts."] = "顯示小地圖下方的資訊框."
+L["Displayed Currency"] = true;
 L["Gold Format"] = true;
 L["If not set to true then the server time will be displayed instead."] = "若關閉此選項將顯示伺服器時間."
 L["left"] = "左"
@@ -359,10 +371,12 @@ L["RightChatDataPanel"] = "右對話框"
 L["RightMiniPanel"] = "小地圖右側"
 L["Small Panels"] = true;
 L["The display format of the money text that is shown in the gold datatext and its tooltip."] = true;
+L["This allows you to create a new datatext which will track the currency with the supplied currency ID. The datatext can be added to a panel immediately after creation."] = true;
 L["Toggle 24-hour mode for the time datatext."] = "切換時間顯示為24小時制."
 L["TopLeftMiniPanel"] = "Minimap TopLeft (Inside)"
 L["TopMiniPanel"] = "Minimap Top (Inside)"
 L["TopRightMiniPanel"] = "Minimap TopRight (Inside)"
+L["Use Tooltip"] = true;
 L["When inside a battleground display personal scoreboard information on the main datatext bars."] = "處於戰場時, 在主資訊文字條顯示你的戰場得分訊息."
 L["Word Wrap"] = true;
 
@@ -378,9 +392,7 @@ L["You must be targeting a player."] = "你必須以一名玩家為目標."
 --General
 L["Accept Invites"] = "接受組隊邀請"
 L["Adjust the position of the threat bar to either the left or right datatext panels."] = "調整仇恨條的位置於左側或右側資訊面板"
-L["Adjust the size of the minimap."] = "調整小地圖尺寸."
 L["AFK Mode"] = true;
-L["Animate Config"] = true;
 L["Announce Interrupts"] = "斷法通告"
 L["Announce when you interrupt a spell to the specified chat channel."] = "在指定對話頻道通知斷法信息."
 L["Attempt to support eyefinity/nvidia surround."] = true;
@@ -405,9 +417,9 @@ L["Display a panel across the top of the screen. This is for cosmetic only."] = 
 L["Display battleground messages in the middle of the screen."] = true;
 L["Display emotion icons in chat."] = "在對話中顯示表情圖示."
 L["Emotion Icons"] = "表情圖示"
+L["Enable + Adjust Movers"] = true;
 L["Enable/Disable the loot frame."] = "啟用/停用拾取框架."
 L["Enable/Disable the loot roll frame."] = "啟用/停用擲骰框架."
-L["Enable/Disable the minimap. |cffFF0000Warning: This will prevent you from seeing the minimap datatexts.|r"] = true;
 L["Enhanced PVP Messages"] = true;
 L["General"] = "一般設定"
 L["Height of the objective tracker. Increase size to be able to see more objectives."] = true;
@@ -420,16 +432,14 @@ L["Login Message"] = "登入資訊"
 L["Loot Roll"] = "擲骰"
 L["Loot"] = "拾取"
 L["Lowest Allowed UI Scale"] = true;
-L["Make the world map smaller."] = true;
-L["Map Opacity When Moving"] = true;
 L["Multi-Monitor Support"] = true;
 L["Name Font"] = "名稱字體"
 L["Number Prefix"] = true;
 L["Objective Frame Height"] = true;
+L["Order Hall Command Bar"] = true;
 L["Party / Raid"] = true;
 L["Party Only"] = true;
 L["Position of bonus quest reward frame relative to the objective tracker."] = true;
-L["Puts coordinates on the world map."] = true;
 L["Raid Only"] = true;
 L["Remove Backdrop"] = "移除背景"
 L["Reset all frames to their original positions."] = "重設所有框架至預設位置."
@@ -439,17 +449,14 @@ L["Send ADDON_ACTION_BLOCKED errors to the Lua Error frame. These errors are les
 L["Skin Backdrop (No Borders)"] = true;
 L["Skin Backdrop"] = "美化背景"
 L["Skin the blizzard chat bubbles."] = "美化暴雪對話泡泡."
-L["Smaller World Map"] = true;
 L["Talking Head Scale"] = true;
 L["The font that appears on the text above players heads. |cffFF0000WARNING: This requires a game restart or re-log for this change to take effect.|r"] = "玩家頭頂姓名的字體. |cffFF0000警告: 你需要重新開啟遊戲或重新登錄才能使用此功能.|r"
 L["The Thin Border Theme option will change the overall apperance of your UI. Using Thin Border Theme is a slight performance increase over the traditional layout."] = true;
+L["The unit prefixes you want to use when values are shortened in ElvUI. This is mostly used on UnitFrames."] = true;
 L["Thin Border Theme"] = true;
 L["Toggle Tutorials"] = "教學開關"
 L["Top Panel"] = '頂部面板'
 L["When you go AFK display the AFK screen."] = true;
-L["World Map Coordinates"] = true;
-L["X-Offset"] = true;
-L["Y-Offset"] = true;
 
 --Media
 L["Applies the font and font size settings throughout the entire user interface. Note: Some font size settings will be skipped due to them having a smaller font size by default."] = true;
@@ -481,23 +488,35 @@ L["The texture that will be used mainly for statusbars."] = "此材質主用於�
 L["This texture will get used on objects like chat windows and dropdown menus."] = "主要用於對話視窗及下拉選單等物件的材質."
 L["Value Color"] = "數值顏色"
 
---Minimap
+--Maps
+L["Adjust the size of the minimap."] = "調整小地圖尺寸."
 L["Always Display"] = "總是顯示"
 L["Bottom Left"] = true;
 L["Bottom Right"] = true;
 L["Bottom"] = true;
+L["Change settings for the display of the location text that is on the minimap."] = "改變小地圖所在位置文字的顯示設定."
+L["Enable/Disable the minimap. |cffFF0000Warning: This will prevent you from seeing the minimap datatexts.|r"] = true;
 L["Instance Difficulty"] = true;
 L["Left"] = "左"
 L["LFG Queue"] = true;
 L["Location Text"] = "所在位置文字"
+L["Make the world map smaller."] = true;
+L["Map Opacity When Moving"] = true;
+L["Maps"] = true;
 L["Minimap Buttons"] = true;
 L["Minimap Mouseover"] = "小地圖滑鼠滑過"
 L["Open Ticket"] = true;
+L["Puts coordinates on the world map."] = true;
+L["Reset Zoom"] = true;
 L["Right"] = true;
 L["Scale"] = "右"
+L["Smaller World Map"] = true;
 L["Top Left"] = true;
 L["Top Right"] = true;
 L["Top"] = true;
+L["World Map Coordinates"] = true;
+L["X-Offset"] = true;
+L["Y-Offset"] = true;
 
 --Misc
 L["Install"] = "安裝"
@@ -514,20 +533,25 @@ L["Bad Scale"] = true;
 L["Bad Transition Color"] = true;
 L["Base Height for the Aura Icon"] = true;
 L["Boss Auras"] = true;
-L["By forcing the nameplate to always show it will not move on the screen to stay below your characters feet."] = true;
 L["Cast Bar"] = true;
 L["Cast Color"] = true;
 L["Cast No Interrupt Color"] = true;
+L["Cast Time Format"] = true;
+L["Channel Time Format"] = true;
 L["Clamp nameplates to the top of the screen when outside of view."] = true;
 L["Clamp Nameplates"] = true;
+L["Clickable Height"] = true;
+L["Clickable Width"] = true;
 L["Color Tanked"] = true;
 L["Control enemy nameplates toggling on or off when in combat."] = true;
 L["Control friendly nameplates toggling on or off when in combat."] = true;
+L["Controls how big of an area on the screen will accept clicks to target unit."] = true;
 L["Controls how many auras are displayed, this will also affect the size of the auras."] = true;
 L["Controls which nameplates will be displayed."] = true;
 L["Copy settings from another unit."] = true;
 L["Copy Settings From"] = true;
 L["Default Settings"] = true;
+L["Detection"] = true;
 L["Display a healer icon over known healers inside battlegrounds or arenas."] = "戰場或競技場中，為已確認為補職的玩家標上補職圖示."
 L["Display Minions"] = true;
 L["Display Minor Units"] = true;
@@ -539,17 +563,24 @@ L["Enemy Combat Toggle"] = true;
 L["Enemy NPC Frames"] = true;
 L["Enemy Player Frames"] = true;
 L["Enemy"] = "敵對"
+L["ENEMY_NPC"] = "Enemy NPC"
+L["ENEMY_PLAYER"] = "Enemy Player"
 L["Filter"] = true;
 L["Filters"] = "過濾器"
 L["Friendly Combat Toggle"] = true;
 L["Friendly NPC Frames"] = true;
 L["Friendly Player Frames"] = true;
+L["FRIENDLY_NPC"] = "Friendly NPC"
+L["FRIENDLY_PLAYER"] = "Friendly Player"
+L["General Options"] = true;
 L["Good Color"] = true;
 L["Good Scale"] = true;
 L["Good Transition Color"] = true;
 L["Healer Frames"] = true;
 L["Healer Icon"] = "補職圖示"
+L["HEALER"] = "Healer"
 L["Hide Spell Name"] = true;
+L["Hide the nameplate unless you are in combat, you are not on full health or have a target you can attack."] = true
 L["Hide Time"] = true;
 L["Hide"] = "隱藏"
 L["Icon Base Height"] = true;
@@ -562,13 +593,16 @@ L["Only load nameplates for units within this range."] = true;
 L["Only Show Target"] = true;
 L["Personal Auras"] = true;
 L["Player Nameplate"] = true;
+L["PLAYER"] = "Player"
 L["Reaction Colors"] = true;
 L["Remove Name"] = "刪除篩選名"
 L["Scale of the nameplate that is targetted."] = true;
 L["Set Settings to Default"] = true;
 L["Set the transparency level of nameplates that are not the target nameplate."] = true;
 L["Set to either stack nameplates vertically or allow them to overlap."] = true;
+L["Shortcuts"] = true;
 L["Show NPC Titles"] = true;
+L["Suramar Detection"] = true;
 L["Tagged NPC"] = true;
 L["Tanked Color"] = true;
 L["Target Scale"] = true;
@@ -578,10 +612,12 @@ L["Threat"] = "仇恨"
 L["Toggle Off While In Combat"] = true;
 L["Toggle On While In Combat"] = true;
 L["Use Class Color"] = true;
+L["Use Static Position"] = true;
 L["Use Tanked Color when a nameplate is being effectively tanked by another tank."] = true;
 L["Use Target Glow"] = true;
 L["Use Target Scale"] = true;
 L["Use Threat Color"] = true;
+L["When enabled the nameplate will stay visible in a locked position."] = true;
 
 --Profiles Export/Import
 L["Choose Export Format"] = true;
@@ -849,7 +885,6 @@ L["Friendly"] = "友好"
 L["Frost"] = "冰霜符文"
 L["Glow"] = "閃爍"
 L["Good"] = "安全"
-L["GPS Arrow"] = true;
 L["Group By"] = "隊伍排列方式"
 L["Grouping & Sorting"] = true;
 L["Groups Per Row/Column"] = true;
@@ -944,6 +979,8 @@ L["Power"] = "能量"
 L["Powers"] = "能量"
 L["Priority"] = "優先級"
 L["Profile Specific"] = true;
+L["PvP & Prestige Icon"] = true;
+L["PvP Text"] = true;
 L["PVP Trinket"] = "PVP 飾品"
 L["Raid Icon"] = "團隊圖示"
 L["Raid-Wide Sorting"] = true;
