@@ -1,4 +1,4 @@
-﻿if GetLocale() ~= "zhTW" then return end
+if GetLocale() ~= "zhTW" then return end
 if not DBM_GUI_Translations then DBM_GUI_Translations = {} end
 local L = DBM_GUI_Translations
 
@@ -244,6 +244,7 @@ L.SpamBlockNoSetIcon		= "不設置標記在目標上"
 L.SpamBlockNoRangeFrame		= "不顯示距離框架"
 L.SpamBlockNoInfoFrame		= "不顯示訊息框架"
 L.SpamBlockNoHudMap			= "不要顯示HudMap"
+L.SpamBlockNoNameplate		= "不要顯示名條光環"
 L.SpamBlockNoHealthFrame	= "不顯示血量框架"
 L.SpamBlockNoCountdowns		= "不播放倒數音效"
 L.SpamBlockNoYells			= "不送出大喊至頻道"
@@ -288,7 +289,6 @@ L.SpamBlockSayYell			= "從聊天頻道隱藏聊天泡泡提示"
 L.DisableCinematics			= "禁用遊戲中的過場動畫"
 L.AfterFirst				= "在每次動畫播放一次之後"
 L.Always					= ALWAYS
-L.DisableTalkingHead		= "禁用用NPC講話視窗"
 L.CombatOnly				= "在任何戰鬥中禁用"
 L.RaidCombat				= "只在首領戰鬥中禁用"
 

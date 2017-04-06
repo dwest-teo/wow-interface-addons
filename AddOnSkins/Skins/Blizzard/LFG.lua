@@ -9,7 +9,7 @@ function AS:Blizzard_PvE(event, addon)
 		AS:SkinTab(_G['PVEFrameTab'..i])
 	end
 
-	PVEFrame.shadows:Hide()
+	PVEFrame.shadows:Kill()
 
 	GroupFinderFrameGroupButton1.icon:SetTexture("Interface\\Icons\\INV_Helmet_08")
 	GroupFinderFrameGroupButton2.icon:SetTexture("Interface\\Icons\\Icon_Scenarios")
@@ -27,7 +27,7 @@ function AS:Blizzard_PvE(event, addon)
 		Button:SetHighlightTexture('')
 
 		AS:SkinTexture(Button.icon)
-		Button.icon:Size(45)
+		Button.icon:SetSize(45, 45)
 		AS:CreateBackdrop(Button)
 		Button.Backdrop:SetFrameLevel(Button:GetFrameLevel())
 		Button.Backdrop:SetOutside(Button.icon)
@@ -259,56 +259,8 @@ AS:RegisterSkin("Blizzard_PvE", AS.Blizzard_PvE)
 function AS:Blizzard_ChallengesUI(event, addon)
 	if addon ~= 'Blizzard_ChallengesUI' then return end
 	AS:StripTextures(ChallengesFrameInset, true)
+	ChallengesFrameInset:Hide()
 	ChallengesFrameInsetBg:Hide()
-	ChallengesFrameDetails.bg:Hide()
-	AS:StripTextures(ChallengesFrameLeaderboard)
-	AS:SkinButton(ChallengesFrameLeaderboard)
-	select(2, ChallengesFrameDetails:GetRegions()):Hide()
-	select(9, ChallengesFrameDetails:GetRegions()):Hide()
-	select(10, ChallengesFrameDetails:GetRegions()):Hide()
-	select(11, ChallengesFrameDetails:GetRegions()):Hide()
-	ChallengesFrameDungeonButton1:SetPoint("TOPLEFT", ChallengesFrame, "TOPLEFT", 8, -83)
-
-	hooksecurefunc('ChallengesFrame_Update', function(self, mapID)
-		for i = 1, self.numMaps do
-			local Button = self["button"..i];
-			if Button then
-				if not Button.isSkinned then
-					AS:SkinButton(Button)
-					Button:SetHighlightTexture("")
-					Button.selectedTex:SetTexture('')
-					Button:SetScript('OnEnter', function(self)
-						self:SetBackdropBorderColor(1, .82, 0)
-					end)
-					Button:SetScript('OnLeave', function(self)
-						if self.selectedTex:IsShown() then
-							Button:SetBackdropBorderColor(0, 0.44, .87, 1)
-						else
-							Button:SetBackdropBorderColor(unpack(AS.BorderColor))
-						end
-					end)
-					Button.isSkinned = true
-				end
-				if Button.selectedTex:IsShown() then
-					Button:SetBackdropBorderColor(0, 0.44, .87, 1)
-				else
-					Button:SetBackdropBorderColor(unpack(AS.BorderColor))
-				end
-			end
-		end
-	end)
-
-	for i = 1, 3 do
-		local rewardsRow = ChallengesFrame["RewardRow"..i]
-		AS:SkinBackdropFrame(rewardsRow, nil, true)
-		for j = 1, 2 do
-			local Button = rewardsRow["Reward"..j]
-			AS:CreateBackdrop(Button)
-			AS:SkinTexture(Button.Icon)
-		end
-	end
-	
-	AS:SkinScrollBar(LFRBrowseFrameListScrollFrameScrollBar)
 end
 
 AS:RegisterSkin("Blizzard_ChallengesUI", AS.Blizzard_ChallengesUI, 'ADDON_LOADED')
@@ -318,7 +270,11 @@ function AS:Blizzard_PVPUI(event, addon)
 	AS:StripTextures(PVPUIFrame)
 	
 	AS:StripTextures(HonorFrame.RoleInset)
-	
+	AS:SkinStatusBar(HonorFrame.XPBar.Bar)
+
+	HonorFrame.XPBar:StripTextures()
+	HonorFrame.XPBar.Bar.OverlayFrame.Text:SetPoint('CENTER')
+
 	AS:SkinCheckBox(HonorFrame.RoleInset.DPSIcon.checkButton, true)
 	AS:SkinCheckBox(HonorFrame.RoleInset.TankIcon.checkButton, true)
 	AS:SkinCheckBox(HonorFrame.RoleInset.HealerIcon.checkButton, true)
@@ -328,7 +284,7 @@ function AS:Blizzard_PVPUI(event, addon)
 		AS:SkinFrame(Button, nil, true)
 		Button.Background:SetTexture('')
 		Button.Ring:SetTexture('')
-		Button.Icon:Size(45)
+		Button.Icon:SetSize(45, 45)
 		AS:SkinTexture(Button.Icon)
 		AS:CreateBackdrop(Button)
 		Button.Backdrop:SetOutside(Button.Icon)

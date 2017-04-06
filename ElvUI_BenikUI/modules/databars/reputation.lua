@@ -7,6 +7,19 @@ local DT = E:GetModule('DataTexts');
 
 local _G = _G
 
+local find, gsub, format = string.find, string.gsub, string.format
+
+local incpat = gsub(gsub(FACTION_STANDING_INCREASED, "(%%s)", "(.+)"), "(%%d)", "(.+)")
+local changedpat = gsub(gsub(FACTION_STANDING_CHANGED, "(%%s)", "(.+)"), "(%%d)", "(.+)")
+local decpat = gsub(gsub(FACTION_STANDING_DECREASED, "(%%s)", "(.+)"), "(%%d)", "(.+)")
+
+local C_Reputation_GetFactionParagonInfo
+local C_Reputation_IsFactionParagon
+if E.wowbuild >= 23623 then --7.2
+	C_Reputation_GetFactionParagonInfo = C_Reputation.GetFactionParagonInfo
+	C_Reputation_IsFactionParagon = C_Reputation.IsFactionParagon
+end
+
 local CreateFrame = CreateFrame
 local GameTooltip = _G["GameTooltip"]
 local GetWatchedFactionInfo = GetWatchedFactionInfo
@@ -41,8 +54,14 @@ local function StyleBar()
 	rp.fb = CreateFrame('Button', nil, rp)
 	rp.fb:CreateSoftGlow()
 	rp.fb.sglow:Hide()
-	rp.fb:Point('TOPLEFT', rp, 'BOTTOMLEFT', 0, -SPACING)
-	rp.fb:Point('BOTTOMRIGHT', rp, 'BOTTOMRIGHT', 0, (E.PixelMode and -20 or -22))
+	if E.db.benikui.general.shadows then
+		rp.fb:CreateShadow('Default')
+		rp.fb:Point('TOPLEFT', rp, 'BOTTOMLEFT', 0, (E.PixelMode and -SPACING -2 or -SPACING))
+		rp.fb:Point('BOTTOMRIGHT', rp, 'BOTTOMRIGHT', 0, -22)
+	else
+		rp.fb:Point('TOPLEFT', rp, 'BOTTOMLEFT', 0, -SPACING)
+		rp.fb:Point('BOTTOMRIGHT', rp, 'BOTTOMRIGHT', 0, (E.PixelMode and -20 or -22))
+	end
 
 	rp.fb:SetScript('OnEnter', onEnter)
 	rp.fb:SetScript('OnLeave', onLeave)
@@ -54,7 +73,7 @@ local function StyleBar()
 	BDB:ToggleRepBackdrop()
 	
 	if E.db.benikui.general.benikuiStyle ~= true then return end
-	rp:Style('Outside')
+	rp:Style('Outside', nil, false, true)
 end
 
 function BDB:ApplyRepStyling()
@@ -161,7 +180,13 @@ end
 function BDB:UpdateRepNotifier()
 	local bar = ElvUI_ReputationBar.statusBar
 	
-	local name, _, min, max, value = GetWatchedFactionInfo()
+	local name, _, min, max, value, factionID = GetWatchedFactionInfo()
+	if E.wowbuild >= 23623 then --7.2
+		if (C_Reputation_IsFactionParagon(factionID)) then
+			local currentValue, threshold = C_Reputation_GetFactionParagonInfo(factionID)
+			min, max, value = 0, threshold, currentValue
+		end
+	end
 	
 	if not name or E.db.databars.reputation.orientation ~= 'VERTICAL' then
 		bar.f:Hide()
@@ -171,19 +196,65 @@ function BDB:UpdateRepNotifier()
 	end
 end
 
+function BDB:RepTextOffset()
+	local text = ElvUI_ReputationBar.text
+	text:Point('CENTER', 0, E.db.databars.reputation.textYoffset)
+end
+
+-- Credit: Feraldin, ElvUI Enhanced (Legion)
+function BDB:SetWatchedFactionOnReputationBar(event, msg)
+	if not E.db.benikuiDatabars.reputation.autotrack then return end
+	
+	local _, _, faction, amount = find(msg, incpat)
+	if not faction then _, _, faction, amount = find(msg, changedpat) or find(msg, decpat) end
+	if faction then
+		if faction == GUILD_REPUTATION then
+			faction = GetGuildInfo("player")
+		end
+
+		local active = GetWatchedFactionInfo()
+		for factionIndex = 1, GetNumFactions() do
+			local name = GetFactionInfo(factionIndex)
+			if name == faction and name ~= active then
+				-- check if watch has been disabled by user
+				local inactive = IsFactionInactive(factionIndex) or SetWatchedFactionIndex(factionIndex)
+				break
+			end
+		end
+	end
+end
+
+function BDB:ToggleRepAutotrack()
+	if E.db.benikuiDatabars.reputation.autotrack then
+		self:RegisterEvent('CHAT_MSG_COMBAT_FACTION_CHANGE', 'SetWatchedFactionOnReputationBar')
+	else
+		self:UnregisterEvent('CHAT_MSG_COMBAT_FACTION_CHANGE')
+	end
+end
+
 function BDB:LoadRep()
+	local bar = ElvUI_ReputationBar
 	self:ChangeRepColor()
+	self:RepTextOffset()
 	hooksecurefunc(M, 'UpdateReputation', BDB.ChangeRepColor)
+	hooksecurefunc(M, 'UpdateReputation', BDB.RepTextOffset)
+	self:ToggleRepAutotrack()
 
 	local db = E.db.benikuiDatabars.reputation.notifiers
 	
 	if db.enable and E.db.databars.reputation.orientation == 'VERTICAL' then
-		self:CreateNotifier(ElvUI_ReputationBar.statusBar)
+		self:CreateNotifier(bar.statusBar)
 		self:UpdateRepNotifierPositions()
 		self:UpdateRepNotifier()
 		hooksecurefunc(M, 'UpdateReputation', BDB.UpdateRepNotifier)
 		hooksecurefunc(DT, 'LoadDataTexts', BDB.UpdateRepNotifierPositions)
 		hooksecurefunc(M, 'UpdateReputationDimensions', BDB.UpdateRepNotifierPositions)
+	end
+
+	if E.db.benikui.general.shadows then
+		if not bar.style then
+			bar:CreateShadow('Default')
+		end
 	end
 
 	if E.db.benikuiDatabars.reputation.enable ~= true then return end

@@ -5,7 +5,7 @@ local tinsert, format = table.insert, string.format
 local ipairs, unpack = ipairs, unpack
 
 local IsAddOnLoaded = IsAddOnLoaded
-local QUEST_OBJECTIVES = QUEST_OBJECTIVES
+local QUEST_OBJECTIVES, ADDONS = QUEST_OBJECTIVES, ADDONS
 
 local DecorElvUIAddons = {
 	{'ElvUI_LocLite', L['LocationLite'], 'loclite'},
@@ -26,19 +26,36 @@ local DecorAddons = {
 	{'ZygorGuidesViewer', L['Zygor Guides'], 'zg'},
 	{'Clique', L['Clique'], 'clique'},
 	{'oRA3', L['oRA3'], 'ora'},
+	{'Pawn', L['Pawn'], 'pawn'},
 }
+
+local SupportedProfiles = {
+	{'AddOnSkins', 'AddOnSkins'},
+	{'DBM-Core', 'Deadly Boss Mods'},
+	{'Details', 'Details'},
+	{'ElvUI_VisualAuraTimers', 'ElvUI VisualAuraTimers'},
+	{'ElvUI_LocLite', 'Location Lite'},
+	{'ElvUI_LocPlus', 'Location Plus'},
+	{'MikScrollingBattleText', "Mik's Scrolling Battle Text"},
+	{'Pawn', 'Pawn'},
+	{'Recount', 'Recount'},
+	{'Skada', 'Skada'},
+	{'SquareMinimapButtons', 'Square Minimap Buttons'},
+}
+
+local profileString = format('|cfffff400%s |r', L['BenikUI successfully created and applied profile(s) for:'])
 
 local function SkinTable()
 	if E.db.benikui.general.benikuiStyle ~= true then return end
 	E.Options.args.benikui.args.skins = {
 		order = 40,
 		type = 'group',
-		name = L['AddOns Decor'],
+		name = ADDONS..BUI.NewSign,
 		args = {
 			name = {
 				order = 1,
 				type = 'header',
-				name = BUI:cOption(L['AddOns Decor']),
+				name = BUI:cOption(ADDONS),
 			},
 			desc = {
 				order = 2,
@@ -102,30 +119,77 @@ local function SkinTable()
 		get = function(info) return E.db.benikuiSkins.variousSkins[ info[#info] ] end,
 		set = function(info, value) E.db.benikuiSkins.variousSkins[ info[#info] ] = value; E:StaticPopup_Show('PRIVATE_RL') end,
 		args = {
-			objectiveTracker = {
-				order = 1,
-				type = 'toggle',
-				name = QUEST_OBJECTIVES,
-			},
 			talkingHead = {
-				order = 2,
+				order = 1,
 				type = 'toggle',
 				name = L["TalkingHead"],
 			},
 			decursive = {
-				order = 3,
+				order = 2,
 				type = 'toggle',
 				name = L['Decursive'],
 				disabled = function() return not IsAddOnLoaded('Decursive') end,
 			},
 			storyline = {
-				order = 4,
+				order = 3,
 				type = 'toggle',
 				name = L['Storyline'],
 				disabled = function() return not IsAddOnLoaded('Storyline') end,
 			},	
 		},
 	}
+	
+	E.Options.args.benikui.args.skins.args.profiles = {
+		order = 6,
+		type = 'group',
+		guiInline = true,
+		name = L['Profiles']..BUI.NewSign,
+		args = {
+		},
+	}
+
+	local optionOrder = 1
+	for i, v in ipairs(SupportedProfiles) do
+		local addon, addonName = unpack(v)
+		E.Options.args.benikui.args.skins.args.profiles.args[addon] = {
+			order = optionOrder + 1,
+			type = 'execute',
+			name = addonName,
+			desc = L['This will create and apply profile for ']..addonName,
+			func = function()
+				if addon == 'DBM-Core' then
+					BUI:LoadDBMProfile()
+				elseif addon == 'Details' then
+					BUI:LoadDetailsProfile()
+				elseif addon == 'ElvUI_LocLite' then
+					BUI:LoadLocationLiteProfile()
+					E:StaticPopup_Show('PRIVATE_RL')
+				elseif addon == 'ElvUI_LocPlus' then
+					BUI:LoadLocationPlusProfile()
+					E:StaticPopup_Show('PRIVATE_RL')
+				elseif addon == 'MikScrollingBattleText' then
+					BUI:LoadMSBTProfile()
+				elseif addon == 'Pawn' then
+					BUI:LoadPawnProfile()
+				elseif addon == 'Recount' then
+					BUI:LoadRecountProfile()
+				elseif addon == 'Skada' then
+					BUI:LoadSkadaProfile()
+				elseif addon == 'SquareMinimapButtons' then
+					BUI:LoadSMBProfile()
+					E:StaticPopup_Show('PRIVATE_RL')
+				elseif addon == 'ElvUI_VisualAuraTimers' then
+					BUI:LoadVATProfile()
+					E:StaticPopup_Show('PRIVATE_RL')
+				elseif addon == 'AddOnSkins' then
+					BUI:LoadAddOnSkinsProfile()
+					E:StaticPopup_Show('PRIVATE_RL')
+				end
+				print(profileString..addonName)
+			end,
+			disabled = function() return not IsAddOnLoaded(addon) end,
+		}
+	end
 
 end
 

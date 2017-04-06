@@ -12,7 +12,7 @@ E.Options.args.general = {
 		intro = {
 			order = 3,
 			type = "description",
-			name = L["ELVUI_DESC"]:gsub('ElvUI', E.UIName),
+			name = L["ELVUI_DESC"],
 		},
 		general = {
 			order = 4,
@@ -159,8 +159,16 @@ E.Options.args.general = {
 					get = function(info) return E.global.general.autoScale end,
 					set = function(info, value) E.global.general[ info[#info] ] = value; E:StaticPopup_Show("GLOBAL_RL") end
 				},
-				minUiScale = {
+				raidUtility = {
 					order = 20,
+					type = "toggle",
+					name = RAID_CONTROL,
+					desc = L["Enables the ElvUI Raid Control panel."],
+					get = function(info) return E.private.general.raidUtility end,
+					set = function(info, value) E.private.general.raidUtility = value; E:StaticPopup_Show("PRIVATE_RL") end
+				},
+				minUiScale = {
+					order = 21,
 					type = "range",
 					name = L["Lowest Allowed UI Scale"],
 					min = 0.32, max = 0.64, step = 0.01,
@@ -168,7 +176,7 @@ E.Options.args.general = {
 					set = function(info, value) E.global.general.minUiScale = value; E:StaticPopup_Show("GLOBAL_RL") end
 				},
 				talkingHeadFrameScale = {
-					order = 21,
+					order = 22,
 					type = "range",
 					name = L["Talking Head Scale"],
 					isPercent = true,
@@ -177,7 +185,7 @@ E.Options.args.general = {
 					set = function(info, value) E.db.general.talkingHeadFrameScale = value; B:ScaleTalkingHeadFrame() end,
 				},
 				numberPrefixStyle = {
-					order = 22,
+					order = 23,
 					type = "select",
 					name = L["Number Prefix"],
 					desc = L["The unit prefixes you want to use when values are shortened in ElvUI. This is mostly used on UnitFrames."],
@@ -190,7 +198,7 @@ E.Options.args.general = {
 					},
 				},
 				commandBarSetting = {
-					order = 23,
+					order = 24,
 					type = "select",
 					name = L["Order Hall Command Bar"],
 					get = function(info) return E.global.general.commandBarSetting end,
@@ -411,14 +419,14 @@ E.Options.args.general = {
 		totems = {
 			order = 6,
 			type = "group",
-			name = L["Class Bar"],
+			name = L["Class Totems"],
 			get = function(info) return E.db.general.totems[ info[#info] ] end,
 			set = function(info, value) E.db.general.totems[ info[#info] ] = value; E:GetModule('Totems'):PositionAndSize() end,
 			args = {
 				header = {
 					order = 1,
 					type = "header",
-					name = L["Class Bar"],
+					name = L["Class Totems"],
 				},
 				enable = {
 					order = 2,
@@ -583,6 +591,20 @@ E.Options.args.general = {
 					min = 4, max = 212, step = 1,
 					disabled = function() return E.private.general.chatBubbles == "disabled" end,
 				},
+				fontOutline = {
+					order = 5,
+					type = "select",
+					name = L["Font Outline"],
+					get = function(info) return E.private.general.chatBubbleFontOutline end,
+					set = function(info, value) E.private.general.chatBubbleFontOutline = value; E:StaticPopup_Show("PRIVATE_RL") end,
+					disabled = function() return E.private.general.chatBubbles == "disabled" end,
+					values = {
+						["NONE"] = L["None"],
+						["OUTLINE"] = "OUTLINE",
+						["MONOCHROMEOUTLINE"] = "MONOCROMEOUTLINE",
+						["THICKOUTLINE"] = "THICKOUTLINE",
+					},
+				},
 			},
 		},
 		objectiveFrameGroup = {
@@ -614,7 +636,7 @@ E.Options.args.general = {
 					values = {
 						['RIGHT'] = L["Right"],
 						['LEFT'] = L["Left"],
-						['AUTO'] = L["Auto"],
+						['AUTO'] = L["Automatic"],
 					},
 				},
 			},

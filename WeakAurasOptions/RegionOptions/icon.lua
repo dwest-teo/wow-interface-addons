@@ -1,7 +1,5 @@
-local SharedMedia = LibStub("LibSharedMedia-3.0");
-local L = WeakAuras.L;
-
--- GLOBALS: WeakAuras UIParent AceGUIWidgetLSMlists
+local Masque = LibStub("Masque", true)
+local L = WeakAuras.L
 
 local function createOptions(id, data)
     local options = {
@@ -39,7 +37,7 @@ local function createOptions(id, data)
             name = L["Choose"],
             hidden = function() return WeakAuras.CanHaveAuto(data) and data.auto; end,
             order = 18,
-            func = function() WeakAuras.OpenIconPick(data, "displayIcon"); end
+            func = function() WeakAuras.OpenIconPicker(data, "displayIcon"); end
         },
 
         desaturate = {
@@ -99,7 +97,7 @@ local function createOptions(id, data)
             order = 41.2,
             name = L["Expand Text Editor"],
             func = function()
-                WeakAuras.TextEditor(data, {"customText"})
+                WeakAuras.OpenTextEditor(data, {"customText"})
             end,
             hidden = function()
                 return not data.displayStacks:find("%%c")
@@ -182,7 +180,7 @@ local function createOptions(id, data)
             bigStep = 0.01,
             isPercent = true,
 			hidden = function()
-                return not LBF;
+                return not Masque;
             end
         },
         stickyDuration = {
@@ -208,7 +206,7 @@ local function createOptions(id, data)
     return options;
 end
 
-local function createThumbnail(parent, fullCreate)
+local function createThumbnail(parent)
     local icon = parent:CreateTexture();
     icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark");
 

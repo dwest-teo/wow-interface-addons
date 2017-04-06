@@ -7,11 +7,11 @@ local unpack = unpack
 local UnitAura = UnitAura
 
 if E.private.auras.enable ~= true then return end
+if E.private.auras.masque.buffs or E.private.auras.masque.debuffs then return end
 
 A.CreateIconBui = A.CreateIcon
 function A:CreateIcon(button)
 	self:CreateIconBui(button)
-	
 	button:Style('Inside', _, true)
 end
 

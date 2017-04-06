@@ -3,11 +3,24 @@ local BUI = E:GetModule('BenikUI');
 
 if E.db.benikui == nil then E.db.benikui = {} end
 local format = string.format
-local tinsert = table.insert
+local tinsert, tsort, tconcat = table.insert, table.sort, table.concat
 
 local CLASS_COLORS, CUSTOM, DEFAULT = CLASS_COLORS, CUSTOM, DEFAULT
 local COLORS, COLOR_PICKER = COLORS, COLOR_PICKER
 local StaticPopup_Show = StaticPopup_Show
+
+local DONATORS = {
+	'Cawkycow',
+	'Chilou',
+	'Judicator',
+	'Hilderic',
+	'Kevinrc',
+	'Merathilis',
+	'Sumidian',
+	'Justin'
+}
+tsort(DONATORS, function(a, b) return a < b end)
+local DONATOR_STRING = tconcat(DONATORS, ", ")
 
 	StaticPopupDialogs["BENIKUI_CREDITS"] = {
 		text = BUI.Title,
@@ -91,18 +104,34 @@ local function Core()
 						order = 1,
 						type = 'toggle',
 						name = L['BenikUI Style'],
-						desc = L['Show/Hide the decorative bars from UI elements'],
-						width = 'full',
+						desc = L['Enable/Disable the decorative bars from UI elements'],
+						get = function(info) return E.db.benikui.general[ info[#info] ] end,
+						set = function(info, color) E.db.benikui.general[ info[#info] ] = color; E:StaticPopup_Show('PRIVATE_RL'); end,
+					},
+					hideStyle = {
+						order = 2,
+						type = 'toggle',
+						name = L['Hide BenikUI Style'],
+						desc = L['Show/Hide the decorative bars from UI elements. Usefull when applying Shadows, because BenikUI Style must be enabled. |cff00c0faNote: Some elements like the Actionbars, Databars or BenikUI Datatexts have their own Style visibility options.|r'],
+						disabled = function() return E.db.benikui.general.benikuiStyle ~= true end,
+						get = function(info) return E.db.benikui.general[ info[#info] ] end,
+						set = function(info, color) E.db.benikui.general[ info[#info] ] = color; BUI:UpdateStyleVisibility(); end,
+					},
+					shadows = {
+						order = 3,
+						type = 'toggle',
+						name = L['Shadows'].." (Beta)",
+						disabled = function() return E.db.benikui.general.benikuiStyle ~= true end,
 						get = function(info) return E.db.benikui.general[ info[#info] ] end,
 						set = function(info, color) E.db.benikui.general[ info[#info] ] = color; E:StaticPopup_Show('PRIVATE_RL'); end,
 					},
 					loginMessage = {
-						order = 2,
+						order = 4,
 						type = 'toggle',
 						name = L['Login Message'],
 					},
 					splashScreen = {
-						order = 3,
+						order = 5,
 						type = 'toggle',
 						name = L['Splash Screen'],
 					},
@@ -130,7 +159,25 @@ local function Core()
 									['Mists'] = L['Mists'],
 								},
 								get = function(info) return E.db.benikui.colors[ info[#info] ] end,
-								set = function(info, color) E.db.benikui.colors[ info[#info] ] = color; BUI:BuiColorThemes(color); end,
+								set = function(info, color) E.db.benikui.colors[ info[#info] ] = color; BUI:SetupColorThemes(color); end,
+							},
+							customThemeColor = {
+								order = 2,
+								type = 'color',
+								name = EDIT,
+								hasAlpha = true,
+								get = function(info)
+									local t = E.db.general.backdropfadecolor
+									local d = P.general.backdropfadecolor
+									return t.r, t.g, t.b, t.a, d.r, d.g, d.b, d.a
+								end,
+								set = function(info, r, g, b, a, color)
+									E.db.general.backdropfadecolor = {}
+									local t = E.db.general.backdropfadecolor
+									t.r, t.g, t.b, t.a = r, g, b, a
+									E:UpdateMedia()
+									E:UpdateBackdropColors()
+								end,
 							},
 						},
 					},
@@ -151,7 +198,7 @@ local function Core()
 								},
 								disabled = function() return E.db.benikui.general.benikuiStyle ~= true end,
 								get = function(info) return E.db.benikui.colors[ info[#info] ] end,
-								set = function(info, value) E.db.benikui.colors[ info[#info] ] = value; E:StaticPopup_Show('PRIVATE_RL'); end,
+								set = function(info, value) E.db.benikui.colors[ info[#info] ] = value; BUI:UpdateStyleColors(); end,
 							},
 							customStyleColor = {
 								order = 2,
@@ -161,14 +208,23 @@ local function Core()
 								get = function(info)
 									local t = E.db.benikui.colors[ info[#info] ]
 									local d = P.benikui.colors[info[#info]]
-									return t.r, t.g, t.b, t.a, d.r, d.g, d.b
+									return t.r, t.g, t.b, t.a, d.r, d.g, d.b, d.a
 									end,
 								set = function(info, r, g, b)
 									E.db.benikui.colors[ info[#info] ] = {}
 									local t = E.db.benikui.colors[ info[#info] ]
 									t.r, t.g, t.b, t.a = r, g, b, a
-									E:StaticPopup_Show('PRIVATE_RL'); 
+									BUI:UpdateStyleColors(); 
 								end,
+							},
+							styleAlpha = {
+								order = 3,
+								type = "range",
+								name = L["Alpha"],
+								min = 0, max = 1, step = 0.05,
+								disabled = function() return E.db.benikui.general.benikuiStyle ~= true end,
+								get = function(info) return E.db.benikui.colors[ info[#info] ] end,
+								set = function(info, value) E.db.benikui.colors[ info[#info] ] = value; BUI:UpdateStyleColors(); end,
 							},
 						},
 					},
@@ -195,7 +251,6 @@ local function Core()
 								order = 2,
 								type = "color",
 								name = COLOR_PICKER,
-								width = "half",
 								disabled = function() return E.db.benikui.colors.abStyleColor ~= 2 or E.db.benikui.general.benikuiStyle ~= true end,
 								get = function(info)
 									local t = E.db.benikui.colors[ info[#info] ]
@@ -209,6 +264,15 @@ local function Core()
 									E:GetModule('BuiActionbars'):ColorBackdrops();
 								end,
 							},
+							abAlpha = {
+								order = 3,
+								type = "range",
+								name = L["Alpha"],
+								min = 0, max = 1, step = 0.05,
+								disabled = function() return E.db.benikui.general.benikuiStyle ~= true end,
+								get = function(info) return E.db.benikui.colors[ info[#info] ] end,
+								set = function(info, value) E.db.benikui.colors[ info[#info] ] = value; E:GetModule('BuiActionbars'):ColorBackdrops(); end,
+							},	
 						},
 					},
 					gameMenu = {
@@ -276,11 +340,11 @@ local function Core()
 								name = L['Git Ticket tracker'],
 								func = function() StaticPopup_Show("BENIKUI_CREDITS", nil, nil, "http://git.tukui.org/Benik/ElvUI_BenikUI/issues") end,
 							},
-							beta = {
+							discord = {
 								order = 3,
 								type = 'execute',
-								name = L['Beta versions'],
-								func = function() StaticPopup_Show("BENIKUI_CREDITS", nil, nil, "http://git.tukui.org/Benik/ElvUI_BenikUI/commits/master") end,
+								name = L['Tukui.org Discord Server'],
+								func = function() StaticPopup_Show("BENIKUI_CREDITS", nil, nil, "https://discord.gg/xFWcfgE") end,
 							},
 						},
 					},
@@ -307,6 +371,12 @@ local function Core()
 								type = 'execute',
 								name = L['WoW Interface'],
 								func = function() StaticPopup_Show("BENIKUI_CREDITS", nil, nil, "http://www.wowinterface.com/downloads/info23675-BenikUIv3.html") end,
+							},			
+							beta = {
+								order = 4,
+								type = 'execute',
+								name = L['Beta versions'],
+								func = function() StaticPopup_Show("BENIKUI_CREDITS", nil, nil, "http://git.tukui.org/Benik/ElvUI_BenikUI/commits/master") end,
 							},
 						},
 					},
@@ -348,7 +418,7 @@ local function Core()
 								order = 1,
 								type = 'description',
 								fontSize = 'medium',
-								name = format('|cffffd200%s|r', 'Cawkycow, Chilou, Judicator, Hilderic, Κevinrc, Merathilis, Sumidian'),
+								name = format('|cffffd200%s|r', DONATOR_STRING)
 							},
 						},
 					},

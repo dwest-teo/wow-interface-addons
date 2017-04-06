@@ -39,8 +39,14 @@ local function StyleBar()
 	bar.fb = CreateFrame('Button', nil, bar)
 	bar.fb:CreateSoftGlow()
 	bar.fb.sglow:Hide()
-	bar.fb:Point('TOPLEFT', bar, 'BOTTOMLEFT', 0, -SPACING)
-	bar.fb:Point('BOTTOMRIGHT', bar, 'BOTTOMRIGHT', 0, (E.PixelMode and -20 or -22))
+	if E.db.benikui.general.shadows then
+		bar.fb:CreateShadow('Default')
+		bar.fb:Point('TOPLEFT', bar, 'BOTTOMLEFT', 0, (E.PixelMode and -SPACING -2 or -SPACING))
+		bar.fb:Point('BOTTOMRIGHT', bar, 'BOTTOMRIGHT', 0, -22)
+	else
+		bar.fb:Point('TOPLEFT', bar, 'BOTTOMLEFT', 0, -SPACING)
+		bar.fb:Point('BOTTOMRIGHT', bar, 'BOTTOMRIGHT', 0, (E.PixelMode and -20 or -22))
+	end
 	bar.fb:SetScript('OnEnter', onEnter)
 	bar.fb:SetScript('OnLeave', onLeave)
 	
@@ -60,7 +66,7 @@ local function StyleBar()
 	BDB:ToggleHonorBackdrop()
 	
 	if E.db.benikui.general.benikuiStyle ~= true then return end
-	bar:Style('Outside')
+	bar:Style('Outside', nil, false, true)
 end
 
 function BDB:ApplyHonorStyling()
@@ -179,21 +185,35 @@ function BDB:UpdateHonorNotifier()
 	end
 end
 
+function BDB:HonorTextOffset()
+	local text = ElvUI_ExperienceBar.text
+	text:Point('CENTER', 0, E.db.databars.experience.textYoffset)
+end
+
 function BDB:LoadHonor()
+	local bar = ElvUI_HonorBar
 	self:ChangeHonorColor()
+	self:HonorTextOffset()
 	hooksecurefunc(M, 'UpdateHonor', BDB.ChangeHonorColor)
+	hooksecurefunc(M, 'UpdateHonor', BDB.HonorTextOffset)
 	
 	local db = E.db.benikuiDatabars.honor.notifiers
 	
 	if db.enable and E.db.databars.honor.orientation == 'VERTICAL' then
-		self:CreateNotifier(ElvUI_HonorBar.statusBar)
+		self:CreateNotifier(bar.statusBar)
 		self:UpdateHonorNotifierPositions()
 		self:UpdateHonorNotifier()
 		hooksecurefunc(M, 'UpdateHonor', BDB.UpdateHonorNotifier)
 		hooksecurefunc(DT, 'LoadDataTexts', BDB.UpdateHonorNotifierPositions)
 		hooksecurefunc(M, 'UpdateHonorDimensions', BDB.UpdateHonorNotifierPositions)
 	end
-	
+
+	if E.db.benikui.general.shadows then
+		if not bar.style then
+			bar:CreateShadow('Default')
+		end
+	end
+
 	if E.db.benikuiDatabars.honor.enable ~= true then return end
 	
 	StyleBar()

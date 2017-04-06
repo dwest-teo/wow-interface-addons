@@ -19,12 +19,20 @@ P['unitframe']['units']['raid40']['classHover'] = false
 -- Add Bag stack count to ElvUI defaults
 P['bags']['countPosition'] = 'BOTTOMRIGHT'
 
+-- Databars text yOffset
+P['databars']['experience']['textYoffset'] = 0
+P['databars']['artifact']['textYoffset'] = 0
+P['databars']['reputation']['textYoffset'] = 0
+P['databars']['honor']['textYoffset'] = 0
+
 -- Core
 P['benikui'] = {
 	['installed'] = nil,
 
 	['general'] = {
 		['benikuiStyle'] = true,
+		['hideStyle'] = false,
+		['shadows'] = false,
 		['loginMessage'] = true,
 		['splashScreen'] = true,
 	},
@@ -33,8 +41,10 @@ P['benikui'] = {
 		['colorTheme'] = 'Elv',
 		['StyleColor'] = 1,
 		['customStyleColor'] = {r = .9, g = .7, b = 0},
+		['styleAlpha'] = 1,
 		['abStyleColor'] = 1,
 		['customAbStyleColor'] = {r = .9, g = .7, b = 0},
+		['abAlpha'] = 1,
 		['gameMenuColor'] = 2,
 		['customGameMenuColor'] = {r = .9, g = .7, b = 0},
 	},
@@ -98,6 +108,20 @@ P['benikui'] = {
 			['chooseAb'] = 'BAR2',
 		},
 		['requestStop'] = true,
+		['style'] = {
+			['bar1'] = true,
+			['bar2'] = true,
+			['bar3'] = true,
+			['bar4'] = true,
+			['bar5'] = true,
+			['bar6'] = true,
+			['bar7'] = true,
+			['bar8'] = true,
+			['bar9'] = true,
+			['bar10'] = true,
+			['petbar'] = true,
+			['stancebar'] = true,
+		},
 	},
 	
 	['unitframes'] = {
@@ -109,6 +133,7 @@ P['benikui'] = {
 			['portraitTransparent'] = true,
 			['portraitStyle'] = false,
 			['portraitStyleHeight'] = 6,
+			['portraitFrameStrata'] = "MEDIUM",
 		},
 		['target'] = {
 			['detachPortrait'] = false,
@@ -119,6 +144,31 @@ P['benikui'] = {
 			['portraitTransparent'] = true,
 			['portraitStyle'] = false,
 			['portraitStyleHeight'] = 6,
+			['portraitFrameStrata'] = "MEDIUM",
+		},
+		['targettarget'] = {
+			['detachPortrait'] = false,
+			['portraitWidth'] = 110,
+			['portraitHeight'] = 85,
+			['portraitShadow'] = false,
+			['portraitTransparent'] = true,
+			['portraitFrameStrata'] = "MEDIUM",
+		},
+		['focus'] = {
+			['detachPortrait'] = false,
+			['portraitWidth'] = 110,
+			['portraitHeight'] = 85,
+			['portraitShadow'] = false,
+			['portraitTransparent'] = true,
+			['portraitFrameStrata'] = "MEDIUM",
+		},
+		['pet'] = {
+			['detachPortrait'] = false,
+			['portraitWidth'] = 110,
+			['portraitHeight'] = 85,
+			['portraitShadow'] = false,
+			['portraitTransparent'] = true,
+			['portraitFrameStrata'] = "MEDIUM",
 		},
 		['infoPanel'] = {
 			['fixInfoPanel'] = true,
@@ -127,17 +177,24 @@ P['benikui'] = {
 		},
 		['castbar'] = {
 			['text'] = {
-				['yOffset'] = -16,
 				['ShowInfoText'] = true,
 				['castText'] = true,
 				['forceTargetText'] = false,
-				['texture'] = 'BuiFlat',
-				['textColor'] = {r = 1, g = 1, b = 1, a = 1},
+				['player'] = {
+					['yOffset'] = 0,
+					['textColor'] = {r = 1, g = 1, b = 1, a = 1},
+				},
+				['target'] = {
+					['yOffset'] = 0,
+					['textColor'] = {r = 1, g = 1, b = 1, a = 1},
+				},
 			},
 		},
 		['textures'] = {
-			['power'] = E.db.unitframe.statusbar,
 			['health'] = E.db.unitframe.statusbar,
+			['ignoreTransparency'] = false,
+			['power'] = E.db.unitframe.statusbar,
+			['castbar'] = 'BuiFlat',
 		},
 		['misc'] = {
 			['svui'] = true,
@@ -186,10 +243,10 @@ P['benikuiSkins'] = {
 		['zg'] = true,
 		['clique'] = true,
 		['ora'] = true,
+		['pawn'] = true,
 	},
 	
 	['variousSkins'] = {
-		['objectiveTracker'] = true,
 		['talkingHead'] = true,
 		['decursive'] = true,
 		['storyline'] = true,
@@ -218,6 +275,7 @@ P['benikuiDatabars'] = {
 		['enable'] = true,
 		['buiStyle'] = true,
 		['buttonStyle'] = "DEFAULT",
+		['autotrack'] = false,
 		['color'] = {
 			['default'] = true,
 			['friendly'] = {r = 0, g = .6, b = .1, a = .8 },
@@ -244,6 +302,7 @@ P['benikuiDatabars'] = {
 			['enable'] = true,
 			['combat'] = false,
 			['position'] = 'LEFT',
+			['movetobagbar'] = true,
 		},
 	},
 	
@@ -282,40 +341,32 @@ P['dashboards'] = {
 	['tokens'] = {
 		['enableTokens'] = true,
 		['combat'] = true,
+		['mouseover'] = false,
 		['tooltip'] = true,
 		['width'] = 150,
 		['zeroamount'] = false,
 		['weekly'] = true,
 		['flash'] = false,
 		['chooseTokens'] = {
-			['Order Resources'] = true,
-			['Honor Points'] = true,
-			['Ancient Mana'] = true,
-			['Garrison Resources'] = true,
+			[1220] = true, -- Order Resources
+			[1273] = true, -- Seal of Broken Fate
+			[1155] = true, -- Ancient Mana
 		},
 	},
 	
 	['professions'] = {
 		['enableProfessions'] = true,
 		['combat'] = true,
+		['mouseover'] = false,
 		['width'] = 150,
 		['capped'] = false,
 		['choosePofessions'] = {
-			['Alchemy'] = true,
-			['Blacksmithing'] = true,
-			['Enchanting'] = true,
-			['Engineering'] = true,
-			['Herbalism'] = true,
-			['Inscription'] = true,
-			['Jewelcrafting'] = true,
-			['Leatherworking'] = true,
-			['Tailoring'] = true,
-			['Skinning'] = true,
-			['Mining'] = true,
-			['Archaeology'] = false,
-			['First Aid'] = false,
-			['Cooking'] = false,
-			['Fishing'] = false,
+			[5] = true,
+			[6] = true,
+			[7] = true,
+			[8] = true,
+			[9] = true,
+			[10] = true,
 		},
 	},
 

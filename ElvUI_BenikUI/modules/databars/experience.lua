@@ -44,8 +44,14 @@ local function StyleBar()
 	xp.fb = CreateFrame('Button', nil, xp)
 	xp.fb:CreateSoftGlow()
 	xp.fb.sglow:Hide()
-	xp.fb:Point('TOPLEFT', xp, 'BOTTOMLEFT', 0, -SPACING)
-	xp.fb:Point('BOTTOMRIGHT', xp, 'BOTTOMRIGHT', 0, (E.PixelMode and -20 or -22))
+	if E.db.benikui.general.shadows then
+		xp.fb:CreateShadow('Default')
+		xp.fb:Point('TOPLEFT', xp, 'BOTTOMLEFT', 0, (E.PixelMode and -SPACING -2 or -SPACING))
+		xp.fb:Point('BOTTOMRIGHT', xp, 'BOTTOMRIGHT', 0, -22)
+	else
+		xp.fb:Point('TOPLEFT', xp, 'BOTTOMLEFT', 0, -SPACING)
+		xp.fb:Point('BOTTOMRIGHT', xp, 'BOTTOMRIGHT', 0, (E.PixelMode and -20 or -22))
+	end
 	xp.fb:SetScript('OnEnter', onEnter)
 	xp.fb:SetScript('OnLeave', onLeave)
 	
@@ -56,7 +62,7 @@ local function StyleBar()
 	BDB:ToggleXPBackdrop()
 	
 	if E.db.benikui.general.benikuiStyle ~= true then return end
-	xp:Style('Outside')
+	xp:Style('Outside', nil, false, true)
 end
 
 function BDB:ApplyXpStyling()
@@ -177,19 +183,33 @@ function BDB:UpdateXpNotifier()
 	end
 end
 
+function BDB:XpTextOffset()
+	local text = ElvUI_ExperienceBar.text
+	text:Point('CENTER', 0, E.db.databars.experience.textYoffset)
+end
+
 function BDB:LoadXP()
+	local bar = ElvUI_ExperienceBar
 	self:ChangeXPcolor()
+	self:XpTextOffset()
 	hooksecurefunc(M, 'UpdateExperience', BDB.ChangeXPcolor)
+	hooksecurefunc(M, 'UpdateExperience', BDB.XpTextOffset)
 
 	local db = E.db.benikuiDatabars.experience.notifiers
 	
 	if db.enable and E.db.databars.experience.orientation == 'VERTICAL' then
-		self:CreateNotifier(ElvUI_ExperienceBar.statusBar)
+		self:CreateNotifier(bar.statusBar)
 		self:UpdateXpNotifierPositions()
 		self:UpdateXpNotifier()
 		hooksecurefunc(M, 'UpdateExperience', BDB.UpdateXpNotifier)
 		hooksecurefunc(DT, 'LoadDataTexts', BDB.UpdateXpNotifierPositions)
 		hooksecurefunc(M, 'UpdateExperienceDimensions', BDB.UpdateXpNotifierPositions)
+	end
+
+	if E.db.benikui.general.shadows then
+		if not bar.style then
+			bar:CreateShadow('Default')
+		end
 	end
 
 	if E.db.benikuiDatabars.experience.enable ~= true then return end

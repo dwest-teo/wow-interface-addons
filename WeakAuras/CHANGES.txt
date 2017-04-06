@@ -1,0 +1,22 @@
+tag 27eb514fe11d42d833e8d40ebe91a5cd399f0315 2.3.8
+Author:	Benjamin Staneck <staneck@gmail.com>
+Date:	Tue Mar 28 17:39:26 2017 +0200
+
+commit 78a60db123fb786af103cf88fbae06c1ce6efbae
+Author: Benjamin Staneck <staneck@gmail.com>
+Date:   Tue Mar 28 00:26:42 2017 +0200
+
+    fix a warning, no need to loop here
+
+commit 70d2aea879394a62f2615bf3e0e0f48ecb78ec48
+Author: Benjamin Staneck <staneck@gmail.com>
+Date:   Tue Mar 28 00:26:11 2017 +0200
+
+    fix a warning, childId was never used
+
+commit 5ac4140465a155bf0b8476155e8164258e18cfe0
+Author: Benjamin Staneck <staneck@gmail.com>
+Date:   Mon Mar 27 01:34:50 2017 +0200
+
+    update TOC for patch 7.2
+

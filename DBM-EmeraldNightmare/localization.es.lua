@@ -34,10 +34,19 @@ L:SetOptionLocalization({
 -----------------------
 L= DBM:GetModLocalization(1744)
 
+L:SetWarningLocalization({
+	warnWebOfPain		= ">%s< vinculado a >%s<",
+	specWarnWebofPain	= "Estás vinculado a >%s<"
+})
+
 -----------
 -- Ursoc --
 -----------
 L= DBM:GetModLocalization(1667)
+
+L:SetOptionLocalization({
+	NoAutoSoaking2		= "Deshabilitar todos los avisos, flechas e indicadores en pantalla para $spell:198006"
+})
 
 L:SetMiscLocalization({
 	SoakersText		=	"Interceptores asignados: %s"
@@ -53,10 +62,19 @@ L= DBM:GetModLocalization(1704)
 --------------
 L= DBM:GetModLocalization(1750)
 
+L:SetMiscLocalization({
+	BrambleYell			= "¡Zarzas cerca de " .. UnitName("player") .. "!",
+	BrambleMessage		= "Atención: DBM no puede detectar quién es el objetivo de las zarzas. Sin embargo, avisa del jugador en cuya posición comenzarán a aparecer las zarzas. Cenarius escoge a un jugador, crea zarzas a sus pies y entonces siguen a otro jugador distinto que no se puede identificar mediante addons."
+})
+
 ------------
 -- Xavius --
 ------------
 L= DBM:GetModLocalization(1726)
+
+L:SetOptionLocalization({
+	InfoFrameFilterDream	= "Excluir jugadores afectados por $spell:206005 del marco de información"
+})
 
 ------------------------
 --  Enemigos menores  --

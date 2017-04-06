@@ -31,6 +31,18 @@ local function pholderOnFade()
 	proHolder:Hide()
 end
 
+local function Icon_OnEnter(self)
+	if E.db.dashboards.professions.mouseover then
+		E:UIFrameFadeIn(proHolder, 0.2, proHolder:GetAlpha(), 1)
+	end
+end
+
+local function Icon_OnLeave(self)
+	if E.db.dashboards.professions.mouseover then
+		E:UIFrameFadeIn(proHolder, 0.2, proHolder:GetAlpha(), 0)
+	end
+end
+
 function BUIP:CreateProHolder()
 	local pholder
 	local mapholderWidth = E.private.general.minimap.enable and MMHolder:GetWidth() or 150
@@ -89,6 +101,20 @@ function BUIP:UpdateProfessions()
 		wipe( BuiProfessions )
 		proHolder:Hide()
 	end
+	
+	if db.mouseover then proHolder:SetAlpha(0) else proHolder:SetAlpha(1) end
+	
+	proHolder:SetScript('OnEnter', function(self)
+		if db.mouseover then
+			E:UIFrameFadeIn(proHolder, 0.2, proHolder:GetAlpha(), 1)
+		end
+	end)
+
+	proHolder:SetScript('OnLeave', function(self)
+		if db.mouseover then
+			E:UIFrameFadeOut(proHolder, 0.2, proHolder:GetAlpha(), 0)
+		end
+	end)
 
 	local prof1, prof2, archy, fishing, cooking, firstAid = GetProfessions()
 	
@@ -96,10 +122,10 @@ function BUIP:UpdateProfessions()
 		local proftable = { GetProfessions() }
 
 		for _, id in pairs(proftable) do
-			local name, icon, rank, maxRank, _, _, _, rankModifier = GetProfessionInfo(id)
+			local name, icon, rank, maxRank, _, _, skillLine, rankModifier = GetProfessionInfo(id)
 
 			if name and (rank < capRank or (not db.capped)) then
-				if db.choosePofessions[name] == true then
+				if db.choosePofessions[id] == true then
 					proHolder:Show()
 					proHolder:Height(((DASH_HEIGHT + (E.PixelMode and 1 or DASH_SPACING)) * (#BuiProfessions + 1)) + DASH_SPACING + (E.PixelMode and 0 or 2))
 					if ProfessionsMover then
@@ -169,9 +195,19 @@ function BUIP:UpdateProfessions()
 					ProFrame.IconBG:Point('BOTTOMRIGHT', ProFrame, 'BOTTOMRIGHT', (E.PixelMode and -2 or -3), SPACING)
 					ProFrame.IconBG:SetScript('OnClick', function(self)
 						if name ~= PROFESSIONS_FISHING then
-							CastSpellByName(name)
+							if skillLine == 186 then
+								CastSpellByID(2656) -- mining skills
+							elseif skillLine == 182 then
+								CastSpellByID(193290) -- herbalism skills
+							elseif skillLine == 393 then
+								CastSpellByID(194174) -- skinning skills
+							else
+								CastSpellByName(name)
+							end
 						end
 					end)
+					ProFrame.IconBG:SetScript('OnEnter', Icon_OnEnter)
+					ProFrame.IconBG:SetScript('OnLeave', Icon_OnLeave)
 
 					ProFrame.IconBG.Icon = ProFrame.IconBG:CreateTexture(nil, 'ARTWORK')
 					ProFrame.IconBG.Icon:SetInside()
@@ -180,6 +216,9 @@ function BUIP:UpdateProfessions()
 
 					ProFrame:SetScript('OnEnter', function(self)
 						ProFrame.Text:SetFormattedText('%s', name)
+						if db.mouseover then
+							E:UIFrameFadeIn(proHolder, 0.2, proHolder:GetAlpha(), 1)
+						end
 					end)
 			
 					ProFrame:SetScript('OnLeave', function(self)
@@ -187,7 +226,10 @@ function BUIP:UpdateProfessions()
 							ProFrame.Text:SetFormattedText('%s |cFF6b8df4+%s|r / %s', rank, rankModifier, maxRank)
 						else
 							ProFrame.Text:SetFormattedText('%s / %s', rank, maxRank)
-						end			
+						end
+						if db.mouseover then
+							E:UIFrameFadeOut(proHolder, 0.2, proHolder:GetAlpha(), 0)
+						end						
 					end)
 					tinsert(BuiProfessions, ProFrame)
 				end

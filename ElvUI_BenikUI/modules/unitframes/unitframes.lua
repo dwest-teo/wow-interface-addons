@@ -31,6 +31,113 @@ function UFB:UpdateUF()
 	end
 end
 
+function UFB:Configure_ReadyCheckIcon(frame)
+	local tex = frame.ReadyCheck
+
+	tex.readyTexture = [[Interface\AddOns\ElvUI_BenikUI\media\textures\ready]]
+	tex.notReadyTexture = [[Interface\AddOns\ElvUI_BenikUI\media\textures\notready]]
+	tex.waitingTexture = [[Interface\AddOns\ElvUI_BenikUI\media\textures\waiting]]
+end
+
+-- Unit Shadows
+function UFB:UnitShadows()
+	for _, unitName in pairs(UF.units) do
+		local frameNameUnit = E:StringTitle(unitName)
+		frameNameUnit = frameNameUnit:gsub("t(arget)", "T%1")
+		
+		local unitframe = _G["ElvUF_"..frameNameUnit]
+		unitframe:CreateShadow('Default')
+		unitframe.Buffs.PostUpdateIcon = UFB.PostUpdateAura
+		unitframe.Buffs.spacing = 3
+		unitframe.Debuffs.PostUpdateIcon = UFB.PostUpdateAura
+		unitframe.Debuffs.spacing = 3
+	end
+end
+
+-- Party Shadows
+function UFB:PartyShadows()
+	local header = _G['ElvUF_Party']
+	for i = 1, header:GetNumChildren() do
+		local group = select(i, header:GetChildren())
+
+		for j = 1, group:GetNumChildren() do
+			local unitbutton = select(j, group:GetChildren())
+			unitbutton:CreateShadow('Default')
+			unitbutton.Buffs.PostUpdateIcon = UFB.PostUpdateAura
+			unitbutton.Buffs.spacing = 3
+			unitbutton.Debuffs.PostUpdateIcon = UFB.PostUpdateAura
+			unitbutton.Debuffs.spacing = 3
+		end
+	end
+end
+
+-- Raid Shadows
+function UFB:RaidShadows()
+	local header = _G['ElvUF_Raid']
+
+	for i = 1, header:GetNumChildren() do
+		local group = select(i, header:GetChildren())
+
+		for j = 1, group:GetNumChildren() do
+			local unitbutton = select(j, group:GetChildren())
+			unitbutton:CreateShadow('Default')
+			unitbutton.Buffs.PostUpdateIcon = UFB.PostUpdateAura
+			unitbutton.Buffs.spacing = 3
+			unitbutton.Debuffs.PostUpdateIcon = UFB.PostUpdateAura
+			unitbutton.Debuffs.spacing = 3
+		end
+	end
+end
+
+-- Raid-40 Shadows
+function UFB:Raid40Shadows()
+	local header = _G['ElvUF_Raid40']
+
+	for i = 1, header:GetNumChildren() do
+		local group = select(i, header:GetChildren())
+
+		for j = 1, group:GetNumChildren() do
+			local unitbutton = select(j, group:GetChildren())
+			unitbutton:CreateShadow('Default')
+			unitbutton.Buffs.PostUpdateIcon = UFB.PostUpdateAura
+			unitbutton.Buffs.spacing = 3
+			unitbutton.Debuffs.PostUpdateIcon = UFB.PostUpdateAura
+			unitbutton.Debuffs.spacing = 3
+		end
+	end
+end
+
+-- Boss shadows
+function UFB:BossShadows()
+	for i = 1, 5 do
+		local unitbutton = _G["ElvUF_Boss"..i]
+		unitbutton:CreateShadow('Default')
+		unitbutton.Buffs.PostUpdateIcon = UFB.PostUpdateAura
+		unitbutton.Buffs.spacing = 3
+		unitbutton.Debuffs.PostUpdateIcon = UFB.PostUpdateAura
+		unitbutton.Debuffs.spacing = 3
+	end
+end
+
+-- Arena shadows
+function UFB:ArenaShadows()
+	for i = 1, 5 do
+		local unitbutton = _G["ElvUF_Arena"..i]
+		unitbutton:CreateShadow('Default')
+		unitbutton.Buffs.PostUpdateIcon = UFB.PostUpdateAura
+		unitbutton.Buffs.spacing = 3
+		unitbutton.Debuffs.PostUpdateIcon = UFB.PostUpdateAura
+		unitbutton.Debuffs.spacing = 3
+	end
+end
+
+function UFB:PostUpdateAura(unit, button, index)
+	if not button.shadow then
+		button:CreateShadow('Default')
+	end
+end
+
+
 function UFB:ADDON_LOADED(event, addon)
 	if addon ~= "ElvUI_Config" then return end
 	UFB:UnregisterEvent(event)
@@ -61,6 +168,16 @@ function UFB:Initialize()
 	self:ChangeHealthBarTexture()
 	self:InfoPanelColor()
 
+	if E.db.benikui.general.shadows then
+		self:UnitShadows()
+		self:PartyShadows()
+		self:RaidShadows()
+		self:Raid40Shadows()
+		self:BossShadows()
+		self:ArenaShadows()
+	end
+
+	hooksecurefunc(UF, "Configure_ReadyCheckIcon", UFB.Configure_ReadyCheckIcon)
 	self:RegisterEvent("ADDON_LOADED")
 end
 

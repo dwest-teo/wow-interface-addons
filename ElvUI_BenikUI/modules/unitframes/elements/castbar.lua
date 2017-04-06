@@ -18,7 +18,6 @@ local _G = _G
 --Configure castbar text position and alpha
 local function ConfigureText(unit, castbar)
 	local db = E.db.benikui.unitframes.castbar.text
-	local dbe = E.db.unitframe.units[unit];
 
 	if db.castText then
 		castbar.Text:Show()
@@ -36,17 +35,17 @@ local function ConfigureText(unit, castbar)
 	-- Set position of castbar text according to chosen offsets
 	castbar.Text:ClearAllPoints()
 	castbar.Time:ClearAllPoints()
-	if dbe.infoPanel.enable and dbe.castbar.insideInfoPanel and dbe.castbar.icon and dbe.castbar.iconAttached and db.yOffset ~= 0 then
-		if dbe.orientation == "LEFT" or dbe.orientation == "MIDDLE" and db.infoPanel.enable then
-			castbar.Text:SetPoint("LEFT", castbar, "LEFT", -castbar.ButtonIcon.bg:GetWidth() + 4, db.yOffset)
-			castbar.Time:SetPoint("RIGHT", castbar, "RIGHT", -4, db.yOffset)
-		else
-			castbar.Text:SetPoint("LEFT", castbar, "LEFT", 4, db.yOffset)
-			castbar.Time:SetPoint("RIGHT", castbar, "RIGHT", castbar.ButtonIcon.bg:GetWidth() -4, db.yOffset)
+	if db.yOffset ~= 0 then
+		if unit == 'player' then
+			castbar.Text:SetPoint("LEFT", castbar, "LEFT", 4, db.player.yOffset)
+			castbar.Time:SetPoint("RIGHT", castbar, "RIGHT", -4, db.player.yOffset)
+		elseif unit == 'target' then
+			castbar.Text:SetPoint("LEFT", castbar, "LEFT", 4, db.target.yOffset)
+			castbar.Time:SetPoint("RIGHT", castbar, "RIGHT", -4, db.target.yOffset)
 		end
 	else
-		castbar.Text:SetPoint("LEFT", castbar, "LEFT", 4, db.yOffset)
-		castbar.Time:SetPoint("RIGHT", castbar, "RIGHT", -4, db.yOffset)
+		castbar.Text:SetPoint("LEFT", castbar, "LEFT", 4, 0)
+		castbar.Time:SetPoint("RIGHT", castbar, "RIGHT", -4, 0)
 	end
 end
 
@@ -76,15 +75,14 @@ local function ConfigureCastbar(unit, unitframe)
 	local castbar = unitframe.Castbar
 	
 	if unit == 'player' or unit == 'target' then
-		if db.insideInfoPanel and unitframe.USE_INFO_PANEL then
-			ConfigureText(unit, castbar)
+		ConfigureText(unit, castbar)
+		if unitframe.USE_INFO_PANEL and db.insideInfoPanel then
 			if E.db.benikui.unitframes.castbar.text.ShowInfoText then
 				changeCastbarLevel(unit, unitframe)
 			else
 				resetCastbarLevel(unit, unitframe)
 			end
 		else
-			ResetText(castbar)
 			resetCastbarLevel(unit, unitframe)
 		end
 	end
@@ -106,12 +104,20 @@ function BUIC:UpdateAllCastbars()
 end
 
 --Castbar texture
-function BUIC:PostCast(unit)
-	local castTexture = LSM:Fetch("statusbar", E.db.benikui.unitframes.castbar.text.texture)
-	local r, g, b, a = BUI:unpackColor(E.db.benikui.unitframes.castbar.text.textColor)
-	self:SetStatusBarTexture(castTexture)
-	self.Text:SetTextColor(r, g, b, a)
-	self.Time:SetTextColor(r, g, b, a)
+function BUIC:PostCast(unit, unitframe)
+	local castTexture = LSM:Fetch("statusbar", E.db.benikui.unitframes.textures.castbar)
+	local pr, pg, pb, pa = BUI:unpackColor(E.db.benikui.unitframes.castbar.text.player.textColor)
+	local tr, tg, tb, ta = BUI:unpackColor(E.db.benikui.unitframes.castbar.text.target.textColor)
+	if not self.isTransparent then
+		self:SetStatusBarTexture(castTexture)
+	end
+	if unit == 'player' then
+		self.Text:SetTextColor(pr, pg, pb, pa)
+		self.Time:SetTextColor(pr, pg, pb, pa)
+	elseif unit == 'target' then
+		self.Text:SetTextColor(tr, tg, tb, ta)
+		self.Time:SetTextColor(tr, tg, tb, ta)	
+	end
 end
 
 function BUIC:CastBarHooks()
@@ -120,6 +126,10 @@ function BUIC:CastBarHooks()
 		local unitframe = _G["ElvUF_"..unit];
 		local castbar = unitframe and unitframe.Castbar
 		if castbar then
+			if E.db.benikui.general.shadows then
+				castbar:CreateShadow('Default')
+				castbar.ButtonIcon.bg:CreateShadow('Default')
+			end
 			hooksecurefunc(castbar, "PostCastStart", BUIC.PostCast)
 			hooksecurefunc(castbar, "PostCastInterruptible", BUIC.PostCast)
 			hooksecurefunc(castbar, "PostChannelStart", BUIC.PostCast)
@@ -129,6 +139,10 @@ function BUIC:CastBarHooks()
 	for i = 1, 5 do
 		local castbar = _G["ElvUF_Arena"..i].Castbar
 		if castbar then
+			if E.db.benikui.general.shadows then
+				castbar:CreateShadow('Default')
+				castbar.ButtonIcon.bg:CreateShadow('Default')
+			end
 			hooksecurefunc(castbar, "PostCastStart", BUIC.PostCast)
 			hooksecurefunc(castbar, "PostCastInterruptible", BUIC.PostCast)
 			hooksecurefunc(castbar, "PostChannelStart", BUIC.PostCast)
@@ -138,6 +152,10 @@ function BUIC:CastBarHooks()
 	for i = 1, MAX_BOSS_FRAMES do
 		local castbar = _G["ElvUF_Boss"..i].Castbar
 		if castbar then
+			if E.db.benikui.general.shadows then
+				castbar:CreateShadow('Default')
+				castbar.ButtonIcon.bg:CreateShadow('Default')
+			end
 			hooksecurefunc(castbar, "PostCastStart", BUIC.PostCast)
 			hooksecurefunc(castbar, "PostCastInterruptible", BUIC.PostCast)
 			hooksecurefunc(castbar, "PostChannelStart", BUIC.PostCast)
@@ -161,7 +179,7 @@ function BUIC:Initialize()
 		if preventLoop then return; end
 
 		local unit = frame.unitframeType
-		if unit and (unit == 'player' or unit == 'target') and E.db.unitframe.units[unit].castbar.insideInfoPanel then
+		if unit and (unit == 'player' or unit == 'target') then
 			BUIC:UpdateSettings(unit)
 		end
 	end)

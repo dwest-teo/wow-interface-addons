@@ -107,6 +107,13 @@ local function LoadSkin()
 		end
 	end)
 
+	--Reward: Title
+	QuestInfoPlayerTitleFrame.FrameLeft:SetTexture(nil)
+	QuestInfoPlayerTitleFrame.FrameCenter:SetTexture(nil)
+	QuestInfoPlayerTitleFrame.FrameRight:SetTexture(nil)
+	QuestInfoPlayerTitleFrame.Icon:SetTexCoord(unpack(E.TexCoords))
+	QuestInfoPlayerTitleFrame:CreateBackdrop("Default")
+	QuestInfoPlayerTitleFrame.backdrop:SetOutside(QuestInfoPlayerTitleFrame.Icon)
 
 	--Quest Frame
 	QuestFrame:StripTextures(true)
@@ -137,11 +144,13 @@ local function LoadSkin()
 	S:HandleButton(QuestFrameCompleteButton, true)
 	S:HandleButton(QuestFrameGoodbyeButton, true)
 	S:HandleButton(QuestFrameCompleteQuestButton, true)
-	S:HandleButton(QuestFrameDetailPanel.IgnoreButton, true)
-	S:HandleButton(QuestFrameDetailPanel.UnignoreButton, true)
-	S:HandleButton(QuestFrameProgressPanel.IgnoreButton, true)
-	S:HandleButton(QuestFrameProgressPanel.UnignoreButton, true)
 	S:HandleCloseButton(QuestFrameCloseButton, QuestFrame.backdrop)
+	if not (E.wowbuild >= 23623) then --7.1.5
+		S:HandleButton(QuestFrameDetailPanel.IgnoreButton, true)
+		S:HandleButton(QuestFrameDetailPanel.UnignoreButton, true)
+		S:HandleButton(QuestFrameProgressPanel.IgnoreButton, true)
+		S:HandleButton(QuestFrameProgressPanel.UnignoreButton, true)
+	end
 
 	for i=1, 6 do
 		local button = _G["QuestProgressItem"..i]

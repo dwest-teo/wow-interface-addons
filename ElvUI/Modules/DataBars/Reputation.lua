@@ -1,5 +1,6 @@
 local E, L, V, P, G = unpack(select(2, ...)); --Inport: Engine, Locales, PrivateDB, ProfileDB, GlobalDB
 local mod = E:GetModule('DataBars');
+local LSM = LibStub("LibSharedMedia-3.0")
 
 --Cache global variables
 --Lua functions
@@ -7,6 +8,12 @@ local _G = _G
 local format = format
 
 --WoW API / Variables
+local C_Reputation_GetFactionParagonInfo
+local C_Reputation_IsFactionParagon
+if E.wowbuild >= 23623 then --7.2
+	C_Reputation_GetFactionParagonInfo = C_Reputation.GetFactionParagonInfo
+	C_Reputation_IsFactionParagon = C_Reputation.IsFactionParagon
+end
 local GetFriendshipReputation = GetFriendshipReputation
 local GetWatchedFactionInfo, GetNumFactions, GetFactionInfo = GetWatchedFactionInfo, GetNumFactions, GetFactionInfo
 local InCombatLockdown = InCombatLockdown
@@ -26,7 +33,14 @@ function mod:UpdateReputation(event)
 
 	local ID
 	local isFriend, friendText, standingLabel
-	local name, reaction, min, max, value = GetWatchedFactionInfo()
+	local name, reaction, min, max, value, factionID = GetWatchedFactionInfo()
+	if E.wowbuild >= 23623 then --7.2
+		if (C_Reputation_IsFactionParagon(factionID)) then
+			local currentValue, threshold = C_Reputation_GetFactionParagonInfo(factionID)
+			min, max, value = 0, threshold, currentValue
+		end
+	end
+	
 	local numFactions = GetNumFactions();
 
 	if not name or (event == "PLAYER_REGEN_DISABLED" and self.db.reputation.hideInCombat) then
@@ -79,6 +93,8 @@ function mod:UpdateReputation(event)
 			text = format('%s: %s [%s]', name, E:ShortValue((max - min) - (value-min)), isFriend and friendText or standingLabel)
 		elseif textFormat == 'CURREM' then
 			text = format('%s: %s - %s [%s]', name, E:ShortValue(value - min), E:ShortValue((max - min) - (value-min)), isFriend and friendText or standingLabel)
+		elseif textFormat == 'CURPERCREM' then
+			text = format('%s: %s - %d%% (%s) [%s]', name, E:ShortValue(value - min), ((value - min) / (max - min) * 100), E:ShortValue((max - min) - (value-min)), isFriend and friendText or standingLabel)
 		end
 
 		bar.text:SetText(text)
@@ -93,6 +109,12 @@ function mod:ReputationBar_OnEnter()
 	GameTooltip:SetOwner(self, 'ANCHOR_CURSOR', 0, -4)
 
 	local name, reaction, min, max, value, factionID = GetWatchedFactionInfo()
+	if E.wowbuild >= 23623 then --7.2
+		if (C_Reputation_IsFactionParagon(factionID)) then
+			local currentValue, threshold = C_Reputation_GetFactionParagonInfo(factionID)
+			min, max, value = 0, threshold, currentValue
+		end
+	end
 	local friendID, _, _, _, _, _, friendTextLevel = GetFriendshipReputation(factionID);
 	if name then
 		GameTooltip:AddLine(name)
@@ -113,7 +135,7 @@ function mod:UpdateReputationDimensions()
 	self.repBar:Height(self.db.reputation.height)
 	self.repBar.statusBar:SetOrientation(self.db.reputation.orientation)
 	self.repBar.statusBar:SetReverseFill(self.db.reputation.reverseFill)
-	self.repBar.text:FontTemplate(nil, self.db.reputation.textSize)
+	self.repBar.text:FontTemplate(LSM:Fetch("font", self.db.reputation.font), self.db.reputation.textSize, self.db.reputation.fontOutline)
 	if self.db.reputation.mouseover then
 		self.repBar:SetAlpha(0)
 	else

@@ -16,7 +16,7 @@ function AS:Blizzard_Collections(event, addon)
 		AS:CreateBackdrop(PetStablePetInfo)
 		PetStablePetInfo.Backdrop:SetOutside(PetStableSelectedPetIcon)
 		AS:SkinTexture(PetStableSelectedPetIcon)
-		PetStableSelectedPetIcon:Size(36)
+		PetStableSelectedPetIcon:SetSize(36, 36)
 
 		for i = 1, 5 do
 			local Button = _G["PetStableActivePet"..i]
@@ -271,7 +271,7 @@ function AS:Blizzard_Collections(event, addon)
 
 		AS:SkinStatusBar(PetJournalPetCardHealthFrame.healthBar)
 		AS:SkinStatusBar(PetJournalPetCardXPBar)
-		PetJournalLoadoutBorder:Height(350)
+		PetJournalLoadoutBorder:SetHeight(350)
 
 		AS:StripTextures(ToyBoxFilterButton, true)
 		AS:SkinButton(ToyBoxFilterButton)
@@ -299,7 +299,10 @@ function AS:Blizzard_Collections(event, addon)
 		hooksecurefunc("ToySpellButton_UpdateButton", function(self)
 			if (PlayerHasToy(self.itemID)) then
 				local quality = select(3, GetItemInfo(self.itemID))
-				local r, g, b = GetItemQualityColor(quality)
+				local r, g, b = 1, 1, 1
+				if quality then
+					r, g, b = GetItemQualityColor(quality)
+				end
 				self.TextColor = { r, g, b }
 				self:SetBackdropBorderColor(r, g, b)
 			else

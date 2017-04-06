@@ -1,11 +1,10 @@
 local SharedMedia = LibStub("LibSharedMedia-3.0");
 
--- GLOBALS: WeakAuras
-
 -- Default settings
 local default = {
     controlledChildren     = {},
     anchorPoint         = "CENTER",
+    anchorFrameType     = "SCREEN",
     xOffset             = 0,
     yOffset             = 0,
     frameStrata         = 1,
@@ -41,6 +40,10 @@ local function getRect(data)
     local blx, bly, trx, try;
     blx, bly = data.xOffset, data.yOffset;
 
+    if (data.width == nil or data.height == nil) then
+      return blx, bly, blx, bly;
+    end
+
     -- Calc bounding box
     if(data.selfPoint:find("LEFT")) then
         trx = blx + data.width;
@@ -70,13 +73,6 @@ local function modify(parent, region, data)
     -- Localize
     local border = region.border;
 
-    -- Adjust framestrata
-    if(data.frameStrata == 1) then
-        region:SetFrameStrata(region:GetParent():GetFrameStrata());
-    else
-        region:SetFrameStrata(WeakAuras.frame_strata_types[data.frameStrata]);
-    end
-
     -- Get overall bounding box
     data.selfPoint = "BOTTOMLEFT";
     local leftest, rightest, lowest, highest = 0, 0, 0, 0;
@@ -97,7 +93,7 @@ local function modify(parent, region, data)
 
     -- Reset position and size
     region:ClearAllPoints();
-    region:SetPoint(data.selfPoint, parent, data.anchorPoint, data.xOffset, data.yOffset);
+    WeakAuras.AnchorFrame(data, region, parent);
 
     -- Adjust frame-level sorting
     local frameLevel = 1

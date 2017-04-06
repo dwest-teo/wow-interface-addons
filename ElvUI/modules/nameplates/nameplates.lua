@@ -10,6 +10,10 @@ local format, match = string.format, string.match
 local CreateFrame = CreateFrame
 local C_NamePlate_GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 local C_NamePlate_GetNamePlates = C_NamePlate.GetNamePlates
+local C_NamePlate_SetNamePlateEnemyClickThrough = C_NamePlate.SetNamePlateEnemyClickThrough
+local C_NamePlate_SetNamePlateFriendlyClickThrough = C_NamePlate.SetNamePlateFriendlyClickThrough
+local C_NamePlate_SetNamePlateSelfClickThrough = C_NamePlate.SetNamePlateSelfClickThrough
+local C_Timer_After = C_Timer.After
 local GetArenaOpponentSpec = GetArenaOpponentSpec
 local GetBattlefieldScore = GetBattlefieldScore
 local GetNumArenaOpponentSpecs = GetNumArenaOpponentSpecs
@@ -111,7 +115,7 @@ function mod:PLAYER_ENTERING_WORLD()
 			self.CheckHealerTimer = nil;
 		end
 	end
-	if self.db.units.PLAYER.alwaysShow then
+	if self.db.units.PLAYER.useStaticPosition then
 		mod:UpdateVisibility()
 	end
 end
@@ -189,7 +193,7 @@ function mod:SetFrameScale(frame, scale)
 end
 
 function mod:GetNamePlateForUnit(unit)
-	if(unit == "player" and self.db.units.PLAYER.alwaysShow and self.db.units.PLAYER.enable) then
+	if(unit == "player" and self.db.units.PLAYER.useStaticPosition and self.db.units.PLAYER.enable) then
 		return self.PlayerFrame__
 	else
 		return C_NamePlate_GetNamePlateForUnit(unit)
@@ -221,7 +225,7 @@ function mod:SetTargetFrame(frame)
 			self:SetFrameScale(frame, self.db.targetScale)
 		end
 		frame.isTarget = true
-		if(self.db.units[frame.UnitType].healthbar.enable ~= true) then
+		if(self.db.units[frame.UnitType].healthbar.enable ~= true and self.db.alwaysShowTargetHealth) then
 			frame.Name:ClearAllPoints()
 			frame.NPCTitle:ClearAllPoints()
 			frame.Level:ClearAllPoints()
@@ -270,7 +274,7 @@ function mod:SetTargetFrame(frame)
 	if (self.db.displayStyle == "TARGET" and not frame.isTarget and frame.UnitType ~= "PLAYER") then
 		--Hide if we only allow our target to be displayed and the frame is not our current target and the frame is not the player nameplate
 		frame:Hide()
-	else
+	elseif (frame.UnitType ~= "PLAYER" or not self.db.units.PLAYER.useStaticPosition) then --Visibility for static nameplate is handled in UpdateVisibility
 		frame:Show()
 	end
 end
@@ -346,7 +350,10 @@ function mod:NAME_PLATE_UNIT_ADDED(_, unit, frame)
 	end
 
 	if(frame.UnitFrame.UnitType == "PLAYER") then
-		mod.PlayerFrame = frame
+		self.PlayerFrame = frame
+		self.PlayerNamePlateAnchor:SetParent(frame)
+		self.PlayerNamePlateAnchor:SetAllPoints(frame.UnitFrame)
+		self.PlayerNamePlateAnchor:Show()
 	end
 
 	if(self.db.units[frame.UnitFrame.UnitType].healthbar.enable or self.db.displayStyle ~= "ALL") then
@@ -377,7 +384,7 @@ function mod:NAME_PLATE_UNIT_ADDED(_, unit, frame)
 	if (self.db.displayStyle == "TARGET" and not frame.UnitFrame.isTarget and frame.UnitFrame.UnitType ~= "PLAYER") then
 		--Hide if we only allow our target to be displayed and the frame is not our current target and the frame is not the player nameplate
 		frame.UnitFrame:Hide()
-	else
+	elseif (frame.UnitType ~= "PLAYER" or not self.db.units.PLAYER.useStaticPosition) then --Visibility for static nameplate is handled in UpdateVisibility
 		frame.UnitFrame:Show()
 	end
 end
@@ -388,7 +395,8 @@ function mod:NAME_PLATE_UNIT_REMOVED(_, unit, frame)
 
 	local unitType = frame.UnitFrame.UnitType
 	if(frame.UnitFrame.UnitType == "PLAYER") then
-		mod.PlayerFrame = nil
+		self.PlayerFrame = nil
+		self.PlayerNamePlateAnchor:Hide()
 	end
 
 	self:HideAuraIcons(frame.UnitFrame.Buffs)
@@ -442,6 +450,26 @@ function mod:ConfigureAll()
 	self:ForEachPlate("UpdateAllFrame")
 	self:UpdateCVars()
 	self:TogglePlayerDisplayType()
+	self:SetNamePlateClickThrough()
+end
+
+function mod:SetNamePlateClickThrough()
+	self:SetNamePlateSelfClickThrough()
+	self:SetNamePlateFriendlyClickThrough()
+	self:SetNamePlateEnemyClickThrough()
+end
+
+function mod:SetNamePlateSelfClickThrough()
+	C_NamePlate_SetNamePlateSelfClickThrough(self.db.clickThrough.personal)
+	self.PlayerFrame__:EnableMouse(not self.db.clickThrough.personal)
+end
+
+function mod:SetNamePlateFriendlyClickThrough()
+	C_NamePlate_SetNamePlateFriendlyClickThrough(self.db.clickThrough.friendly)
+end
+
+function mod:SetNamePlateEnemyClickThrough()
+	C_NamePlate_SetNamePlateEnemyClickThrough(self.db.clickThrough.enemy)
 end
 
 function mod:ForEachPlate(functionToRun, ...)
@@ -488,7 +516,7 @@ function mod:UpdateInVehicle(frame, noEvents)
 end
 
 function mod:UpdateElement_All(frame, unit, noTargetFrame)
-	if(self.db.units[frame.UnitType].healthbar.enable or (self.db.displayStyle ~= "ALL") or frame.isTarget) then
+	if(self.db.units[frame.UnitType].healthbar.enable or (self.db.displayStyle ~= "ALL") or (frame.isTarget and self.db.alwaysShowTargetHealth)) then
 		mod:UpdateElement_MaxHealth(frame)
 		mod:UpdateElement_Health(frame)
 		mod:UpdateElement_HealthColor(frame)
@@ -539,7 +567,7 @@ function mod:NAME_PLATE_CREATED(_, frame)
 end
 
 function mod:OnEvent(event, unit, ...)
-	if (unit and self.displayedUnit and (not UnitIsUnit(unit, self.displayedUnit) and not ((unit == "vehicle" or unit == "player") and (self.displayedUnit == "vehicle" or self.displayedUnit == "player")))) then 
+	if (unit and self.displayedUnit and (not UnitIsUnit(unit, self.displayedUnit) and not ((unit == "vehicle" or unit == "player") and (self.displayedUnit == "vehicle" or self.displayedUnit == "player")))) then
 		return
 	end
 
@@ -609,7 +637,7 @@ function mod:RegisterEvents(frame, unit)
 		displayedUnit = frame.displayedUnit;
 	end
 
-	if(self.db.units[frame.UnitType].healthbar.enable or frame.isTarget) then
+	if(self.db.units[frame.UnitType].healthbar.enable or (frame.isTarget and self.db.alwaysShowTargetHealth)) then
 		frame:RegisterUnitEvent("UNIT_MAXHEALTH", unit, displayedUnit);
 		frame:RegisterUnitEvent("UNIT_HEALTH", unit, displayedUnit);
 		frame:RegisterUnitEvent("UNIT_HEALTH_FREQUENT", unit, displayedUnit);
@@ -621,7 +649,7 @@ function mod:RegisterEvents(frame, unit)
 	frame:RegisterEvent("UNIT_NAME_UPDATE");
 	frame:RegisterUnitEvent("UNIT_LEVEL", unit, displayedUnit);
 
-	if(self.db.units[frame.UnitType].healthbar.enable or frame.isTarget) then
+	if(self.db.units[frame.UnitType].healthbar.enable or (frame.isTarget and self.db.alwaysShowTargetHealth)) then
 		if(frame.UnitType == "ENEMY_NPC") then
 			frame:RegisterUnitEvent("UNIT_THREAT_LIST_UPDATE", unit, displayedUnit);
 		end
@@ -651,10 +679,10 @@ function mod:RegisterEvents(frame, unit)
 		if(self.db.units[frame.UnitType].buffs.enable or self.db.units[frame.UnitType].debuffs.enable) then
 			frame:RegisterUnitEvent("UNIT_AURA", unit, displayedUnit)
 		end
-		frame:RegisterEvent("RAID_TARGET_UPDATE")
 		mod.OnEvent(frame, "PLAYER_ENTERING_WORLD")
 	end
 
+	frame:RegisterEvent("RAID_TARGET_UPDATE")
 	frame:RegisterEvent("UNIT_ENTERED_VEHICLE")
 	frame:RegisterEvent("UNIT_EXITED_VEHICLE")
 	frame:RegisterEvent("UNIT_PET")
@@ -671,7 +699,6 @@ function mod:SetClassNameplateBar(frame)
 end
 
 function mod:UpdateCVars()
-	E:LockCVar("nameplateShowSelf", (self.db.units.PLAYER.alwaysShow == true or self.db.units.PLAYER.enable ~= true) and "0" or "1")
 	E:LockCVar("nameplateMotion", self.db.motionType == "STACKED" and "1" or "0")
 	E:LockCVar("nameplateShowAll", self.db.displayStyle ~= "ALL" and "0" or "1")
 	E:LockCVar("nameplateShowFriendlyMinions", self.db.units.FRIENDLY_PLAYER.minions == true and "1" or "0")
@@ -681,6 +708,13 @@ function mod:UpdateCVars()
 	E:LockCVar("nameplateMaxDistance", self.db.loadDistance)
 	E:LockCVar("nameplateOtherTopInset", self.db.clampToScreen and "0.08" or "-1")
 	E:LockCVar("nameplateOtherBottomInset", self.db.clampToScreen and "0.1" or "-1")
+
+	--Player nameplate
+	E:LockCVar("nameplateShowSelf", (self.db.units.PLAYER.useStaticPosition == true or self.db.units.PLAYER.enable ~= true) and "0" or "1")
+	E:LockCVar("nameplatePersonalShowAlways", (self.db.units.PLAYER.visibility.showAlways == true and "1" or "0"))
+	E:LockCVar("nameplatePersonalShowInCombat", (self.db.units.PLAYER.visibility.showInCombat == true and "1" or "0"))
+	E:LockCVar("nameplatePersonalShowWithTarget", (self.db.units.PLAYER.visibility.showWithTarget == true and "1" or "0"))
+	E:LockCVar("nameplatePersonalHideDelaySeconds", self.db.units.PLAYER.visibility.hideDelay)
 end
 
 local function CopySettings(from, to)
@@ -706,17 +740,21 @@ function mod:CopySettings(from, to)
 end
 
 function mod:TogglePlayerDisplayType()
-	if(self.db.units.PLAYER.enable and self.db.units.PLAYER.alwaysShow) then
+	if(self.db.units.PLAYER.enable and self.db.units.PLAYER.useStaticPosition) then
 		self.PlayerFrame__:Show()
 		RegisterUnitWatch(self.PlayerFrame__)
 		E:EnableMover("PlayerNameplate")
 		self:NAME_PLATE_UNIT_ADDED("NAME_PLATE_UNIT_ADDED", "player", self.PlayerFrame__)
+		self.PlayerNamePlateAnchor:SetParent(self.PlayerFrame__)
+		self.PlayerNamePlateAnchor:SetAllPoints(self.PlayerFrame__.UnitFrame)
+		self:UpdateVisibility()
 	else
 		UnregisterUnitWatch(self.PlayerFrame__)
 		E:DisableMover("PlayerNameplate")
 		if(self.PlayerFrame__:IsShown()) then
 			self:NAME_PLATE_UNIT_REMOVED("NAME_PLATE_UNIT_REMOVED", "player", self.PlayerFrame__)
 			self.PlayerFrame__:Hide()
+			self.PlayerNamePlateAnchor:Hide()
 		end
 	end
 end
@@ -742,7 +780,7 @@ function mod:PLAYER_REGEN_DISABLED()
 		SetCVar("nameplateShowEnemies", 0);
 	end
 
-	if self.db.units.PLAYER.alwaysShow then
+	if self.db.units.PLAYER.useStaticPosition then
 		self:UpdateVisibility()
 	end
 end
@@ -762,27 +800,37 @@ function mod:PLAYER_REGEN_ENABLED()
 	self:UpdateVisibility()
 end
 
+local function HidePlayerNamePlate()
+	mod.PlayerFrame__.UnitFrame:Hide()
+	mod.PlayerNamePlateAnchor:Hide()
+end
+
 function mod:UpdateVisibility()
 	local frame = self.PlayerFrame__
-	if self.db.units.PLAYER.alwaysShow then
-		local target, dead = UnitExists("target"), UnitIsDead("target")
-		local combat = UnitAffectingCombat("player")
-		local curHP, maxHP = UnitHealth("player"), UnitHealthMax("player")
-		local CanAttack = UnitCanAttack("player", "target")
-		if self.db.units.PLAYER.combatFade and (curHP ~= maxHP or combat or (target and CanAttack and not dead)) then
+	if self.db.units.PLAYER.useStaticPosition then
+		if (self.db.units.PLAYER.visibility.showAlways) then
 			frame.UnitFrame:Show()
-		elseif not self.db.units.PLAYER.combatFade then
-			frame.UnitFrame:Show()
+			self.PlayerNamePlateAnchor:Show()
 		else
-			frame.UnitFrame:Hide()
+			local curHP, maxHP = UnitHealth("player"), UnitHealthMax("player")
+			local inCombat = UnitAffectingCombat("player")
+			local hasTarget = UnitExists("target")
+			local canAttack = UnitCanAttack("player", "target")
+			
+			if (curHP ~= maxHP) or (self.db.units.PLAYER.visibility.showInCombat and inCombat) or (self.db.units.PLAYER.visibility.showWithTarget and hasTarget and canAttack) then
+				frame.UnitFrame:Show()
+				self.PlayerNamePlateAnchor:Show()
+			elseif frame.UnitFrame:IsShown() then
+				if (self.db.units.PLAYER.visibility.hideDelay > 0) then
+					C_Timer_After(self.db.units.PLAYER.visibility.hideDelay, HidePlayerNamePlate)
+				else
+					HidePlayerNamePlate()
+				end
+			end
 		end
 	else
 		frame.UnitFrame:Hide()
 	end
-end
-
-function mod:TogglePlayerMouse()
-	self.PlayerFrame__:EnableMouse(not self.db.units.PLAYER.clickthrough)
 end
 
 function mod:Initialize()
@@ -804,10 +852,22 @@ function mod:Initialize()
 	self.PlayerFrame__:SetPoint("TOP", UIParent, "CENTER", 0, -150)
 	self.PlayerFrame__:Hide()
 
+	--Create anchor frame for the default player resource bar, the one that moves around
+	--Other addons can anchor stuff to this frame to make sure it follows the movement of the resource bar
+	--Request: http://git.tukui.org/Elv/elvui/issues/1708
+	self.PlayerNamePlateAnchor = CreateFrame("Frame", "ElvUIPlayerNamePlateAnchor", E.UIParent)
+	self.PlayerNamePlateAnchor:Hide()
+
 	self:UpdateCVars()
 	InterfaceOptionsNamesPanelUnitNameplates:Kill()
 	NamePlateDriverFrame:UnregisterAllEvents()
-	NamePlateDriverFrame.ApplyFrameOptions = E.noop
+	NamePlateDriverFrame.ApplyFrameOptions = E.noop --This taints and prevents default nameplates in dungeons and raids
+
+	--We need to re-register these in order for default nameplates to show in dungeons and raids
+	-- NamePlateDriverFrame:RegisterEvent("FORBIDDEN_NAME_PLATE_CREATED")
+	-- NamePlateDriverFrame:RegisterEvent("FORBIDDEN_NAME_PLATE_UNIT_ADDED")
+	-- NamePlateDriverFrame:RegisterEvent("FORBIDDEN_NAME_PLATE_UNIT_REMOVED")
+
 	self:RegisterEvent("PLAYER_REGEN_ENABLED");
 	self:RegisterEvent("PLAYER_REGEN_DISABLED");
 	self:RegisterEvent("NAME_PLATE_CREATED");
@@ -826,14 +886,14 @@ function mod:Initialize()
 	hooksecurefunc(NamePlateDriverFrame, "SetClassNameplateBar", mod.SetClassNameplateBar)
 
 	self:DISPLAY_SIZE_CHANGED() --Run once for good measure.
-	self:SetBaseNamePlateSize()
+	self:SetBaseNamePlateSize() --This taints and prevents default nameplates in dungeons and raids
 
 	self:NAME_PLATE_CREATED("NAME_PLATE_CREATED", self.PlayerFrame__)
 	self:NAME_PLATE_UNIT_ADDED("NAME_PLATE_UNIT_ADDED", "player", self.PlayerFrame__)
 	self:NAME_PLATE_UNIT_REMOVED("NAME_PLATE_UNIT_REMOVED", "player", self.PlayerFrame__)
 	E:CreateMover(self.PlayerFrame__, "PlayerNameplate", L["Player Nameplate"])
 	self:TogglePlayerDisplayType()
-	self.PlayerFrame__:EnableMouse(not self.db.units.PLAYER.clickthrough)
+	self:SetNamePlateClickThrough()
 
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 

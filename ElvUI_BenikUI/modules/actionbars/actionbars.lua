@@ -10,19 +10,28 @@ local IsAddOnLoaded = IsAddOnLoaded
 local C_TimerAfter = C_Timer.After
 
 -- GLOBALS: NUM_PET_ACTION_SLOTS, DisableAddOn
--- GLOBALS: ElvUI_BarPet, ElvUI_StanceBar, ElvUI_TotemBar, ElvUIBags
+-- GLOBALS: ElvUI_BarPet, ElvUI_StanceBar
 
 local classColor = E.myclass == 'PRIEST' and E.PriestColors or (CUSTOM_CLASS_COLORS and CUSTOM_CLASS_COLORS[E.myclass] or RAID_CLASS_COLORS[E.myclass])
+local availableActionbars = availableActionbars or 6
 
-local styleOtherBacks = {ElvUI_BarPet, ElvUI_StanceBar, ElvUI_TotemBar}
+local styleOtherBacks = {ElvUI_BarPet, ElvUI_StanceBar}
+
+local function CheckExtraAB()
+	if IsAddOnLoaded('ElvUI_ExtraActionBars') then
+		availableActionbars = 10
+	else
+		availableActionbars = 6
+	end
+end
 
 function BAB:StyleBackdrops()
 	-- Actionbar backdrops
-	for i = 1, 10 do
+	for i = 1, availableActionbars do
 		local styleBacks = {_G['ElvUI_Bar'..i]}
 		for _, frame in pairs(styleBacks) do
 			if frame.backdrop then
-				frame.backdrop:Style('Outside', frame:GetName()..'_Bui', true)
+				frame.backdrop:Style('Outside', nil, true, true)
 			end
 		end
 	end
@@ -30,43 +39,77 @@ function BAB:StyleBackdrops()
 	-- Other bar backdrops
 	for _, frame in pairs(styleOtherBacks) do
 		if frame.backdrop then
-			frame.backdrop:Style('Outside', frame:GetName()..'_Bui', true)
+			frame.backdrop:Style('Outside', nil, true, true)
 		end
 	end
 end
+
+function BAB:ToggleStyle()
+	-- Actionbar backdrops
+	for i = 1, availableActionbars do
+		if _G['ElvUI_Bar'..i].backdrop.style then
+			if E.db.benikui.actionbars.style['bar'..i] then
+				_G['ElvUI_Bar'..i].backdrop.style:Show()
+			else
+				_G['ElvUI_Bar'..i].backdrop.style:Hide()
+			end
+		end
+	end
+	
+	-- Other bar backdrops
+	if _G['ElvUI_BarPet'].backdrop.style then
+		if E.db.benikui.actionbars.style.petbar then
+			_G['ElvUI_BarPet'].backdrop.style:Show()
+		else
+			_G['ElvUI_BarPet'].backdrop.style:Hide()
+		end
+	end
+
+	if _G['ElvUI_StanceBar'].backdrop.style then
+		if E.db.benikui.actionbars.style.stancebar then
+			_G['ElvUI_StanceBar'].backdrop.style:Show()
+		else
+			_G['ElvUI_StanceBar'].backdrop.style:Hide()
+		end
+	end
+end
+
+local r, g, b = 0, 0, 0
 
 function BAB:ColorBackdrops()
 	if E.db.benikui.general.benikuiStyle ~= true then return end
 	local db = E.db.benikui.colors
 	
-	for i = 1, 10 do
-		local styleBacks = {_G['ElvUI_Bar'..i..'_Bui']}
+	for i = 1, availableActionbars do
+		local styleBacks = {_G['ElvUI_Bar'..i].backdrop.style}
+
 		for _, frame in pairs(styleBacks) do
-			frame.backdropTexture:SetTexture(E['media'].BuiFlat)
 			if db.abStyleColor == 1 then
-				frame.backdropTexture:SetVertexColor(classColor.r, classColor.g, classColor.b)
+				r, g, b = classColor.r, classColor.g, classColor.b
 			elseif db.abStyleColor == 2 then
-				frame.backdropTexture:SetVertexColor(BUI:unpackColor(db.customAbStyleColor))
+				r, g, b = BUI:unpackColor(db.customAbStyleColor)
 			elseif db.abStyleColor == 3 then
-				frame.backdropTexture:SetVertexColor(BUI:unpackColor(E.db.general.valuecolor))
+				r, g, b = BUI:unpackColor(E.db.general.valuecolor)
 			else
-				frame.backdropTexture:SetVertexColor(BUI:unpackColor(E.db.general.backdropcolor))
+				r, g, b = BUI:unpackColor(E.db.general.backdropcolor)
 			end
+			frame:SetBackdropColor(r, g, b, (db.abAlpha or 1))
 		end
 	end
 	
 	for _, frame in pairs(styleOtherBacks) do
-		local name = _G[frame:GetName()..'_Bui']
-		name.backdropTexture:SetTexture(E['media'].BuiFlat)
+		local name = _G[frame:GetName()].backdrop.style
+
 		if db.abStyleColor == 1 then
-			name.backdropTexture:SetVertexColor(classColor.r, classColor.g, classColor.b)
+			r, g, b = classColor.r, classColor.g, classColor.b
 		elseif db.abStyleColor == 2 then
-			name.backdropTexture:SetVertexColor(BUI:unpackColor(db.customAbStyleColor))
+			r, g, b = BUI:unpackColor(db.customAbStyleColor)
 		elseif db.abStyleColor == 3 then
-			name.backdropTexture:SetVertexColor(BUI:unpackColor(E.db.general.valuecolor))
+			r, g, b = BUI:unpackColor(E.db.general.valuecolor)
 		else
-			name.backdropTexture:SetVertexColor(BUI:unpackColor(E.db.general.backdropcolor))
+			r, g, b = BUI:unpackColor(E.db.general.backdropcolor)
 		end
+		name:SetBackdropColor(r, g, b, (db.abAlpha or 1))
 	end
 end
 
@@ -74,7 +117,7 @@ end
 function BAB:TransparentBackdrops()
 	-- Actionbar backdrops
 	local db = E.db.benikui.actionbars
-	for i = 1, 10 do
+	for i = 1, availableActionbars do
 		local transBars = {_G['ElvUI_Bar'..i]}
 		for _, frame in pairs(transBars) do
 			if frame.backdrop then
@@ -91,6 +134,12 @@ function BAB:TransparentBackdrops()
 			local buttonBars = {_G['ElvUI_Bar'..i..'Button'..k]}
 			for _, button in pairs(buttonBars) do
 				if button.backdrop then
+					if E.db.benikui.general.shadows then
+						if not button.backdrop.shadow then
+							button.backdrop:CreateShadow('Default')
+						end
+					end
+
 					if db.transparent then
 						button.backdrop:SetTemplate('Transparent')
 					else
@@ -102,7 +151,7 @@ function BAB:TransparentBackdrops()
 	end
 
 	-- Other bar backdrops
-	local transOtherBars = {ElvUI_BarPet, ElvUI_StanceBar, ElvUI_TotemBar, ElvUIBags}
+	local transOtherBars = {ElvUI_BarPet, ElvUI_StanceBar}
 	for _, frame in pairs(transOtherBars) do
 		if frame.backdrop then
 			if db.transparent then
@@ -114,10 +163,14 @@ function BAB:TransparentBackdrops()
 	end
 	
 	-- Pet Buttons
-	for i=1, NUM_PET_ACTION_SLOTS do
+	for i = 1, NUM_PET_ACTION_SLOTS do
 		local petButtons = {_G['PetActionButton'..i]}
 		for _, button in pairs(petButtons) do
 			if button.backdrop then
+				if not button.backdrop.shadow then
+					button.backdrop:CreateShadow('Default')
+				end
+
 				if db.transparent then
 					button.backdrop:SetTemplate('Transparent')
 				else
@@ -129,11 +182,12 @@ function BAB:TransparentBackdrops()
 end
 
 function BAB:Initialize()
-	-- Adding a small delay, because ElvUI_ExtraActionBars addon loads before BAB initialize
+	CheckExtraAB()
 	C_TimerAfter(1, BAB.StyleBackdrops)
 	C_TimerAfter(1, BAB.TransparentBackdrops)
 	C_TimerAfter(2, BAB.ColorBackdrops)
 	C_TimerAfter(2, BAB.LoadToggleButtons)
+	C_TimerAfter(2, BAB.ToggleStyle)
 	self:LoadRequestButton()
 	self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED", "ColorBackdrops");
 	if IsAddOnLoaded('ElvUI_TB') then DisableAddOn('ElvUI_TB') end

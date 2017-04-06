@@ -1,7 +1,5 @@
 local L = WeakAuras.L;
 
--- GLOBALS: WeakAuras UIParent AceGUIWidgetLSMlists
-
 local function createOptions(id, data)
     local options = {
         foregroundTexture = {
@@ -29,7 +27,7 @@ local function createOptions(id, data)
             width = "half",
             order = 12,
             func = function()
-                WeakAuras.OpenTexturePick(data, "foregroundTexture", WeakAuras.texture_types);
+                WeakAuras.OpenTexturePicker(data, "foregroundTexture", WeakAuras.texture_types);
             end
         },
         sameTexture = {
@@ -44,7 +42,7 @@ local function createOptions(id, data)
             width = "half",
             order = 17,
             func = function()
-                WeakAuras.OpenTexturePick(data, "backgroundTexture", WeakAuras.texture_types);
+                WeakAuras.OpenTexturePicker(data, "backgroundTexture", WeakAuras.texture_types);
             end,
             disabled = function() return data.sameTexture; end
         },
@@ -304,7 +302,8 @@ end
 
 local function Transform(tx, x, y, angle, aspect) -- Translates texture to x, y and rotates about its center
     local c, s = cos(angle), sin(angle)
-    local y, oy = y / aspect, 0.5 / aspect
+    y = y / aspect
+    local oy = 0.5 / aspect
     local ULx, ULy = 0.5 + (x - 0.5) * c - (y - oy) * s, (oy + (y - oy) * c + (x - 0.5) * s) * aspect
     local LLx, LLy = 0.5 + (x - 0.5) * c - (y + oy) * s, (oy + (y + oy) * c + (x - 0.5) * s) * aspect
     local URx, URy = 0.5 + (x + 0.5) * c - (y - oy) * s, (oy + (y - oy) * c + (x + 0.5) * s) * aspect
@@ -312,7 +311,7 @@ local function Transform(tx, x, y, angle, aspect) -- Translates texture to x, y 
     tx:SetTexCoord(ULx, ULy, LLx, LLy, URx, URy, LRx, LRy)
 end
 
-local function createThumbnail(parent, fullCreate)
+local function createThumbnail(parent)
     local borderframe = CreateFrame("FRAME", nil, parent);
     borderframe:SetWidth(32);
     borderframe:SetHeight(32);

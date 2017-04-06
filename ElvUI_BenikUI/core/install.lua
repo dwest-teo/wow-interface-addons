@@ -1,7 +1,8 @@
 local E, L, V, P, G = unpack(ElvUI);
 local BUI = E:GetModule('BenikUI');
 
-local ceil, format, print = ceil, format, print
+local ceil, format, checkTable = ceil, format, next
+local tinsert, twipe, tsort, tconcat = table.insert, table.wipe, table.sort, table.concat
 local _G = _G
 
 local CreateFrame = CreateFrame
@@ -31,7 +32,7 @@ local MAX_PAGE = 9
 
 local titleText = {}
 
-local function SetupBuiLayout()
+local function SetupLayout()
 	
 	-- General
 	E.db["general"]["backdropcolor"]["b"] = 0.025
@@ -139,32 +140,6 @@ local function SetupBuiLayout()
 	E.db["movers"]["HonorBarMover"] = "BOTTOMLEFT,ElvUIParent,BOTTOMLEFT,415,22"
 	E.db["movers"]["ObjectiveFrameMover"] = "TOPRIGHT,ElvUIParent,TOPRIGHT,-207,-260"
 
-	-- LocationPlus
-	if E.db.locplus == nil then E.db.locplus = {} end
-	E.db["locplus"]["both"] = false
-	E.db["locplus"]["displayOther"] = "NONE"
-	E.db["locplus"]["dtheight"] = 16
-	E.db["locplus"]["dtwidth"] = 120
-	E.db["locplus"]["hidecoords"] = false
-	E.db["locplus"]["lpauto"] = false
-	E.db["locplus"]["lpfont"] = "Bui Visitor1"
-	E.db["locplus"]["lpfontflags"] = "MONOCROMEOUTLINE"
-	E.db["locplus"]["lpfontsize"] = 10
-	E.db["locplus"]["lpwidth"] = 220
-	E.db["locplus"]["trunc"] = true
-	E.db["movers"]["LocationMover"] = "TOP,ElvUIParent,TOP,0,-7"
-
-	-- LocationLite
-	if E.db.loclite == nil then E.db.loclite = {} end
-	E.db["loclite"]["dtheight"] = 16
-	E.db["loclite"]["lpfontsize"] = 10
-	E.db["loclite"]["trunc"] = true
-	E.db["loclite"]["lpwidth"] = 220
-	E.db["loclite"]["lpfontflags"] = "MONOCROMEOUTLINE"
-	E.db["loclite"]["lpauto"] = false
-	E.db["loclite"]["lpfont"] = "Bui Visitor1"
-	E.db["movers"]["LocationLiteMover"] = "TOP,ElvUIParent,TOP,0,-7"
-
 	if InstallStepComplete then
 		InstallStepComplete.message = BUI.Title..L['Layout Set']
 		InstallStepComplete:Show()
@@ -173,7 +148,7 @@ local function SetupBuiLayout()
 	E:UpdateAll(true)
 end
 
-function BUI:BuiColorThemes(color)
+function BUI:SetupColorThemes(color)
 	-- Colors
 	if color == 'Diablo' then
 		E.db.general.backdropfadecolor.a = 0.75
@@ -204,12 +179,11 @@ function BUI:BuiColorThemes(color)
 	E.db.general.backdropcolor.g = 0.025
 	E.db.general.backdropcolor.b = 0.025
 
-	E:UpdateAll(true)
+	E:UpdateMedia()
+	E:UpdateBackdropColors()
 end
 
-function BUI:SetupBuiColors()
-	self:BuiColorThemes()
-	
+local function SetupColors()
 	if InstallStepComplete then
 		InstallStepComplete.message = BUI.Title..L['Color Theme Set']
 		InstallStepComplete:Show()
@@ -217,14 +191,14 @@ function BUI:SetupBuiColors()
 	end
 end
 
-local function SetupBuiChat()
+local function SetupChat()
 
 	for i = 1, NUM_CHAT_WINDOWS do
 		local frame = _G[format('ChatFrame%s', i)]
 		local chatFrameId = frame:GetID()
 		local chatName = FCF_GetChatWindowInfo(chatFrameId)
 		
-		FCF_SetChatWindowFontSize(nil, frame, 10)
+		FCF_SetChatWindowFontSize(nil, frame, 11)
 		
 		-- move ElvUI default loot frame to the left chat, so that Recount/Skada can go to the right chat.
 		if i == 3 and chatName == LOOT..' / '..TRADE then
@@ -313,7 +287,7 @@ local function SetupActionbars(layout)
 		E.db["movers"]["ElvAB_2"] = "BOTTOM,ElvUIParent,BOTTOM,0,58"
 		E.db["movers"]["ElvAB_3"] = "BOTTOM,ElvUIParent,BOTTOM,296,58"
 		E.db["movers"]["ElvAB_5"] = "BOTTOM,ElvUIParent,BOTTOM,-296,58"
-		E.db["movers"]["PetAB"] = "BOTTOM,ElvUIParent,BOTTOM,0,22"
+		E.db["movers"]["PetAB"] = "BOTTOM,ElvUIParent,BOTTOM,0,29"
 		E.db["movers"]["ShiftAB"] = "BOTTOM,ElvUIParent,BOTTOM,0,136"
 		E.db["movers"]["BuiMiddleDtMover"] = "BOTTOM,ElvUIParent,BOTTOM,0,2"
 		E.db["movers"]["ArenaHeaderMover"] = "BOTTOMRIGHT,ElvUIParent,BOTTOMRIGHT,-56,346"
@@ -398,7 +372,8 @@ local function SetupUnitframes(layout)
 		E.db["benikui"]["unitframes"]["target"]["portraitStyle"] = false
 		E.db["benikui"]["unitframes"]["target"]["getPlayerPortraitSize"] = false
 		E.db["benikui"]["unitframes"]["target"]["detachPortrait"] = false
-		E.db["benikui"]["unitframes"]["castbar"]["text"]["yOffset"] = -16
+		E.db["benikui"]["unitframes"]["castbar"]["text"]["player"]["yOffset"] = -16
+		E.db["benikui"]["unitframes"]["castbar"]["text"]["target"]["yOffset"] = -16
 
 		-- Auras
 		E.db["auras"]["timeXOffset"] = -1
@@ -746,7 +721,8 @@ local function SetupUnitframes(layout)
 		E.db["benikui"]["unitframes"]["target"]["portraitStyleHeight"] = 6
 		E.db["benikui"]["unitframes"]["target"]["portraitWidth"] = 110
 		E.db["benikui"]["unitframes"]["target"]["getPlayerPortraitSize"] = false
-		E.db["benikui"]["unitframes"]["castbar"]["text"]["yOffset"] = -18
+		E.db["benikui"]["unitframes"]["castbar"]["text"]["player"]["yOffset"] = -18
+		E.db["benikui"]["unitframes"]["castbar"]["text"]["target"]["yOffset"] = -18
 
 		-- Auras
 		E.db["auras"]["buffs"]["horizontalSpacing"] = 3
@@ -1100,9 +1076,9 @@ local function SetupUnitframes(layout)
 		E.db["movers"]["ElvUF_TargetCastbarMover"] = "BOTTOM,ElvUIParent,BOTTOM,217,140"
 		E.db["movers"]["ElvUF_TargetMover"] = "BOTTOM,ElvUIParent,BOTTOM,189,163"
 		E.db["movers"]["ElvUF_TargetTargetMover"] = "BOTTOM,ElvUIParent,BOTTOM,0,185"
-		E.db["movers"]["PlayerPortraitMover"] = "BOTTOMLEFT,ElvUIParent,BOTTOMLEFT,540,163"
+		E.db["movers"]["PlayerPortraitMover"] = "BOTTOM,ElvUIParent,BOTTOM,-365,163"
 		E.db["movers"]["PlayerPowerBarMover"] = "BOTTOM,ElvUIParent,BOTTOM,-189,209"
-		E.db["movers"]["TargetPortraitMover"] = "BOTTOMRIGHT,ElvUIParent,BOTTOMRIGHT,-540,163"
+		E.db["movers"]["TargetPortraitMover"] = "BOTTOM,ElvUIParent,BOTTOM,365,163"
 		E.db["movers"]["TargetPowerBarMover"] = "BOTTOM,ElvUIParent,BOTTOM,189,209"
 	end
 	
@@ -1126,2016 +1102,99 @@ local function SetupUnitframes(layout)
 	E:UpdateAll(true)
 end
 
-local function SetupAddOnSkins()
-	if IsAddOnLoaded('AddOnSkins') then
-		local AS = unpack(AddOnSkins) or nil
-		if GetAddOnMetadata("AddOnSkins", "Version") <= "3.39" then -- temp till Azil updates
-			-- reset the embeds in case of Skada/Recount swap
-			E.private['addonskins']['EmbedSystem'] = nil
-			E.private['addonskins']['EmbedSystemDual'] = nil
-			E.private['addonskins']['EmbedBelowTop'] = nil
-			E.private['addonskins']['TransparentEmbed'] = nil
-			E.private['addonskins']['RecountBackdrop'] = false
-			E.private['addonskins']['EmbedMain'] = nil
-			E.private['addonskins']['EmbedLeft'] = nil
-			E.private['addonskins']['EmbedRight'] = nil
-			
-			if IsAddOnLoaded('Recount') then
-				E.private['addonskins']['EmbedMain'] = 'Recount'
-				E.private['addonskins']['EmbedSystem'] = true
-				E.private['addonskins']['EmbedSystemDual'] = false
-				E.private['addonskins']['RecountBackdrop'] = false
-				E.private['addonskins']['EmbedBelowTop'] = false
-				E.private['addonskins']['TransparentEmbed'] = true
-			end
-			
-			if IsAddOnLoaded('Skada') then
-				E.private['addonskins']['EmbedSystem'] = false
-				E.private['addonskins']['EmbedSystemDual'] = true
-				E.private['addonskins']['EmbedBelowTop'] = false
-				E.private['addonskins']['TransparentEmbed'] = true
-				E.private['addonskins']['SkadaBackdrop'] = false
-				E.private['addonskins']['EmbedMain'] = 'Skada'
-				E.private['addonskins']['EmbedLeft'] = 'Skada'
-				E.private['addonskins']['EmbedRight'] = 'Skada'
-			end
-			
-			if IsAddOnLoaded('Details') then
-				E.private['addonskins']['EmbedSystem'] = false
-				E.private['addonskins']['EmbedSystemDual'] = true
-				E.private['addonskins']['EmbedBelowTop'] = false
-				E.private['addonskins']['TransparentEmbed'] = true
-				E.private['addonskins']['DetailsBackdrop'] = false
-				E.private['addonskins']['EmbedMain'] = 'Details'
-				E.private['addonskins']['EmbedLeft'] = 'Details'
-				E.private['addonskins']['EmbedRight'] = 'Details'
-			end
-			
-			if IsAddOnLoaded('DBM-Core') then
-				E.private['addonskins']['DBMFont'] = 'Bui Prototype'
-				E.private['addonskins']['DBMFontSize'] = 10
-				E.private['addonskins']['DBMFontFlag'] = 'OUTLINE'
-			end
-		else
-			-- reset the embeds to defaults, in case of Skada/Recount/Details swap
-			AS.db['EmbedSystem'] = false
-			AS.db['EmbedSystemDual'] = false
-			AS.db['EmbedBelowTop'] = false
-			AS.db['TransparentEmbed'] = false
-			AS.db['EmbedMain'] = 'Skada'
-			AS.db['EmbedLeft'] = 'Skada'
-			AS.db['EmbedRight'] = 'Skada'
-			AS.db['RecountBackdrop'] = true
-			AS.db['SkadaBackdrop'] = true
-			AS.db['DetailsBackdrop'] = true
-			AS.db['DBMSkinHalf'] = false
-			AS.db['DBMFont'] = 'Tukui'
-			AS.db['DBMFontSize'] = 12
-			AS.db['DBMRadarTrans'] = false
-			AS.db['Parchment'] = false
-			
-			if IsAddOnLoaded('Recount') then
-				AS.db['EmbedMain'] = 'Recount'
-				AS.db['EmbedSystem'] = true
-				AS.db['EmbedSystemDual'] = false
-				AS.db['RecountBackdrop'] = false
-				AS.db['EmbedBelowTop'] = false
-				AS.db['TransparentEmbed'] = true
-			end
-			
-			if IsAddOnLoaded('Skada') then
-				AS.db['EmbedSystem'] = false
-				AS.db['EmbedSystemDual'] = true
-				AS.db['EmbedBelowTop'] = false
-				AS.db['TransparentEmbed'] = true
-				AS.db['SkadaBackdrop'] = false
-				AS.db['EmbedMain'] = 'Skada'
-				AS.db['EmbedLeft'] = 'Skada'
-				AS.db['EmbedRight'] = 'Skada'
-			end
-			
-			if IsAddOnLoaded('Details') then
-				AS.db['EmbedSystem'] = false
-				AS.db['EmbedSystemDual'] = true
-				AS.db['EmbedBelowTop'] = false
-				AS.db['TransparentEmbed'] = true
-				AS.db['DetailsBackdrop'] = false
-				AS.db['EmbedMain'] = 'Details'
-				AS.db['EmbedLeft'] = 'Details'
-				AS.db['EmbedRight'] = 'Details'
-			end
-			
-			if IsAddOnLoaded('DBM-Core') then
-				AS.db['DBMFont'] = 'Bui Prototype'
-				AS.db['DBMFontSize'] = 10
-				AS.db['DBMRadarTrans'] = true
-			end
-		end
-	end
-end
+local addonNames = {}
+local profilesFailed = format('|cff00c0fa%s |r', L["BenikUI didn't find any supported addons for profile creation"])
 
-local recountName = GetAddOnMetadata('Recount', 'Title')
-local skadaName = GetAddOnMetadata('Skada', 'Title')
-local dbmName = GetAddOnMetadata('DBM-Core', 'Title')
-local mikName = GetAddOnMetadata('MikScrollingBattleText', 'Title')
-local detailsName = GetAddOnMetadata('Details', 'Title')
+local function SetupAddons()
 
-local function SetupBuiAddons()
-	-- Recount Profile
-	if IsAddOnLoaded('Recount') then
-		print(BUI.Title..format(L['- %s profile successfully created!'], recountName))
-		RecountDB['profiles']['BenikUI'] = {
-			['Colors'] = {
-				['Other Windows'] = {
-					['Title Text'] = {
-						['g'] = 0.5,
-						['b'] = 0,
-					},
-				},
-				['Window'] = {
-					['Title Text'] = {
-						['g'] = 0.5,
-						['b'] = 0,
-					},
-				},
-				['Bar'] = {
-					['Bar Text'] = {
-						['a'] = 1,
-					},
-					['Total Bar'] = {
-						['a'] = 1,
-					},
-				},
-			},
-			['DetailWindowY'] = 0,
-			['DetailWindowX'] = 0,
-			['GraphWindowX'] = 0,
-			['Locked'] = true,
-			['FrameStrata'] = '2-LOW',
-			['BarTextColorSwap'] = true,
-			['BarTexture'] = 'BuiEmpty',
-			['CurDataSet'] = 'OverallData',
-			['ClampToScreen'] = true,
-			['Font'] = 'Bui Prototype',
-		}
-		Recount.db:SetProfile("BenikUI")
-	end
-
-	-- Skada Profile
-	if IsAddOnLoaded('Skada') then
-		print(BUI.Title..format(L['- %s profile successfully created!'], skadaName))
-		SkadaDB['profiles']['BenikUI'] = {
-			["windows"] = {
-				{
-					["barheight"] = 14,
-					["classicons"] = false,
-					["barslocked"] = true,
-					["barfont"] = "Bui Prototype",
-					["title"] = {
-						["font"] = "Bui Visitor1",
-						["fontsize"] = 10,
-						["height"] = 18,
-					},
-					["classcolortext"] = true,
-					["barcolor"] = {
-						["r"] = 1,
-						["g"] = 0.5,
-						["b"] = 0,
-					},
-					["mode"] = "Damage",
-					["spark"] = false,
-					["barwidth"] = 196.000061035156,
-					["barfontsize"] = 10,
-					["background"] = {
-						["height"] = 122,
-					},
-					["classcolorbars"] = false,
-					["bartexture"] = "BuiOnePixel",
-					["point"] = "TOPRIGHT",
-				}, -- [1]
-				{
-					["titleset"] = true,
-					["barheight"] = 14,
-					["classicons"] = false,
-					["barslocked"] = true,
-					["enabletitle"] = true,
-					["wipemode"] = "",
-					["set"] = "current",
-					["hidden"] = false,
-					["barfont"] = "Bui Prototype",
-					["name"] = "Skada 2",
-					["display"] = "bar",
-					["barfontflags"] = "",
-					["classcolortext"] = true,
-					["scale"] = 1,
-					["reversegrowth"] = false,
-					["returnaftercombat"] = false,
-					["roleicons"] = false,
-					["barorientation"] = 1,
-					["snapto"] = true,
-					["version"] = 1,
-					["modeincombat"] = "",
-					["clickthrough"] = false,
-					["spark"] = false,
-					["bartexture"] = "BuiOnePixel",
-					["barwidth"] = 201.000091552734,
-					["barspacing"] = 0,
-					["barfontsize"] = 10,
-					["title"] = {
-						["color"] = {
-							["a"] = 0.8,
-							["b"] = 0.3,
-							["g"] = 0.1,
-							["r"] = 0.1,
-						},
-						["bordertexture"] = "None",
-						["font"] = "Bui Visitor1",
-						["borderthickness"] = 2,
-						["fontsize"] = 10,
-						["fontflags"] = "",
-						["height"] = 18,
-						["margin"] = 0,
-						["texture"] = "Aluminium",
-					},
-					["background"] = {
-						["borderthickness"] = 0,
-						["height"] = 122,
-						["color"] = {
-							["a"] = 0.2,
-							["b"] = 0.5,
-							["g"] = 0,
-							["r"] = 0,
-						},
-						["bordertexture"] = "None",
-						["margin"] = 0,
-						["texture"] = "Solid",
-					},
-					["barcolor"] = {
-						["a"] = 1,
-						["r"] = 1,
-						["g"] = 0.5,
-						["b"] = 0,
-					},
-					["barbgcolor"] = {
-						["a"] = 0.6,
-						["b"] = 0.3,
-						["g"] = 0.3,
-						["r"] = 0.3,
-					},
-					["classcolorbars"] = false,
-					["buttons"] = {
-						["segment"] = true,
-						["menu"] = true,
-						["mode"] = true,
-						["report"] = true,
-						["reset"] = true,
-					},
-					["point"] = "TOPRIGHT",
-					["mode"] = "Healing",
-				}, -- [2]
-			},
-		}
-		Skada.db:SetProfile("BenikUI") -- set automatically the profile
-	end
-
-	-- DBM Profile
+	-- DBM
 	if IsAddOnLoaded('DBM-Core') then
-		print(BUI.Title..format(L['- %s profile successfully created!'], dbmName))
-		DBM:CreateProfile('BenikUI')
-		
-		-- Warnings
-		DBM_AllSavedOptions["BenikUI"]["WarningFont"] = "Interface\\AddOns\\ElvUI_BenikUI\\media\\fonts\\PROTOTYPE.TTF"
-		DBM_AllSavedOptions["BenikUI"]["SpecialWarningFont"] = "Interface\\AddOns\\ElvUI_BenikUI\\media\\fonts\\PROTOTYPE.TTF"
-		DBM_AllSavedOptions["BenikUI"]["SpecialWarningFontShadow"] = true
-		DBM_AllSavedOptions["BenikUI"]["SpecialWarningFontStyle"] = "NONE"
-		
-		-- Bars
-		DBT_AllPersistentOptions["BenikUI"]["DBM"]["Texture"] = "Interface\\AddOns\\ElvUI_BenikUI\\media\\textures\\Flat.tga"
-		DBT_AllPersistentOptions["BenikUI"]["DBM"]["Font"] = "Interface\\AddOns\\ElvUI_BenikUI\\media\\fonts\\PROTOTYPE.TTF"
-		DBT_AllPersistentOptions["BenikUI"]["DBM"]["Scale"] = 1
-		DBT_AllPersistentOptions["BenikUI"]["DBM"]["FontSize"] = 12
-		DBT_AllPersistentOptions["BenikUI"]["DBM"]["HugeScale"] = 1
-		
-		DBM:ApplyProfile('BenikUI')
+		BUI:LoadDBMProfile()
+		tinsert(addonNames, 'Deadly Boss Mods')
 	end
-	
-	-- MikScrollingBattleText
-	if IsAddOnLoaded('MikScrollingBattleText') then
-		print(BUI.Title..format(L['- %s profile successfully created!'], mikName))
-		
-		MSBTProfiles_SavedVars['profiles']['BenikUI'] = {
-			["scrollAreas"] = {
-				["Incoming"] = {
-					["behavior"] = "MSBT_NORMAL",
-					["offsetY"] = -161,
-					["offsetX"] = -330,
-					["animationStyle"] = "Straight",
-				},
-				["Outgoing"] = {
-					["direction"] = "Up",
-					["offsetX"] = 287,
-					["behavior"] = "MSBT_NORMAL",
-					["offsetY"] = -161,
-					["animationStyle"] = "Straight",
-				},
-				["Static"] = {
-					["offsetX"] = -21,
-					["offsetY"] = -231,
-				},
-			},
-			["normalFontName"] = "Bui Prototype",
-			["critFontName"] = "Bui Prototype",
-			["creationVersion"] = MikSBT.VERSION.."."..MikSBT.SVN_REVISION,
-		}
-		MikSBT.Profiles.SelectProfile('BenikUI')
-	end
-	
+
 	-- Details
 	if IsAddOnLoaded('Details') then
-		print(BUI.Title..format(L['- %s profile successfully created!'], detailsName))
-		
-		_detalhes_global["__profiles"]['BenikUI'] = {
-			["capture_real"] = {
-				["heal"] = true,
-				["spellcast"] = true,
-				["miscdata"] = true,
-				["aura"] = true,
-				["energy"] = true,
-				["damage"] = true,
-			},
-			["row_fade_in"] = {
-				"in", -- [1]
-				0.2, -- [2]
-			},
-			["player_details_window"] = {
-				["scale"] = 1,
-				["bar_texture"] = "Skyline",
-				["skin"] = "ElvUI",
-			},
-			["numerical_system"] = 1,
-			["use_row_animations"] = false,
-			["report_heal_links"] = false,
-			["remove_realm_from_name"] = true,
-			["class_icons_small"] = "Interface\\AddOns\\Details\\images\\classes_small",
-			["report_to_who"] = "",
-			["overall_flag"] = 13,
-			["profile_save_pos"] = true,
-			["tooltip"] = {
-				["header_statusbar"] = {
-					0.3, -- [1]
-					0.3, -- [2]
-					0.3, -- [3]
-					0.8, -- [4]
-					false, -- [5]
-					false, -- [6]
-					"WorldState Score", -- [7]
-				},
-				["fontcolor_right"] = {
-					1, -- [1]
-					0.7, -- [2]
-					0, -- [3]
-					1, -- [4]
-				},
-				["tooltip_max_targets"] = 2,
-				["icon_size"] = {
-					["W"] = 13,
-					["H"] = 13,
-				},
-				["tooltip_max_pets"] = 2,
-				["anchor_relative"] = "top",
-				["abbreviation"] = 2,
-				["anchored_to"] = 1,
-				["show_amount"] = false,
-				["header_text_color"] = {
-					1, -- [1]
-					0.9176, -- [2]
-					0, -- [3]
-					1, -- [4]
-				},
-				["fontsize"] = 10,
-				["background"] = {
-					0.196, -- [1]
-					0.196, -- [2]
-					0.196, -- [3]
-					0.8697, -- [4]
-				},
-				["submenu_wallpaper"] = true,
-				["fontsize_title"] = 10,
-				["icon_border_texcoord"] = {
-					["B"] = 0.921875,
-					["L"] = 0.078125,
-					["T"] = 0.078125,
-					["R"] = 0.921875,
-				},
-				["commands"] = {
-				},
-				["tooltip_max_abilities"] = 5,
-				["fontface"] = "Friz Quadrata TT",
-				["border_color"] = {
-					1, -- [1]
-					1, -- [2]
-					1, -- [3]
-					0, -- [4]
-				},
-				["border_texture"] = "Blizzard Tooltip",
-				["anchor_offset"] = {
-					0, -- [1]
-					0, -- [2]
-				},
-				["menus_bg_texture"] = "Interface\\SPELLBOOK\\Spellbook-Page-1",
-				["maximize_method"] = 1,
-				["border_size"] = 16,
-				["fontshadow"] = false,
-				["anchor_screen_pos"] = {
-					507.7, -- [1]
-					-350.5, -- [2]
-				},
-				["anchor_point"] = "bottom",
-				["menus_bg_coords"] = {
-					0.309777336120606, -- [1]
-					0.924000015258789, -- [2]
-					0.213000011444092, -- [3]
-					0.279000015258789, -- [4]
-				},
-				["fontcolor"] = {
-					1, -- [1]
-					1, -- [2]
-					1, -- [3]
-					1, -- [4]
-				},
-				["menus_bg_color"] = {
-					0.8, -- [1]
-					0.8, -- [2]
-					0.8, -- [3]
-					0.2, -- [4]
-				},
-			},
-			["ps_abbreviation"] = 3,
-			["world_combat_is_trash"] = false,
-			["update_speed"] = 0.300000011920929,
-			["track_item_level"] = true,
-			["windows_fade_in"] = {
-				"in", -- [1]
-				0.2, -- [2]
-			},
-			["instances_menu_click_to_open"] = false,
-			["overall_clear_newchallenge"] = true,
-			["time_type"] = 2,
-			["instances_disable_bar_highlight"] = false,
-			["trash_concatenate"] = false,
-			["disable_stretch_from_toolbar"] = false,
-			["disable_lock_ungroup_buttons"] = false,
-			["memory_ram"] = 64,
-			["disable_window_groups"] = false,
-			["instances_suppress_trash"] = 0,
-			["font_faces"] = {
-				["menus"] = "Bui Prototype",
-			},
-			["segments_amount"] = 12,
-			["report_lines"] = 5,
-			["skin"] = "WoW Interface",
-			["override_spellids"] = true,
-			["use_battleground_server_parser"] = true,
-			["default_bg_alpha"] = 0.5,
-			["clear_ungrouped"] = true,
-			["chat_tab_embed"] = {
-				["enabled"] = false,
-				["tab_name"] = "",
-				["single_window"] = false,
-			},
-			["minimum_combat_time"] = 5,
-			["animate_scroll"] = false,
-			["cloud_capture"] = true,
-			["damage_taken_everything"] = false,
-			["scroll_speed"] = 2,
-			["new_window_size"] = {
-				["height"] = 130,
-				["width"] = 320,
-			},
-			["memory_threshold"] = 3,
-			["deadlog_events"] = 32,
-			["class_specs_coords"] = {
-				[62] = {
-					0.251953125, -- [1]
-					0.375, -- [2]
-					0.125, -- [3]
-					0.25, -- [4]
-				},
-				[63] = {
-					0.375, -- [1]
-					0.5, -- [2]
-					0.125, -- [3]
-					0.25, -- [4]
-				},
-				[250] = {
-					0, -- [1]
-					0.125, -- [2]
-					0, -- [3]
-					0.125, -- [4]
-				},
-				[251] = {
-					0.125, -- [1]
-					0.25, -- [2]
-					0, -- [3]
-					0.125, -- [4]
-				},
-				[252] = {
-					0.25, -- [1]
-					0.375, -- [2]
-					0, -- [3]
-					0.125, -- [4]
-				},
-				[253] = {
-					0.875, -- [1]
-					1, -- [2]
-					0, -- [3]
-					0.125, -- [4]
-				},
-				[254] = {
-					0, -- [1]
-					0.125, -- [2]
-					0.125, -- [3]
-					0.25, -- [4]
-				},
-				[255] = {
-					0.125, -- [1]
-					0.25, -- [2]
-					0.125, -- [3]
-					0.25, -- [4]
-				},
-				[66] = {
-					0.125, -- [1]
-					0.25, -- [2]
-					0.25, -- [3]
-					0.375, -- [4]
-				},
-				[257] = {
-					0.5, -- [1]
-					0.625, -- [2]
-					0.25, -- [3]
-					0.375, -- [4]
-				},
-				[258] = {
-					0.6328125, -- [1]
-					0.75, -- [2]
-					0.25, -- [3]
-					0.375, -- [4]
-				},
-				[259] = {
-					0.75, -- [1]
-					0.875, -- [2]
-					0.25, -- [3]
-					0.375, -- [4]
-				},
-				[260] = {
-					0.875, -- [1]
-					1, -- [2]
-					0.25, -- [3]
-					0.375, -- [4]
-				},
-				[577] = {
-					0.25, -- [1]
-					0.375, -- [2]
-					0.5, -- [3]
-					0.625, -- [4]
-				},
-				[262] = {
-					0.125, -- [1]
-					0.25, -- [2]
-					0.375, -- [3]
-					0.5, -- [4]
-				},
-				[581] = {
-					0.375, -- [1]
-					0.5, -- [2]
-					0.5, -- [3]
-					0.625, -- [4]
-				},
-				[264] = {
-					0.375, -- [1]
-					0.5, -- [2]
-					0.375, -- [3]
-					0.5, -- [4]
-				},
-				[265] = {
-					0.5, -- [1]
-					0.625, -- [2]
-					0.375, -- [3]
-					0.5, -- [4]
-				},
-				[266] = {
-					0.625, -- [1]
-					0.75, -- [2]
-					0.375, -- [3]
-					0.5, -- [4]
-				},
-				[267] = {
-					0.75, -- [1]
-					0.875, -- [2]
-					0.375, -- [3]
-					0.5, -- [4]
-				},
-				[268] = {
-					0.625, -- [1]
-					0.75, -- [2]
-					0.125, -- [3]
-					0.25, -- [4]
-				},
-				[269] = {
-					0.875, -- [1]
-					1, -- [2]
-					0.125, -- [3]
-					0.25, -- [4]
-				},
-				[270] = {
-					0.75, -- [1]
-					0.875, -- [2]
-					0.125, -- [3]
-					0.25, -- [4]
-				},
-				[70] = {
-					0.251953125, -- [1]
-					0.375, -- [2]
-					0.25, -- [3]
-					0.375, -- [4]
-				},
-				[102] = {
-					0.375, -- [1]
-					0.5, -- [2]
-					0, -- [3]
-					0.125, -- [4]
-				},
-				[71] = {
-					0.875, -- [1]
-					1, -- [2]
-					0.375, -- [3]
-					0.5, -- [4]
-				},
-				[103] = {
-					0.5, -- [1]
-					0.625, -- [2]
-					0, -- [3]
-					0.125, -- [4]
-				},
-				[72] = {
-					0, -- [1]
-					0.125, -- [2]
-					0.5, -- [3]
-					0.625, -- [4]
-				},
-				[104] = {
-					0.625, -- [1]
-					0.75, -- [2]
-					0, -- [3]
-					0.125, -- [4]
-				},
-				[73] = {
-					0.125, -- [1]
-					0.25, -- [2]
-					0.5, -- [3]
-					0.625, -- [4]
-				},
-				[64] = {
-					0.5, -- [1]
-					0.625, -- [2]
-					0.125, -- [3]
-					0.25, -- [4]
-				},
-				[105] = {
-					0.75, -- [1]
-					0.875, -- [2]
-					0, -- [3]
-					0.125, -- [4]
-				},
-				[65] = {
-					0, -- [1]
-					0.125, -- [2]
-					0.25, -- [3]
-					0.375, -- [4]
-				},
-				[256] = {
-					0.375, -- [1]
-					0.5, -- [2]
-					0.25, -- [3]
-					0.375, -- [4]
-				},
-				[261] = {
-					0, -- [1]
-					0.125, -- [2]
-					0.375, -- [3]
-					0.5, -- [4]
-				},
-				[263] = {
-					0.25, -- [1]
-					0.375, -- [2]
-					0.375, -- [3]
-					0.5, -- [4]
-				},
-			},
-			["close_shields"] = false,
-			["class_coords"] = {
-				["HUNTER"] = {
-					0, -- [1]
-					0.25, -- [2]
-					0.25, -- [3]
-					0.5, -- [4]
-				},
-				["WARRIOR"] = {
-					0, -- [1]
-					0.25, -- [2]
-					0, -- [3]
-					0.25, -- [4]
-				},
-				["ROGUE"] = {
-					0.49609375, -- [1]
-					0.7421875, -- [2]
-					0, -- [3]
-					0.25, -- [4]
-				},
-				["MAGE"] = {
-					0.25, -- [1]
-					0.49609375, -- [2]
-					0, -- [3]
-					0.25, -- [4]
-				},
-				["PET"] = {
-					0.25, -- [1]
-					0.49609375, -- [2]
-					0.75, -- [3]
-					1, -- [4]
-				},
-				["DRUID"] = {
-					0.7421875, -- [1]
-					0.98828125, -- [2]
-					0, -- [3]
-					0.25, -- [4]
-				},
-				["MONK"] = {
-					0.5, -- [1]
-					0.73828125, -- [2]
-					0.5, -- [3]
-					0.75, -- [4]
-				},
-				["DEATHKNIGHT"] = {
-					0.25, -- [1]
-					0.5, -- [2]
-					0.5, -- [3]
-					0.75, -- [4]
-				},
-				["MONSTER"] = {
-					0, -- [1]
-					0.25, -- [2]
-					0.75, -- [3]
-					1, -- [4]
-				},
-				["UNKNOW"] = {
-					0.5, -- [1]
-					0.75, -- [2]
-					0.75, -- [3]
-					1, -- [4]
-				},
-				["PRIEST"] = {
-					0.49609375, -- [1]
-					0.7421875, -- [2]
-					0.25, -- [3]
-					0.5, -- [4]
-				},
-				["SHAMAN"] = {
-					0.25, -- [1]
-					0.49609375, -- [2]
-					0.25, -- [3]
-					0.5, -- [4]
-				},
-				["Alliance"] = {
-					0.49609375, -- [1]
-					0.7421875, -- [2]
-					0.75, -- [3]
-					1, -- [4]
-				},
-				["ENEMY"] = {
-					0, -- [1]
-					0.25, -- [2]
-					0.75, -- [3]
-					1, -- [4]
-				},
-				["DEMONHUNTER"] = {
-					0.73828126, -- [1]
-					1, -- [2]
-					0.5, -- [3]
-					0.75, -- [4]
-				},
-				["Horde"] = {
-					0.7421875, -- [1]
-					0.98828125, -- [2]
-					0.75, -- [3]
-					1, -- [4]
-				},
-				["PALADIN"] = {
-					0, -- [1]
-					0.25, -- [2]
-					0.5, -- [3]
-					0.75, -- [4]
-				},
-				["UNGROUPPLAYER"] = {
-					0.5, -- [1]
-					0.75, -- [2]
-					0.75, -- [3]
-					1, -- [4]
-				},
-				["WARLOCK"] = {
-					0.7421875, -- [1]
-					0.98828125, -- [2]
-					0.25, -- [3]
-					0.5, -- [4]
-				},
-			},
-			["overall_clear_logout"] = false,
-			["disable_alldisplays_window"] = false,
-			["pvp_as_group"] = true,
-			["force_activity_time_pvp"] = true,
-			["windows_fade_out"] = {
-				"out", -- [1]
-				0.2, -- [2]
-			},
-			["death_tooltip_width"] = 300,
-			["clear_graphic"] = true,
-			["hotcorner_topleft"] = {
-				["hide"] = false,
-			},
-			["segments_auto_erase"] = 1,
-			["options_group_edit"] = true,
-			["segments_amount_to_save"] = 5,
-			["minimap"] = {
-				["onclick_what_todo"] = 1,
-				["radius"] = 160,
-				["text_type"] = 1,
-				["minimapPos"] = 220,
-				["text_format"] = 3,
-				["hide"] = false,
-			},
-			["instances_amount"] = 5,
-			["max_window_size"] = {
-				["height"] = 450,
-				["width"] = 480,
-			},
-			["trash_auto_remove"] = true,
-			["only_pvp_frags"] = false,
-			["disable_stretch_button"] = false,
-			["time_type_original"] = 2,
-			["default_bg_color"] = 0.0941,
-			["numerical_system_symbols"] = "auto",
-			["segments_panic_mode"] = false,
-			["window_clamp"] = {
-				-8, -- [1]
-				0, -- [2]
-				21, -- [3]
-				-14, -- [4]
-			},
-			["standard_skin"] = {
-				["show_statusbar"] = false,
-				["backdrop_texture"] = "Details Ground",
-				["color"] = {
-					1, -- [1]
-					1, -- [2]
-					1, -- [3]
-					1, -- [4]
-				},
-				["menu_anchor"] = {
-					16, -- [1]
-					2, -- [2]
-					["side"] = 2,
-				},
-				["bg_r"] = 0.3294,
-				["skin"] = "ElvUI Frame Style",
-				["following"] = {
-					["bar_color"] = {
-						1, -- [1]
-						1, -- [2]
-						1, -- [3]
-					},
-					["enabled"] = false,
-					["text_color"] = {
-						1, -- [1]
-						1, -- [2]
-						1, -- [3]
-					},
-				},
-				["color_buttons"] = {
-					1, -- [1]
-					1, -- [2]
-					1, -- [3]
-					1, -- [4]
-				},
-				["switch_healer"] = false,
-				["micro_displays_locked"] = true,
-				["bg_b"] = 0.3294,
-				["tooltip"] = {
-					["n_abilities"] = 3,
-					["n_enemies"] = 3,
-				},
-				["desaturated_menu"] = false,
-				["switch_tank_in_combat"] = false,
-				["switch_all_roles_in_combat"] = false,
-				["instance_button_anchor"] = {
-					-27, -- [1]
-					1, -- [2]
-				},
-				["bg_alpha"] = 0.51,
-				["attribute_text"] = {
-					["enabled"] = true,
-					["shadow"] = true,
-					["side"] = 1,
-					["text_color"] = {
-						1, -- [1]
-						1, -- [2]
-						1, -- [3]
-						0.7, -- [4]
-					},
-					["custom_text"] = "{name}",
-					["text_face"] = "FORCED SQUARE",
-					["anchor"] = {
-						-19, -- [1]
-						5, -- [2]
-					},
-					["show_timer"] = {
-						true, -- [1]
-						true, -- [2]
-						true, -- [3]
-					},
-					["enable_custom_text"] = false,
-					["text_size"] = 12,
-				},
-				["libwindow"] = {
-				},
-				["menu_alpha"] = {
-					["enabled"] = false,
-					["onleave"] = 1,
-					["ignorebars"] = false,
-					["iconstoo"] = true,
-					["onenter"] = 1,
-				},
-				["stretch_button_side"] = 1,
-				["micro_displays_side"] = 2,
-				["switch_healer_in_combat"] = false,
-				["strata"] = "LOW",
-				["hide_in_combat_type"] = 1,
-				["statusbar_info"] = {
-					["alpha"] = 1,
-					["overlay"] = {
-						1, -- [1]
-						1, -- [2]
-						1, -- [3]
-					},
-				},
-				["switch_tank"] = false,
-				["hide_in_combat_alpha"] = 0,
-				["switch_all_roles_after_wipe"] = false,
-				["menu_icons"] = {
-					true, -- [1]
-					true, -- [2]
-					true, -- [3]
-					true, -- [4]
-					true, -- [5]
-					false, -- [6]
-					["space"] = -2,
-					["shadow"] = false,
-				},
-				["switch_damager"] = false,
-				["show_sidebars"] = true,
-				["window_scale"] = 1,
-				["bars_grow_direction"] = 1,
-				["row_info"] = {
-					["textR_outline"] = false,
-					["spec_file"] = "Interface\\AddOns\\Details\\images\\spec_icons_normal",
-					["textL_outline"] = false,
-					["texture_highlight"] = "Interface\\FriendsFrame\\UI-FriendsList-Highlight",
-					["textL_outline_small"] = true,
-					["textL_enable_custom_text"] = false,
-					["fixed_text_color"] = {
-						1, -- [1]
-						1, -- [2]
-						1, -- [3]
-					},
-					["space"] = {
-						["right"] = -2,
-						["left"] = 1,
-						["between"] = 1,
-					},
-					["texture_background_class_color"] = false,
-					["textL_outline_small_color"] = {
-						0, -- [1]
-						0, -- [2]
-						0, -- [3]
-						1, -- [4]
-					},
-					["font_face_file"] = "Interface\\Addons\\Details\\fonts\\FORCED SQUARE.ttf",
-					["textL_custom_text"] = "{data1}. {data3}{data2}",
-					["font_size"] = 10,
-					["height"] = 14,
-					["texture_file"] = "Interface\\AddOns\\Details\\images\\bar_skyline",
-					["icon_file"] = "Interface\\AddOns\\Details\\images\\classes_small_alpha",
-					["texture_custom_file"] = "Interface\\",
-					["texture_background_file"] = "Interface\\AddOns\\Details\\images\\bar_background",
-					["use_spec_icons"] = true,
-					["textR_enable_custom_text"] = false,
-					["models"] = {
-						["upper_model"] = "Spells\\AcidBreath_SuperGreen.M2",
-						["lower_model"] = "World\\EXPANSION02\\DOODADS\\Coldarra\\COLDARRALOCUS.m2",
-						["upper_alpha"] = 0.5,
-						["lower_enabled"] = false,
-						["lower_alpha"] = 0.1,
-						["upper_enabled"] = false,
-					},
-					["fixed_texture_color"] = {
-						0, -- [1]
-						0, -- [2]
-						0, -- [3]
-					},
-					["textL_show_number"] = true,
-					["fixed_texture_background_color"] = {
-						0, -- [1]
-						0, -- [2]
-						0, -- [3]
-						0.339636147022247, -- [4]
-					},
-					["backdrop"] = {
-						["enabled"] = false,
-						["texture"] = "Details BarBorder 2",
-						["color"] = {
-							0, -- [1]
-							0, -- [2]
-							0, -- [3]
-							1, -- [4]
-						},
-						["size"] = 4,
-					},
-					["textR_custom_text"] = "{data1} ({data2}, {data3}%)",
-					["texture"] = "Skyline",
-					["textR_outline_small"] = true,
-					["percent_type"] = 1,
-					["textR_show_data"] = {
-						true, -- [1]
-						true, -- [2]
-						true, -- [3]
-					},
-					["texture_background"] = "DGround",
-					["alpha"] = 0.8,
-					["textR_class_colors"] = false,
-					["textR_outline_small_color"] = {
-						0, -- [1]
-						0, -- [2]
-						0, -- [3]
-						1, -- [4]
-					},
-					["no_icon"] = false,
-					["textL_class_colors"] = false,
-					["texture_custom"] = "",
-					["font_face"] = "FORCED SQUARE",
-					["texture_class_colors"] = true,
-					["start_after_icon"] = false,
-					["fast_ps_update"] = false,
-					["textR_separator"] = ",",
-					["textR_bracket"] = "(",
-				},
-				["grab_on_top"] = false,
-				["hide_icon"] = true,
-				["switch_damager_in_combat"] = false,
-				["row_show_animation"] = {
-					["anim"] = "Fade",
-					["options"] = {
-					},
-				},
-				["bars_sort_direction"] = 1,
-				["auto_current"] = true,
-				["toolbar_side"] = 1,
-				["bg_g"] = 0.3294,
-				["menu_anchor_down"] = {
-					16, -- [1]
-					-2, -- [2]
-				},
-				["hide_in_combat"] = false,
-				["auto_hide_menu"] = {
-					["left"] = false,
-					["right"] = false,
-				},
-				["menu_icons_size"] = 0.899999976158142,
-				["plugins_grow_direction"] = 1,
-				["wallpaper"] = {
-					["overlay"] = {
-						0.999997794628143, -- [1]
-						0.999997794628143, -- [2]
-						0.999997794628143, -- [3]
-						0.799998223781586, -- [4]
-					},
-					["width"] = 266.000061035156,
-					["texcoord"] = {
-						0.0480000019073486, -- [1]
-						0.298000011444092, -- [2]
-						0.630999984741211, -- [3]
-						0.755999984741211, -- [4]
-					},
-					["enabled"] = true,
-					["anchor"] = "all",
-					["height"] = 225.999984741211,
-					["alpha"] = 0.800000071525574,
-					["texture"] = "Interface\\AddOns\\Details\\images\\skins\\elvui",
-				},
-				["total_bar"] = {
-					["enabled"] = false,
-					["only_in_group"] = true,
-					["icon"] = "Interface\\ICONS\\INV_Sigil_Thorim",
-					["color"] = {
-						1, -- [1]
-						1, -- [2]
-						1, -- [3]
-					},
-				},
-				["hide_out_of_combat"] = false,
-				["skin_custom"] = "",
-				["ignore_mass_showhide"] = false,
-				["bars_inverted"] = false,
-			},
-			["row_fade_out"] = {
-				"out", -- [1]
-				0.2, -- [2]
-			},
-			["use_scroll"] = false,
-			["class_colors"] = {
-				["HUNTER"] = {
-					0.67, -- [1]
-					0.83, -- [2]
-					0.45, -- [3]
-				},
-				["WARRIOR"] = {
-					0.78, -- [1]
-					0.61, -- [2]
-					0.43, -- [3]
-				},
-				["PALADIN"] = {
-					0.96, -- [1]
-					0.55, -- [2]
-					0.73, -- [3]
-				},
-				["MAGE"] = {
-					0.41, -- [1]
-					0.8, -- [2]
-					0.94, -- [3]
-				},
-				["ARENA_YELLOW"] = {
-					0.9, -- [1]
-					0.9, -- [2]
-					0, -- [3]
-				},
-				["UNGROUPPLAYER"] = {
-					0.4, -- [1]
-					0.4, -- [2]
-					0.4, -- [3]
-				},
-				["DRUID"] = {
-					1, -- [1]
-					0.49, -- [2]
-					0.04, -- [3]
-				},
-				["MONK"] = {
-					0, -- [1]
-					1, -- [2]
-					0.59, -- [3]
-				},
-				["DEATHKNIGHT"] = {
-					0.77, -- [1]
-					0.12, -- [2]
-					0.23, -- [3]
-				},
-				["ENEMY"] = {
-					0.94117, -- [1]
-					0, -- [2]
-					0.0196, -- [3]
-					1, -- [4]
-				},
-				["UNKNOW"] = {
-					0.2, -- [1]
-					0.2, -- [2]
-					0.2, -- [3]
-				},
-				["PRIEST"] = {
-					1, -- [1]
-					1, -- [2]
-					1, -- [3]
-				},
-				["SHAMAN"] = {
-					0, -- [1]
-					0.44, -- [2]
-					0.87, -- [3]
-				},
-				["ARENA_GREEN"] = {
-					0.1, -- [1]
-					0.85, -- [2]
-					0.1, -- [3]
-				},
-				["WARLOCK"] = {
-					0.58, -- [1]
-					0.51, -- [2]
-					0.79, -- [3]
-				},
-				["DEMONHUNTER"] = {
-					0.64, -- [1]
-					0.19, -- [2]
-					0.79, -- [3]
-				},
-				["version"] = 1,
-				["NEUTRAL"] = {
-					1, -- [1]
-					1, -- [2]
-					0, -- [3]
-				},
-				["ROGUE"] = {
-					1, -- [1]
-					0.96, -- [2]
-					0.41, -- [3]
-				},
-				["PET"] = {
-					0.3, -- [1]
-					0.4, -- [2]
-					0.5, -- [3]
-				},
-			},
-			["total_abbreviation"] = 2,
-			["report_schema"] = 1,
-			["overall_clear_newboss"] = true,
-			["font_sizes"] = {
-				["menus"] = 10,
-			},
-			["disable_reset_button"] = false,
-			["data_broker_text"] = "",
-			["instances_no_libwindow"] = false,
-			["instances_segments_locked"] = false,
-			["deadlog_limit"] = 16,
-			["instances"] = {
-				{
-					["__pos"] = {
-						["normal"] = {
-							["y"] = -452.999885559082,
-							["x"] = 650.000244140625,
-							["w"] = 200.000061035156,
-							["h"] = 123.999969482422,
-						},
-						["solo"] = {
-							["y"] = 2,
-							["x"] = 1,
-							["w"] = 300,
-							["h"] = 200,
-						},
-					},
-					["hide_in_combat_type"] = 1,
-					["backdrop_texture"] = "Details Ground",
-					["color"] = {
-						1, -- [1]
-						1, -- [2]
-						1, -- [3]
-						1, -- [4]
-					},
-					["menu_anchor"] = {
-						16, -- [1]
-						2, -- [2]
-						["side"] = 2,
-					},
-					["__snapV"] = false,
-					["__snapH"] = false,
-					["bg_r"] = 0.3294,
-					["row_show_animation"] = {
-						["anim"] = "Fade",
-						["options"] = {
-						},
-					},
-					["plugins_grow_direction"] = 1,
-					["hide_out_of_combat"] = false,
-					["__was_opened"] = true,
-					["following"] = {
-						["enabled"] = false,
-						["bar_color"] = {
-							1, -- [1]
-							1, -- [2]
-							1, -- [3]
-						},
-						["text_color"] = {
-							1, -- [1]
-							1, -- [2]
-							1, -- [3]
-						},
-					},
-					["color_buttons"] = {
-						1, -- [1]
-						1, -- [2]
-						1, -- [3]
-						1, -- [4]
-					},
-					["switch_healer"] = false,
-					["skin_custom"] = "",
-					["bars_sort_direction"] = 1,
-					["show_statusbar"] = false,
-					["bars_grow_direction"] = 1,
-					["menu_anchor_down"] = {
-						16, -- [1]
-						-2, -- [2]
-					},
-					["tooltip"] = {
-						["n_abilities"] = 3,
-						["n_enemies"] = 3,
-					},
-					["StatusBarSaved"] = {
-						["center"] = "DETAILS_STATUSBAR_PLUGIN_CLOCK",
-						["right"] = "DETAILS_STATUSBAR_PLUGIN_PDPS",
-						["options"] = {
-							["DETAILS_STATUSBAR_PLUGIN_PDPS"] = {
-								["textColor"] = {
-									1, -- [1]
-									1, -- [2]
-									1, -- [3]
-									1, -- [4]
-								},
-								["textXMod"] = 0,
-								["textFace"] = "Accidental Presidency",
-								["textStyle"] = 2,
-								["textAlign"] = 0,
-								["textSize"] = 10,
-								["textYMod"] = 1,
-							},
-							["DETAILS_STATUSBAR_PLUGIN_PSEGMENT"] = {
-								["textColor"] = {
-									1, -- [1]
-									1, -- [2]
-									1, -- [3]
-									1, -- [4]
-								},
-								["segmentType"] = 2,
-								["textXMod"] = 0,
-								["textFace"] = "Accidental Presidency",
-								["textAlign"] = 0,
-								["textStyle"] = 2,
-								["textSize"] = 10,
-								["textYMod"] = 1,
-							},
-							["DETAILS_STATUSBAR_PLUGIN_CLOCK"] = {
-								["textColor"] = {
-									1, -- [1]
-									1, -- [2]
-									1, -- [3]
-									1, -- [4]
-								},
-								["textStyle"] = 2,
-								["textFace"] = "Accidental Presidency",
-								["textAlign"] = 0,
-								["textXMod"] = 6,
-								["timeType"] = 1,
-								["textSize"] = 10,
-								["textYMod"] = 1,
-							},
-						},
-						["left"] = "DETAILS_STATUSBAR_PLUGIN_PSEGMENT",
-					},
-					["total_bar"] = {
-						["enabled"] = false,
-						["only_in_group"] = true,
-						["icon"] = "Interface\\ICONS\\INV_Sigil_Thorim",
-						["color"] = {
-							1, -- [1]
-							1, -- [2]
-							1, -- [3]
-						},
-					},
-					["switch_all_roles_in_combat"] = false,
-					["instance_button_anchor"] = {
-						-27, -- [1]
-						1, -- [2]
-					},
-					["version"] = 3,
-					["attribute_text"] = {
-						["show_timer"] = {
-							true, -- [1]
-							true, -- [2]
-							true, -- [3]
-						},
-						["shadow"] = true,
-						["side"] = 1,
-						["text_color"] = {
-							1, -- [1]
-							1, -- [2]
-							1, -- [3]
-							0.7, -- [4]
-						},
-						["custom_text"] = "{name}",
-						["text_face"] = "Bui Prototype",
-						["anchor"] = {
-							-2, -- [1]
-							3, -- [2]
-						},
-						["text_size"] = 10,
-						["enable_custom_text"] = false,
-						["enabled"] = true,
-					},
-					["__locked"] = true,
-					["menu_alpha"] = {
-						["enabled"] = false,
-						["onenter"] = 1,
-						["iconstoo"] = true,
-						["ignorebars"] = false,
-						["onleave"] = 1,
-					},
-					["switch_damager_in_combat"] = false,
-					["micro_displays_locked"] = true,
-					["switch_tank_in_combat"] = false,
-					["strata"] = "LOW",
-					["grab_on_top"] = false,
-					["__snap"] = {
-						[3] = 2,
-					},
-					["switch_tank"] = false,
-					["hide_in_combat_alpha"] = 0,
-					["switch_all_roles_after_wipe"] = false,
-					["menu_icons"] = {
-						true, -- [1]
-						true, -- [2]
-						true, -- [3]
-						true, -- [4]
-						true, -- [5]
-						false, -- [6]
-						["space"] = -2,
-						["shadow"] = false,
-					},
-					["switch_damager"] = false,
-					["micro_displays_side"] = 2,
-					["statusbar_info"] = {
-						["alpha"] = 1,
-						["overlay"] = {
-							1, -- [1]
-							1, -- [2]
-							1, -- [3]
-						},
-					},
-					["window_scale"] = 1,
-					["libwindow"] = {
-						["y"] = 25.0000705718994,
-						["x"] = -209.999877929687,
-						["point"] = "BOTTOMRIGHT",
-					},
-					["desaturated_menu"] = true,
-					["bars_inverted"] = false,
-					["hide_icon"] = false,
-					["switch_healer_in_combat"] = false,
-					["bg_alpha"] = 0,
-					["auto_current"] = true,
-					["toolbar_side"] = 1,
-					["bg_g"] = 0.3294,
-					["skin"] = "ElvUI Frame Style",
-					["hide_in_combat"] = false,
-					["posicao"] = {
-						["normal"] = {
-							["y"] = -452.999885559082,
-							["x"] = 650.000244140625,
-							["w"] = 200.000061035156,
-							["h"] = 123.999969482422,
-						},
-						["solo"] = {
-							["y"] = 2,
-							["x"] = 1,
-							["w"] = 300,
-							["h"] = 200,
-						},
-					},
-					["menu_icons_size"] = 0.899999976158142,
-					["ignore_mass_showhide"] = false,
-					["wallpaper"] = {
-						["enabled"] = false,
-						["texture"] = "Interface\\AddOns\\Details\\images\\skins\\elvui",
-						["texcoord"] = {
-							0.0480000019073486, -- [1]
-							0.298000011444092, -- [2]
-							0.630999984741211, -- [3]
-							0.755999984741211, -- [4]
-						},
-						["overlay"] = {
-							0.999997794628143, -- [1]
-							0.999997794628143, -- [2]
-							0.999997794628143, -- [3]
-							0.799998223781586, -- [4]
-						},
-						["anchor"] = "all",
-						["height"] = 225.999984741211,
-						["alpha"] = 0.800000071525574,
-						["width"] = 266.000061035156,
-					},
-					["stretch_button_side"] = 1,
-					["auto_hide_menu"] = {
-						["left"] = true,
-						["right"] = false,
-					},
-					["show_sidebars"] = false,
-					["row_info"] = {
-						["textR_outline"] = false,
-						["spec_file"] = "Interface\\AddOns\\Details\\images\\spec_icons_normal",
-						["textL_outline"] = false,
-						["textR_outline_small"] = true,
-						["textL_outline_small"] = true,
-						["percent_type"] = 1,
-						["fixed_text_color"] = {
-							1, -- [1]
-							1, -- [2]
-							1, -- [3]
-						},
-						["space"] = {
-							["right"] = 0,
-							["left"] = 0,
-							["between"] = 2,
-						},
-						["texture_background_class_color"] = false,
-						["start_after_icon"] = false,
-						["font_face_file"] = "Interface\\AddOns\\ElvUI_BenikUI\\media\\fonts\\PROTOTYPE.TTF",
-						["textL_custom_text"] = "{data1}. {data3}{data2}",
-						["font_size"] = 10,
-						["texture_custom_file"] = "Interface\\",
-						["texture_file"] = "Interface\\AddOns\\ElvUI_BenikUI\\media\\textures\\BuiOnePixel.tga",
-						["icon_file"] = "Interface\\AddOns\\Details\\images\\classes_small_alpha",
-						["use_spec_icons"] = true,
-						["models"] = {
-							["upper_model"] = "Spells\\AcidBreath_SuperGreen.M2",
-							["lower_model"] = "World\\EXPANSION02\\DOODADS\\Coldarra\\COLDARRALOCUS.m2",
-							["upper_alpha"] = 0.5,
-							["lower_enabled"] = false,
-							["lower_alpha"] = 0.1,
-							["upper_enabled"] = false,
-						},
-						["textR_bracket"] = "(",
-						["textR_enable_custom_text"] = false,
-						["backdrop"] = {
-							["enabled"] = false,
-							["size"] = 4,
-							["color"] = {
-								0, -- [1]
-								0, -- [2]
-								0, -- [3]
-								1, -- [4]
-							},
-							["texture"] = "Details BarBorder 2",
-						},
-						["fixed_texture_color"] = {
-							0, -- [1]
-							0, -- [2]
-							0, -- [3]
-						},
-						["textL_show_number"] = true,
-						["fixed_texture_background_color"] = {
-							0, -- [1]
-							0, -- [2]
-							0, -- [3]
-							0.339636147022247, -- [4]
-						},
-						["texture_custom"] = "",
-						["textR_custom_text"] = "{data1} ({data2}, {data3}%)",
-						["texture"] = "BuiOnePixel",
-						["texture_highlight"] = "Interface\\FriendsFrame\\UI-FriendsList-Highlight",
-						["textL_enable_custom_text"] = false,
-						["textR_class_colors"] = false,
-						["textL_class_colors"] = true,
-						["textR_outline_small_color"] = {
-							0, -- [1]
-							0, -- [2]
-							0, -- [3]
-							1, -- [4]
-						},
-						["texture_background"] = "BuiEmpty",
-						["alpha"] = 0.8,
-						["no_icon"] = false,
-						["textR_show_data"] = {
-							true, -- [1]
-							true, -- [2]
-							true, -- [3]
-						},
-						["textL_outline_small_color"] = {
-							0, -- [1]
-							0, -- [2]
-							0, -- [3]
-							1, -- [4]
-						},
-						["font_face"] = "Bui Prototype",
-						["texture_class_colors"] = true,
-						["texture_background_file"] = "Interface\\AddOns\\ElvUI_BenikUI\\media\\textures\\Empty.tga",
-						["fast_ps_update"] = false,
-						["textR_separator"] = ",",
-						["height"] = 14,
-					},
-					["bg_b"] = 0.3294,
-				}, -- [1]
-				{
-					["__pos"] = {
-						["normal"] = {
-							["y"] = -452.999885559082,
-							["x"] = 852.000122070313,
-							["w"] = 204.000091552734,
-							["h"] = 123.999969482422,
-						},
-						["solo"] = {
-							["y"] = 2,
-							["x"] = 1,
-							["w"] = 300,
-							["h"] = 200,
-						},
-					},
-					["hide_in_combat_type"] = 1,
-					["backdrop_texture"] = "Details Ground",
-					["color"] = {
-						1, -- [1]
-						1, -- [2]
-						1, -- [3]
-						1, -- [4]
-					},
-					["menu_anchor"] = {
-						16, -- [1]
-						2, -- [2]
-						["side"] = 2,
-					},
-					["__snapV"] = false,
-					["__snapH"] = false,
-					["bg_r"] = 0.3294,
-					["row_show_animation"] = {
-						["anim"] = "Fade",
-						["options"] = {
-						},
-					},
-					["plugins_grow_direction"] = 1,
-					["hide_out_of_combat"] = false,
-					["__was_opened"] = true,
-					["following"] = {
-						["enabled"] = false,
-						["bar_color"] = {
-							1, -- [1]
-							1, -- [2]
-							1, -- [3]
-						},
-						["text_color"] = {
-							1, -- [1]
-							1, -- [2]
-							1, -- [3]
-						},
-					},
-					["color_buttons"] = {
-						1, -- [1]
-						1, -- [2]
-						1, -- [3]
-						1, -- [4]
-					},
-					["switch_healer"] = false,
-					["skin_custom"] = "",
-					["bars_sort_direction"] = 1,
-					["show_statusbar"] = false,
-					["bars_grow_direction"] = 1,
-					["menu_anchor_down"] = {
-						16, -- [1]
-						-2, -- [2]
-					},
-					["tooltip"] = {
-						["n_abilities"] = 3,
-						["n_enemies"] = 3,
-					},
-					["StatusBarSaved"] = {
-						["center"] = "DETAILS_STATUSBAR_PLUGIN_CLOCK",
-						["right"] = "DETAILS_STATUSBAR_PLUGIN_PDPS",
-						["options"] = {
-							["DETAILS_STATUSBAR_PLUGIN_PDPS"] = {
-								["textYMod"] = 1,
-								["textXMod"] = 0,
-								["textFace"] = "FORCED SQUARE",
-								["textAlign"] = 0,
-								["textStyle"] = 2,
-								["textSize"] = 10,
-								["textColor"] = {
-									1, -- [1]
-									1, -- [2]
-									1, -- [3]
-									0.7, -- [4]
-								},
-							},
-							["DETAILS_STATUSBAR_PLUGIN_THREAT"] = {
-								["isHidden"] = false,
-								["textStyle"] = 2,
-								["textYMod"] = 1,
-								["segmentType"] = 2,
-								["textXMod"] = 0,
-								["textFace"] = "FORCED SQUARE",
-								["textAlign"] = 0,
-								["textSize"] = 10,
-								["textColor"] = {
-									1, -- [1]
-									1, -- [2]
-									1, -- [3]
-									0.7, -- [4]
-								},
-							},
-							["DETAILS_STATUSBAR_PLUGIN_CLOCK"] = {
-								["textColor"] = {
-									1, -- [1]
-									1, -- [2]
-									1, -- [3]
-									0.7, -- [4]
-								},
-								["textXMod"] = 6,
-								["textFace"] = "FORCED SQUARE",
-								["textAlign"] = 0,
-								["textStyle"] = 2,
-								["timeType"] = 1,
-								["textSize"] = 10,
-								["textYMod"] = 1,
-							},
-						},
-						["left"] = "DETAILS_STATUSBAR_PLUGIN_THREAT",
-					},
-					["total_bar"] = {
-						["enabled"] = false,
-						["only_in_group"] = true,
-						["icon"] = "Interface\\ICONS\\INV_Sigil_Thorim",
-						["color"] = {
-							1, -- [1]
-							1, -- [2]
-							1, -- [3]
-						},
-					},
-					["switch_all_roles_in_combat"] = false,
-					["instance_button_anchor"] = {
-						-27, -- [1]
-						1, -- [2]
-					},
-					["version"] = 3,
-					["attribute_text"] = {
-						["show_timer"] = {
-							true, -- [1]
-							true, -- [2]
-							true, -- [3]
-						},
-						["shadow"] = true,
-						["side"] = 1,
-						["text_color"] = {
-							1, -- [1]
-							1, -- [2]
-							1, -- [3]
-							0.7, -- [4]
-						},
-						["custom_text"] = "{name}",
-						["text_face"] = "Bui Prototype",
-						["anchor"] = {
-							-2, -- [1]
-							3, -- [2]
-						},
-						["text_size"] = 10,
-						["enable_custom_text"] = false,
-						["enabled"] = true,
-					},
-					["__locked"] = true,
-					["menu_alpha"] = {
-						["enabled"] = false,
-						["onenter"] = 1,
-						["iconstoo"] = true,
-						["ignorebars"] = false,
-						["onleave"] = 1,
-					},
-					["switch_damager_in_combat"] = false,
-					["micro_displays_locked"] = true,
-					["switch_tank_in_combat"] = false,
-					["strata"] = "LOW",
-					["grab_on_top"] = false,
-					["__snap"] = {
-						1, -- [1]
-					},
-					["switch_tank"] = false,
-					["hide_in_combat_alpha"] = 0,
-					["switch_all_roles_after_wipe"] = false,
-					["menu_icons"] = {
-						true, -- [1]
-						true, -- [2]
-						true, -- [3]
-						true, -- [4]
-						true, -- [5]
-						false, -- [6]
-						["space"] = -2,
-						["shadow"] = false,
-					},
-					["switch_damager"] = false,
-					["micro_displays_side"] = 2,
-					["statusbar_info"] = {
-						["alpha"] = 1,
-						["overlay"] = {
-							1, -- [1]
-							1, -- [2]
-							1, -- [3]
-						},
-					},
-					["window_scale"] = 1,
-					["libwindow"] = {
-						["y"] = 25.0000705718994,
-						["x"] = -5.9998779296875,
-						["point"] = "BOTTOMRIGHT",
-					},
-					["desaturated_menu"] = true,
-					["bars_inverted"] = false,
-					["hide_icon"] = false,
-					["switch_healer_in_combat"] = false,
-					["bg_alpha"] = 0,
-					["auto_current"] = true,
-					["toolbar_side"] = 1,
-					["bg_g"] = 0.3294,
-					["skin"] = "ElvUI Frame Style",
-					["hide_in_combat"] = false,
-					["posicao"] = {
-						["normal"] = {
-							["y"] = -452.999885559082,
-							["x"] = 852.000122070313,
-							["w"] = 204.000091552734,
-							["h"] = 123.999969482422,
-						},
-						["solo"] = {
-							["y"] = 2,
-							["x"] = 1,
-							["w"] = 300,
-							["h"] = 200,
-						},
-					},
-					["menu_icons_size"] = 0.899999976158142,
-					["ignore_mass_showhide"] = false,
-					["wallpaper"] = {
-						["enabled"] = false,
-						["texture"] = "Interface\\AddOns\\Details\\images\\skins\\elvui",
-						["texcoord"] = {
-							0.0480000019073486, -- [1]
-							0.298000011444092, -- [2]
-							0.630999984741211, -- [3]
-							0.755999984741211, -- [4]
-						},
-						["overlay"] = {
-							0.999997794628143, -- [1]
-							0.999997794628143, -- [2]
-							0.999997794628143, -- [3]
-							0.799998223781586, -- [4]
-						},
-						["anchor"] = "all",
-						["height"] = 225.999984741211,
-						["alpha"] = 0.800000071525574,
-						["width"] = 266.000061035156,
-					},
-					["stretch_button_side"] = 1,
-					["auto_hide_menu"] = {
-						["left"] = true,
-						["right"] = false,
-					},
-					["show_sidebars"] = false,
-					["row_info"] = {
-						["textR_outline"] = false,
-						["spec_file"] = "Interface\\AddOns\\Details\\images\\spec_icons_normal",
-						["textL_outline"] = false,
-						["textR_outline_small"] = true,
-						["textL_outline_small"] = true,
-						["percent_type"] = 1,
-						["fixed_text_color"] = {
-							1, -- [1]
-							1, -- [2]
-							1, -- [3]
-						},
-						["space"] = {
-							["right"] = 0,
-							["left"] = 0,
-							["between"] = 2,
-						},
-						["texture_background_class_color"] = false,
-						["start_after_icon"] = false,
-						["font_face_file"] = "Interface\\AddOns\\ElvUI_BenikUI\\media\\fonts\\PROTOTYPE.ttf",
-						["textL_custom_text"] = "{data1}. {data3}{data2}",
-						["font_size"] = 10,
-						["texture_custom_file"] = "Interface\\",
-						["texture_file"] = "Interface\\AddOns\\ElvUI_BenikUI\\media\\textures\\BuiOnePixel.tga",
-						["icon_file"] = "Interface\\AddOns\\Details\\images\\classes_small_alpha",
-						["use_spec_icons"] = true,
-						["models"] = {
-							["upper_model"] = "Spells\\AcidBreath_SuperGreen.M2",
-							["lower_model"] = "World\\EXPANSION02\\DOODADS\\Coldarra\\COLDARRALOCUS.m2",
-							["upper_alpha"] = 0.5,
-							["lower_enabled"] = false,
-							["lower_alpha"] = 0.1,
-							["upper_enabled"] = false,
-						},
-						["textR_bracket"] = "(",
-						["textR_enable_custom_text"] = false,
-						["backdrop"] = {
-							["enabled"] = false,
-							["size"] = 4,
-							["color"] = {
-								0, -- [1]
-								0, -- [2]
-								0, -- [3]
-								1, -- [4]
-							},
-							["texture"] = "Details BarBorder 2",
-						},
-						["fixed_texture_color"] = {
-							0, -- [1]
-							0, -- [2]
-							0, -- [3]
-						},
-						["textL_show_number"] = true,
-						["fixed_texture_background_color"] = {
-							0, -- [1]
-							0, -- [2]
-							0, -- [3]
-							0.339636147022247, -- [4]
-						},
-						["texture_custom"] = "",
-						["textR_custom_text"] = "{data1} ({data2}, {data3}%)",
-						["texture"] = "BuiOnePixel",
-						["texture_highlight"] = "Interface\\FriendsFrame\\UI-FriendsList-Highlight",
-						["textL_enable_custom_text"] = false,
-						["textR_class_colors"] = false,
-						["textL_class_colors"] = true,
-						["textR_outline_small_color"] = {
-							0, -- [1]
-							0, -- [2]
-							0, -- [3]
-							1, -- [4]
-						},
-						["texture_background"] = "BuiEmpty",
-						["alpha"] = 0.8,
-						["no_icon"] = false,
-						["textR_show_data"] = {
-							true, -- [1]
-							true, -- [2]
-							true, -- [3]
-						},
-						["textL_outline_small_color"] = {
-							0, -- [1]
-							0, -- [2]
-							0, -- [3]
-							1, -- [4]
-						},
-						["font_face"] = "Bui Prototype",
-						["texture_class_colors"] = true,
-						["texture_background_file"] = "Interface\\AddOns\\ElvUI_BenikUI\\media\\textures\\Empty.tga",
-						["fast_ps_update"] = false,
-						["textR_separator"] = ",",
-						["height"] = 14,
-					},
-					["bg_b"] = 0.3294,
-				}, -- [2]
-			},
-		}
-		_detalhes:ApplyProfile('BenikUI')
+		BUI:LoadDetailsProfile()
+		tinsert(addonNames, 'Details')
 	end
 
-	-- ElvUI_VisualAuraTimers
-	if E.db.VAT == nil then E.db.VAT = {} end
-	if IsAddOnLoaded('ElvUI_VisualAuraTimers') then
-		E.db["VAT"]["enableStaticColor"] = true
-		E.db["VAT"]["barHeight"] = 5
-		E.db["VAT"]["spacing"] = -5
-		E.db["VAT"]["staticColor"]["r"] = 1
-		E.db["VAT"]["staticColor"]["g"] = 0.5
-		E.db["VAT"]["staticColor"]["b"] = 0
-		E.db["VAT"]["showText"] = true
-		E.db["VAT"]["colors"]["minutesIndicator"]["r"] = 1
-		E.db["VAT"]["colors"]["minutesIndicator"]["g"] = 0.5
-		E.db["VAT"]["colors"]["minutesIndicator"]["b"] = 0
-		E.db["VAT"]["colors"]["hourminutesIndicator"]["r"] = 1
-		E.db["VAT"]["colors"]["hourminutesIndicator"]["g"] = 0.5
-		E.db["VAT"]["colors"]["hourminutesIndicator"]["b"] = 0
-		E.db["VAT"]["colors"]["expireIndicator"]["r"] = 1
-		E.db["VAT"]["colors"]["expireIndicator"]["g"] = 0.5
-		E.db["VAT"]["colors"]["expireIndicator"]["b"] = 0
-		E.db["VAT"]["colors"]["secondsIndicator"]["r"] = 1
-		E.db["VAT"]["colors"]["secondsIndicator"]["g"] = 0.5
-		E.db["VAT"]["colors"]["secondsIndicator"]["b"] = 0
-		E.db["VAT"]["colors"]["daysIndicator"]["r"] = 1
-		E.db["VAT"]["colors"]["daysIndicator"]["g"] = 0.5
-		E.db["VAT"]["colors"]["daysIndicator"]["b"] = 0
-		E.db["VAT"]["colors"]["hoursIndicator"]["r"] = 1
-		E.db["VAT"]["colors"]["hoursIndicator"]["g"] = 0.5
-		E.db["VAT"]["colors"]["hoursIndicator"]["b"] = 0
-		E.db["VAT"]["statusbarTexture"] = 'BuiFlat'
-		E.db["VAT"]["position"] = 'TOP'
+	-- Location Lite
+	if IsAddOnLoaded('ElvUI_LocLite') then
+		BUI:LoadLocationLiteProfile()
+		tinsert(addonNames, 'Location Lite')
+	end
+
+	-- Location Plus
+	if IsAddOnLoaded('ElvUI_LocPlus') then
+		BUI:LoadLocationPlusProfile()
+		tinsert(addonNames, 'Location Plus')
+	end
+
+	-- MikScrollingBattleText
+	if IsAddOnLoaded('MikScrollingBattleText') then
+		BUI:LoadMSBTProfile()
+		tinsert(addonNames, "Mik's Scrolling Battle Text")
+	end
+
+	-- Pawn
+	if IsAddOnLoaded('Pawn') then
+		BUI:LoadPawnProfile()
+		tinsert(addonNames, 'Pawn')
+	end
+
+	-- Recount
+	if IsAddOnLoaded('Recount') then
+		BUI:LoadRecountProfile()
+		tinsert(addonNames, 'Recount')
+	end
+
+	-- Skada
+	if IsAddOnLoaded('Skada') then
+		BUI:LoadSkadaProfile()
+		tinsert(addonNames, 'Skada')
 	end
 
 	-- SquareMinimapButtons
-	if SquareMinimapButtonOptions == nil then SquareMinimapButtonOptions = {} end
 	if IsAddOnLoaded('SquareMinimapButtons') then
-		SquareMinimapButtonOptions['BarEnabled'] = true
-		SquareMinimapButtonOptions['ButtonsPerRow'] = 6
-		SquareMinimapButtonOptions['IconSize'] = 22
-		SquareMinimapButtonOptions['ButtonSpacing'] = 1
-		E.db["movers"]["SquareMinimapButtonBarMover"] = "TOPRIGHT,ElvUIParent,TOPRIGHT,-4,-258"
+		BUI:LoadSMBProfile()
+		tinsert(addonNames, 'Square Minimap Buttons')
+	end
+
+	-- ElvUI_VisualAuraTimers
+	if IsAddOnLoaded('ElvUI_VisualAuraTimers') then
+		BUI:LoadVATProfile()
+		tinsert(addonNames, 'ElvUI VisualAuraTimers')
+	end
+	
+	-- AddOnSkins
+	if IsAddOnLoaded('AddOnSkins') then
+		BUI:LoadAddOnSkinsProfile()
+		tinsert(addonNames, 'AddOnSkins')
+	end
+
+	if checkTable(addonNames) ~= nil then
+		local profileString = format('|cfffff400%s |r', L['BenikUI successfully created and applied profile(s) for:']..'\n')
+
+		tsort(addonNames, function(a, b) return a < b end)
+		local names = tconcat(addonNames, ", ")
+		profileString = profileString..names
+
+		BUIInstallFrame.Desc4:SetText(profileString..'.')
+	else
+		BUIInstallFrame.Desc4:SetText(profilesFailed)
 	end
 
 	if InstallStepComplete then
 		InstallStepComplete.message = BUI.Title..L['Addons Set']
 		InstallStepComplete:Show()
 		titleText[8].check:Show()
+		twipe(addonNames)
 	end
 	E:UpdateAll(true)
 end
 
-function BUI:SetupBuiDts(role)
+local function SetupDataTexts(role)
 	-- Data Texts
 	E.db["datatexts"]["panels"]["BuiLeftChatDTPanel"]["right"] = 'BuiMail'
 	if IsAddOnLoaded('ElvUI_LocPlus') then
@@ -3226,7 +1285,7 @@ local function SetPage(PageNum)
 
 	if PageNum == 1 then
 		f.SubTitle:SetFormattedText(L['Welcome to BenikUI version %s, for ElvUI %s.'], BUI.Version, E.version)
-		f.Desc1:SetFormattedText("%s", L["By pressing the Continue button, BenikUI will be applied in your current ElvUI installation.\n\n|cffff8000 TIP: It would be nice if you apply the changes in a new profile, just in case you don't like the result.|r"])
+		f.Desc1:SetFormattedText("%s", L["By pressing the Continue button, BenikUI will be applied on your current ElvUI installation.\n\n|cffff8000 TIP: It would be nice if you apply the changes in a new profile, just in case you don't like the result.|r"])
 		f.Desc2:SetFormattedText("%s", BUI:cOption(L['\nBenikUI options are marked with light blue color, inside ElvUI options.']))
 		f.Desc3:SetFormattedText("%s", L['Please press the continue button to go onto the next step.'])
 		titleText[1].text:SetText(titleText[1].text:GetText())		
@@ -3234,44 +1293,43 @@ local function SetPage(PageNum)
 		InstallOption1Button:SetScript('OnClick', InstallComplete)
 		InstallOption1Button:SetFormattedText("%s", L['Skip Process'])			
 	elseif PageNum == 2 then
-		f.SubTitle:SetFormattedText("%s", L['Layout'])
+		f.SubTitle:SetFormattedText("|cfffff400%s|r", L['Layout'])
 		f.Desc1:SetFormattedText("%s", L['This part of the installation will change the default ElvUI look.'])
 		f.Desc2:SetFormattedText("%s", L['Please click the button below to apply the new layout.'])
 		f.Desc3:SetFormattedText("%s", L['Importance: |cff07D400High|r'])
 		InstallOption1Button:Show()
-		InstallOption1Button:SetScript('OnClick', SetupBuiLayout)
+		InstallOption1Button:SetScript('OnClick', SetupLayout)
 		InstallOption1Button:SetFormattedText("%s", L['Setup Layout'])
 	elseif PageNum == 3 then
-		f.SubTitle:SetFormattedText("%s", L['Color Themes'])
+		f.SubTitle:SetFormattedText("|cfffff400%s|r", L['Color Themes'])
 		f.Desc1:SetFormattedText("%s", L['This part of the installation will apply a Color Theme'])
 		f.Desc2:SetFormattedText("%s", L['Please click a button below to apply a color theme.'])
 		f.Desc3:SetFormattedText("%s", L['Importance: |cffD3CF00Medium|r'])
 		InstallOption1Button:Show()
-		InstallOption1Button:SetScript('OnClick', function() BUI:SetupBuiColors(); BUI:BuiColorThemes('Elv'); end)
+		InstallOption1Button:SetScript('OnClick', function() SetupColors(); BUI:SetupColorThemes('Elv'); end)
 		InstallOption1Button:SetFormattedText("%s", L['ElvUI'])
 		InstallOption2Button:Show()
-		InstallOption2Button:SetScript('OnClick', function() BUI:SetupBuiColors(); BUI:BuiColorThemes('Diablo'); end)
+		InstallOption2Button:SetScript('OnClick', function() SetupColors(); BUI:SetupColorThemes('Diablo'); end)
 		InstallOption2Button:SetFormattedText("%s", L['Diablo'])
 		InstallOption3Button:Show()
-		InstallOption3Button:SetScript('OnClick', function() BUI:SetupBuiColors(); BUI:BuiColorThemes('Mists'); end)
+		InstallOption3Button:SetScript('OnClick', function() SetupColors(); BUI:SetupColorThemes('Mists'); end)
 		InstallOption3Button:SetFormattedText("%s", L['Mists'])
 		InstallOption4Button:Show()
-		InstallOption4Button:SetScript('OnClick', function() BUI:SetupBuiColors(); BUI:BuiColorThemes('Hearthstone'); end)
+		InstallOption4Button:SetScript('OnClick', function() SetupColors(); BUI:SetupColorThemes('Hearthstone'); end)
 		InstallOption4Button:SetFormattedText("%s", L['Hearthstone'])	
 	elseif PageNum == 4 then
-		f.SubTitle:SetFormattedText("%s", L['Chat'])
+		f.SubTitle:SetFormattedText("|cfffff400%s|r", L['Chat'])
 		f.Desc1:SetFormattedText("%s", L['This part of the installation process sets up your chat fonts and colors.'])
 		f.Desc2:SetFormattedText("%s", L['Please click the button below to setup your chat windows.'])
 		f.Desc3:SetFormattedText("%s", L['Importance: |cffD3CF00Medium|r'])
 		InstallOption1Button:Show()
-		InstallOption1Button:SetScript('OnClick', SetupBuiChat)
+		InstallOption1Button:SetScript('OnClick', SetupChat)
 		InstallOption1Button:SetFormattedText("%s", L['Setup Chat'])
 	elseif PageNum == 5 then
-		f.SubTitle:SetFormattedText("%s", L['UnitFrames'])
-		f.Desc1:SetFormattedText("%s", L["This part of the installation process will reposition your Unitframes and will enable the EmptyBars."])
-		f.Desc2:SetFormattedText("%s", L['Please click the button below to setup your Unitframes.'])
+		f.SubTitle:SetFormattedText("|cfffff400%s|r", L['UnitFrames'])
+		f.Desc1:SetFormattedText("%s", L["This part of the installation process will reposition your Unitframes."])
+		f.Desc2:SetFormattedText("%s", L['Please click a button below to setup your Unitframes.'])
 		f.Desc3:SetFormattedText("%s", L['Importance: |cff07D400High|r'])
-		f.Desc4:SetFormattedText("%s", L['Buttons must be clicked twice'])
 		InstallOption1Button:Show()
 		InstallOption1Button:SetScript('OnClick', function() SetupUnitframes('normal') end)
 		InstallOption1Button:SetFormattedText("%s", L['Setup Unitframes'].." - 1")
@@ -3279,11 +1337,10 @@ local function SetPage(PageNum)
 		InstallOption2Button:SetScript('OnClick', function() SetupUnitframes('detached') end)
 		InstallOption2Button:SetFormattedText("%s", L['Setup Unitframes'].." - 2")		
 	elseif PageNum == 6 then
-		f.SubTitle:SetFormattedText("%s", L['ActionBars'])
+		f.SubTitle:SetFormattedText("|cfffff400%s|r", L['ActionBars'])
 		f.Desc1:SetFormattedText("%s", L['This part of the installation process will reposition your Actionbars and will enable backdrops'])
-		f.Desc2:SetFormattedText("%s", L['Please click the button below to setup your actionbars.'])
+		f.Desc2:SetFormattedText("%s", L['Please click a button below to setup your actionbars.'])
 		f.Desc3:SetFormattedText("%s", L['Importance: |cff07D400High|r'])
-		f.Desc4:SetFormattedText("%s", L['Buttons must be clicked twice'])
 		InstallOption1Button:Show()
 		InstallOption1Button:SetScript('OnClick', function() SetupActionbars('big') end)
 		InstallOption1Button:SetFormattedText("%s", L['Setup ActionBars'].." - 1")
@@ -3291,32 +1348,32 @@ local function SetPage(PageNum)
 		InstallOption2Button:SetScript('OnClick', function() SetupActionbars('small') end)
 		InstallOption2Button:SetFormattedText("%s", L['Setup ActionBars'].." - 2")
 	elseif PageNum == 7 then
-		f.SubTitle:SetFormattedText("%s", L['DataTexts'])
+		f.SubTitle:SetFormattedText("|cfffff400%s|r", L['DataTexts'])
 		f.Desc1:SetFormattedText("%s", L["This part of the installation process will fill BenikUI datatexts.\n\n|cffff8000This doesn't touch ElvUI datatexts|r"])
 		f.Desc2:SetFormattedText("%s", L['Please click the button below to setup your datatexts.'])
 		f.Desc3:SetFormattedText("%s", L['Importance: |cffD3CF00Medium|r'])
 		InstallOption1Button:Show()
-		InstallOption1Button:SetScript('OnClick', function() E.db.datatexts.panels.BuiLeftChatDTPanel.left = nil; E.db.datatexts.panels.BuiLeftChatDTPanel.middle = nil; BUI:SetupBuiDts('tank') end)
+		InstallOption1Button:SetScript('OnClick', function() E.db.datatexts.panels.BuiLeftChatDTPanel.left = nil; E.db.datatexts.panels.BuiLeftChatDTPanel.middle = nil; SetupDataTexts('tank') end)
 		InstallOption1Button:SetFormattedText("%s", TANK)
 		InstallOption2Button:Show()
-		InstallOption2Button:SetScript('OnClick', function() E.db.datatexts.panels.BuiLeftChatDTPanel.left = nil; E.db.datatexts.panels.BuiLeftChatDTPanel.middle = nil; BUI:SetupBuiDts('healer') end)
+		InstallOption2Button:SetScript('OnClick', function() E.db.datatexts.panels.BuiLeftChatDTPanel.left = nil; E.db.datatexts.panels.BuiLeftChatDTPanel.middle = nil; SetupDataTexts('healer') end)
 		InstallOption2Button:SetFormattedText("%s", HEALER)
 		InstallOption3Button:Show()
-		InstallOption3Button:SetScript('OnClick', function() E.db.datatexts.panels.BuiLeftChatDTPanel.left = nil; E.db.datatexts.panels.BuiLeftChatDTPanel.middle = nil; BUI:SetupBuiDts('dpsMelee') end)
+		InstallOption3Button:SetScript('OnClick', function() E.db.datatexts.panels.BuiLeftChatDTPanel.left = nil; E.db.datatexts.panels.BuiLeftChatDTPanel.middle = nil; SetupDataTexts('dpsMelee') end)
 		InstallOption3Button:SetFormattedText("%s", L['Physical DPS'])
 		InstallOption4Button:Show()
-		InstallOption4Button:SetScript('OnClick', function() E.db.datatexts.panels.BuiLeftChatDTPanel.left = nil; E.db.datatexts.panels.BuiLeftChatDTPanel.middle = nil; BUI:SetupBuiDts('dpsCaster') end)
+		InstallOption4Button:SetScript('OnClick', function() E.db.datatexts.panels.BuiLeftChatDTPanel.left = nil; E.db.datatexts.panels.BuiLeftChatDTPanel.middle = nil; SetupDataTexts('dpsCaster') end)
 		InstallOption4Button:SetFormattedText("%s", L['Caster DPS'])
 	elseif PageNum == 8 then
-		f.SubTitle:SetFormattedText("%s", ADDONS)
-		f.Desc1:SetFormattedText("%s", L['This part of the installation process will apply changes to the addons like Recount, DBM and ElvUI plugins'])
+		f.SubTitle:SetFormattedText("|cfffff400%s|r", ADDONS)
+		f.Desc1:SetFormattedText("%s", L['This part of the installation process will create and apply profiles for addons like Recount, DBM, ElvUI plugins, etc'])
 		f.Desc2:SetFormattedText("%s", L['Please click the button below to setup your addons.'])
 		f.Desc3:SetFormattedText("%s", L['Importance: |cffD3CF00Medium|r'])
 		InstallOption1Button:Show()
-		InstallOption1Button:SetScript('OnClick', function() SetupBuiAddons(); SetupAddOnSkins(); end)
+		InstallOption1Button:SetScript('OnClick', function() SetupAddons(); end)
 		InstallOption1Button:SetFormattedText("%s", L['Setup Addons'])	
 	elseif PageNum == 9 then
-		f.SubTitle:SetFormattedText("%s", L['Installation Complete'])
+		f.SubTitle:SetFormattedText("|cfffff400%s|r", L['Installation Complete'])
 		f.Desc1:SetFormattedText("%s", L['You are now finished with the installation process. If you are in need of technical support please visit us at http://www.tukui.org.'])
 		f.Desc2:SetFormattedText("%s", L['Please click the button below so you can setup variables and ReloadUI.'])			
 		InstallOption1Button:Show()
@@ -3511,7 +1568,7 @@ function BUI:SetupBenikUI()
 		E.Skins:HandleButton(f.Option4, true)			
 
 		f.SubTitle = f:CreateFontString(nil, 'OVERLAY')
-		f.SubTitle:FontTemplate(nil, 15, nil)		
+		f.SubTitle:FontTemplate(nil, 16, nil)		
 		f.SubTitle:Point('TOP', 0, -40)
 		
 		f.Desc1 = f:CreateFontString(nil, 'OVERLAY')
@@ -3521,17 +1578,17 @@ function BUI:SetupBenikUI()
 		
 		f.Desc2 = f:CreateFontString(nil, 'OVERLAY')
 		f.Desc2:FontTemplate()	
-		f.Desc2:Point('TOP', 0, -125)		
+		f.Desc2:Point('TOP', 0, -110)		
 		f.Desc2:Width(f:GetWidth() - 40)
 		
 		f.Desc3 = f:CreateFontString(nil, 'OVERLAY')
 		f.Desc3:FontTemplate()	
-		f.Desc3:Point('TOP', 0, -175)	
+		f.Desc3:Point('TOP', 0, -145)	
 		f.Desc3:Width(f:GetWidth() - 40)
 		
 		f.Desc4 = f:CreateFontString(nil, 'OVERLAY')
 		f.Desc4:FontTemplate()	
-		f.Desc4:Point('BOTTOM', 0, 75)	
+		f.Desc4:Point('TOP', 0, -170)	
 		f.Desc4:Width(f:GetWidth() - 40)
 	
 		local close = CreateFrame('Button', nil, f, 'UIPanelCloseButton')

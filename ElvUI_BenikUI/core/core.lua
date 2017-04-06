@@ -16,10 +16,13 @@ local HideUIPanel = HideUIPanel
 -- GLOBALS: LibStub, BenikUISplashScreen, ElvDB
 
 BUI.Config = {}
+BUI["styles"] = {}
 BUI.TexCoords = {.08, 0.92, -.04, 0.92}
 BUI.Title = format('|cff00c0fa%s |r', 'BenikUI')
 BUI.Version = GetAddOnMetadata('ElvUI_BenikUI', 'Version')
 BUI.NewSign = '|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:14:14|t'
+
+local classColor = E.myclass == 'PRIEST' and E.PriestColors or (CUSTOM_CLASS_COLORS and CUSTOM_CLASS_COLORS[E.myclass] or RAID_CLASS_COLORS[E.myclass])
 
 function BUI:cOption(name)
 	local color = '|cff00c0fa%s |r'
@@ -48,6 +51,39 @@ function BUI:RegisterBuiMedia()
 	E['media'].BuiMelli = LSM:Fetch('statusbar', 'BuiMelli')
 	E['media'].BuiMelliDark = LSM:Fetch('statusbar', 'BuiMelliDark')
 	E['media'].BuiOnePixel = LSM:Fetch('statusbar', 'BuiOnePixel')
+end
+
+local r, g, b = 0, 0, 0
+
+function BUI:UpdateStyleColors()
+	for frame, _ in pairs(self["styles"]) do
+		if frame and not frame.ignoreColor then
+			if E.db.benikui.colors.StyleColor == 1 then
+				r, g, b = classColor.r, classColor.g, classColor.b
+			elseif E.db.benikui.colors.StyleColor == 2 then
+				r, g, b = BUI:unpackColor(E.db.benikui.colors.customStyleColor)
+			elseif E.db.benikui.colors.StyleColor == 3 then
+				r, g, b = BUI:unpackColor(E.db.general.valuecolor)
+			else
+				r, g, b = BUI:unpackColor(E.db.general.backdropcolor)
+			end
+			frame:SetBackdropColor(r, g, b, (E.db.benikui.colors.styleAlpha or 1))
+		else
+			self["styles"][frame] = nil;
+		end
+	end
+end
+
+function BUI:UpdateStyleVisibility()
+	for frame, _ in pairs(self["styles"]) do
+		if frame and not frame.ignoreVisibility then
+			if E.db.benikui.general.hideStyle then
+				frame:Hide()
+			else
+				frame:Show()
+			end
+		end
+	end
 end
 
 function BUI:AddOptions()
@@ -120,31 +156,14 @@ local function ShowSplashScreen()
 	BenikUISplashScreen.fadeInfo.finishedFunc = FadeSplashScreen
 end
 
-local function GameMenuButton()
-	local lib = LibStub("LibElv-GameMenu-1.0")
-	local button = {
-		["name"] = "BUIConfigButton",
-		["text"] = "|cff00c0faBenikUI|r",
-		["func"] = function() BUI:DasOptions() PlaySound("igMainMenuOption") HideUIPanel(_G["GameMenuFrame"]) end,
-	}
-	lib:AddMenuButton(button)
-	
-	lib:UpdateHolder()
-end
-
 function BUI:Initialize()
 	self:RegisterBuiMedia()
 	self:LoadCommands()
-	
-	if E.db.benikui.dbCleaned then E.db.benikui.dbCleaned = nil end -- Deleted old settings db check
-	
+
 	if E.db.benikui.general.splashScreen then
 		CreateSplashScreen()
 	end
 
-	if E.db.benikui.general.gameMenuButton then
-		GameMenuButton()
-	end
 	E:GetModule('DataTexts'):ToggleMailFrame()
 
 	-- run install when ElvUI install finishes

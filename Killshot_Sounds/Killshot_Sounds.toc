@@ -1,0 +1,5 @@
+## Interface: 60000
+## Title: Killshot_Sounds
+## Author: Zwarmapapa (zwarmapapa@hotmail.com)
+## Notes: Soundfiles for Killshot.
+## Version: v1.02

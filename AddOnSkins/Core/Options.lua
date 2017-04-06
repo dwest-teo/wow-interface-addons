@@ -1,43 +1,47 @@
 local AS, ASL = unpack(AddOnSkins)
 local tinsert, sort, pairs, format, gsub, strfind = tinsert, sort, pairs, format, gsub, strfind
 
-local Defaults = {
--- Embeds
-	['EmbedOoC'] = false,
-	['EmbedOoCDelay'] = 10,
-	['EmbedCoolLine'] = false,
-	['EmbedSexyCooldown'] = false,
-	['EmbedSystem'] = false,
-	['EmbedSystemDual'] = false,
-	['EmbedMain'] = 'Skada',
-	['EmbedLeft'] = 'Skada',
-	['EmbedRight'] = 'Skada',
-	['EmbedRightChat'] = true,
-	['EmbedLeftWidth'] = 200,
-	['EmbedBelowTop'] = false,
-	['TransparentEmbed'] = false,
--- Misc
-	['RecountBackdrop'] = true,
-	['SkadaBackdrop'] = true,
-	['OmenBackdrop'] = true,
-	['DetailsBackdrop'] = true,
-	['MiscFixes'] = true,
-	['DBMSkinHalf'] = false,
-	['DBMFont'] = 'Tukui',
-	['DBMFontSize'] = 12,
-	['DBMFontFlag'] = 'OUTLINE',
-	['DBMRadarTrans'] = false,
-	['WeakAuraAuraBar'] = false,
-	['WeakAuraIconCooldown'] = false,
-	['SkinTemplate'] = 'Transparent',
-	['HideChatFrame'] = 'NONE',
-	['SkinDebug'] = false,
-	['LoginMsg'] = true,
-	['EmbedSystemMessage'] = true,
-	['ElvUISkinModule'] = false,
+local defaults = {
+	profile = {
+	-- Embeds
+		['EmbedOoC'] = false,
+		['EmbedOoCDelay'] = 10,
+		['EmbedCoolLine'] = false,
+		['EmbedSexyCooldown'] = false,
+		['EmbedSystem'] = false,
+		['EmbedSystemDual'] = false,
+		['EmbedMain'] = 'Skada',
+		['EmbedLeft'] = 'Skada',
+		['EmbedRight'] = 'Skada',
+		['EmbedRightChat'] = true,
+		['EmbedLeftWidth'] = 200,
+		['EmbedBelowTop'] = false,
+		['TransparentEmbed'] = false,
+		['EmbedIsHidden'] = false,
+		['EmbedFrameStrata'] = "3-MEDIUM",
+		['EmbedFrameLevel'] = 1,
+	-- Misc
+		['RecountBackdrop'] = true,
+		['SkadaBackdrop'] = true,
+		['OmenBackdrop'] = true,
+		['DetailsBackdrop'] = true,
+		['MiscFixes'] = true,
+		['DBMSkinHalf'] = false,
+		['DBMFont'] = 'Tukui',
+		['DBMFontSize'] = 12,
+		['DBMFontFlag'] = 'OUTLINE',
+		['DBMRadarTrans'] = false,
+		['WeakAuraAuraBar'] = false,
+		['WeakAuraIconCooldown'] = false,
+		['SkinTemplate'] = 'Transparent',
+		['HideChatFrame'] = 'NONE',
+		['SkinDebug'] = false,
+		['LoginMsg'] = true,
+		['EmbedSystemMessage'] = true,
+		['ElvUISkinModule'] = false,
+		['ThinBorder'] = false,
+	},
 }
-
-AddOnSkinsOptions = CopyTable(Defaults)
 
 local DEVELOPER_STRING = ""
 local LINE_BREAK = "\n"
@@ -85,6 +89,13 @@ local DEVELOPERS = {
 sort(DEVELOPERS, function(a, b) return strlower(a) < strlower(b) end)
 for _, devName in pairs(DEVELOPERS) do
 	DEVELOPER_STRING = DEVELOPER_STRING..LINE_BREAK..devName
+end
+
+function AS:SetupProfile()
+	self.data = LibStub("AceDB-3.0"):New("AddOnSkinsDB", defaults, true);
+	self.data.RegisterCallback(self, "OnProfileChanged", "SetupProfile");
+	self.data.RegisterCallback(self, "OnProfileCopied", "SetupProfile");
+	self.db = self.data.profile;
 end
 
 function AS:GetOptions()
@@ -228,19 +239,44 @@ function AS:GetOptions()
 						disabled = function() return not AS:CheckOption("EmbedSystemDual") end,
 						width = "full",
 					},
+					EmbedSystemMessage = {
+						type = "toggle",
+						name = ASL["Embed System Message"],
+						order = 9,
+					},
+					EmbedFrameStrata = {
+						name = ASL["Embed Frame Strata"],
+						order = 10,
+						type = "select",
+						values = {
+							["1-BACKGROUND"] = "BACKGROUND",
+							["2-LOW"] = "LOW",
+							["3-MEDIUM"] = "MEDIUM",
+							["4-HIGH"] = "HIGH",
+							["5-DIALOG"] = "DIALOG",
+							["6-FULLSCREEN"] = "FULLSCREEN",
+							["7-FULLSCREEN_DIALOG"] = "FULLSCREEN_DIALOG",
+							["8-TOOLTIP"] = "TOOLTIP",
+						},
+						disabled = function() return not (AS:CheckOption("EmbedSystemDual") or AS:CheckOption("EmbedSystem")) end,
+					},
+					EmbedFrameLevel = {
+						name = ASL["Embed Frame Level"],
+						order = 11,
+						type = "range",
+						min = 1,
+						max = 255,
+						step = 1,
+						disabled = function() return not (AS:CheckOption("EmbedSystemDual") or AS:CheckOption("EmbedSystem")) end,
+					},
 					EmbedOoC = {
 						type = "toggle",
 						name = ASL["Out of Combat (Hide)"],
-						order = 8,
-					},
-					EmbedSystemMessage = {
-						type = "toggle",
-						name = ASL["Enable the Embed System Message"],
-						order = 9,
+						order = 12,
 					},
 					EmbedOoCDelay = {
 						name = ASL["Embed OoC Delay"],
-						order = 10,
+						order = 13,
 						type = "range",
 						min = 1,
 						max = 30,
@@ -249,61 +285,61 @@ function AS:GetOptions()
 					},
 					HideChatFrame = {
 						name = ASL["Hide Chat Frame"],
-						order = 11,
+						order = 14,
 						type = "select",
 						values = AS:GetChatWindowInfo(),
 						disabled = function() return not (AS:CheckOption("EmbedSystemDual") or AS:CheckOption("EmbedSystem")) end,
 					},
-					EmbedSexyCooldown = {
-						type = "toggle",
-						name = ASL["Attach SexyCD to action bar"],
-						order = 12,
-						disabled = function() return not AS:CheckOption("SexyCooldown", "SexyCooldown2") end,
-					},
-					EmbedCoolLine = {
-						type = "toggle",
-						name = ASL["Attach CoolLine to action bar"],
-						order = 13,
-						disabled = function() return not AS:CheckOption("CoolLine", "CoolLine") end,
-					},
 					EmbedRightChat = {
 						type = "toggle",
 						name = ASL["Embed into Right Chat Panel"],
-						order = 14,
+						order = 15,
 					},
 					TransparentEmbed = {
 						type = "toggle",
 						name = ASL["Embed Transparancy"],
-						order = 15,
+						order = 16,
 					},
 					EmbedBelowTop = {
 						type = "toggle",
 						name = ASL["Embed Below Top Tab"],
-						order = 16,
+						order = 17,
 					},
 					DetailsBackdrop = { 
 						type = "toggle", 
 						name = ASL["Details Backdrop"], 
-						order = 17, 
+						order = 18, 
 						disabled = function() return not (AS:CheckOption("Details", "Details") and AS:CheckEmbed("Details")) end 
 					},
 					RecountBackdrop = {
 						type = "toggle",
 						name = ASL["Recount Backdrop"],
-						order = 18,
+						order = 19,
 						disabled = function() return not (AS:CheckOption("Recount", "Recount") and AS:CheckEmbed("Recount")) end
 					},
 					SkadaBackdrop = {
 						type = "toggle",
 						name = ASL["Skada Backdrop"],
-						order = 19,
+						order = 20,
 						disabled = function() return not (AS:CheckOption("Skada", "Skada") and AS:CheckEmbed("Skada")) end
 					},
 					OmenBackdrop = {
 						type = "toggle",
 						name = ASL["Omen Backdrop"],
-						order = 20,
+						order = 21,
 						disabled = function() return not (AS:CheckOption("Omen", "Omen") and AS:CheckEmbed("Omen")) end
+					},
+					EmbedSexyCooldown = {
+						type = "toggle",
+						name = ASL["Attach SexyCD to action bar"],
+						order = 22,
+						disabled = function() return not AS:CheckOption("SexyCooldown", "SexyCooldown2") end,
+					},
+					EmbedCoolLine = {
+						type = "toggle",
+						name = ASL["Attach CoolLine to action bar"],
+						order = 23,
+						disabled = function() return not AS:CheckOption("CoolLine", "CoolLine") end,
 					},
 				},
 			},
@@ -326,23 +362,23 @@ function AS:GetOptions()
 					WeakAuraAuraBar = {
 						type = "toggle",
 						name = ASL["WeakAura AuraBar"],
-						order = 1,
+						order = 2,
 						disabled = function() return not AS:CheckOption("WeakAuras", "WeakAuras") end,
 					},
 					Parchment = {
 						type = "toggle",
 						name = ASL["Parchment"],
-						order = 2,
+						order = 3,
 					},
 					SkinDebug = {
 						type = "toggle",
 						name = ASL["Enable Skin Debugging"],
-						order = 3,
+						order = 4,
 					},
 					LoginMsg = {
 						type = "toggle",
-						name = ASL["Enable the Login Message"],
-						order = 4,
+						name = ASL["Login Message"],
+						order = 5,
 					},
 				},
 			},
@@ -417,24 +453,6 @@ function AS:GetOptions()
 						get = function(info) return "http://www.tukui.org/forums/topic.php?id=28550" end,
 						order = 5,
 					},
-					header = {
-						order = 6,
-						type = 'header',
-						name = '',
-					},
-					desc = {
-						order = 7,
-						type = "description",
-						fontSize = "medium",
-						name = CONFIRM_RESET_SETTINGS,
-					},
-					resetsettings = {
-						type = 'execute',
-						order = 8,
-						name = ASL['Reset Settings'],
-						confirm = true,
-						func = function() AddOnSkinsOptions = CopyTable(Defaults) end,
-					},
 				},
 			},
 		},
@@ -451,7 +469,7 @@ function AS:GetOptions()
 		end
 	end
 
-	if IsAddOnLoaded("ElvUI") then
+	if AS:CheckAddOn("ElvUI") then
 		Options.args.misc.args.WeakAuraIconCooldown = {
 			type = "toggle",
 			name = ASL["WeakAura Cooldowns"],
@@ -459,14 +477,24 @@ function AS:GetOptions()
 			disabled = function() return not AS:CheckOption("WeakAuras", "WeakAuras") end,
 		}
 
-		Options.args.about.args.resetsettings.func = function() ElvUI[1].private.addonskins = CopyTable(Defaults) end
-
 		Options.args.misc.args.ElvUISkinModule = {
 			type = "toggle",
 			name = 'Use ElvUI Skin Styling',
 			order = 5,
 		}
 	end
+	
+	if not AS:CheckAddOn('ElvUI') then
+		Options.args.misc.args.ThinBorder = {
+			name = "Thin Border",
+			order = 1,
+			type = "toggle",
+		}
+	end
+
+	Options.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(AS.data);
+	Options.args.profiles.order = -2;
+	LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("AddOnSkinsProfiles", Options.args.profiles);
 
 	local EP = LibStub('LibElvUIPlugin-1.0', true)
 	if EP then

@@ -15,7 +15,7 @@ function UFB:Construct_TargetFrame()
 	local frame = _G["ElvUF_Target"]
 	
 	if not frame.Portrait.backdrop.shadow then
-		frame.Portrait.backdrop:CreateSoftShadow()
+		frame.Portrait.backdrop:CreateShadow()
 		frame.Portrait.backdrop.shadow:Hide()
 	end
 
@@ -23,12 +23,19 @@ function UFB:Construct_TargetFrame()
 		frame.Portrait.backdrop:Style('Outside')
 		frame.Portrait.backdrop.style:Hide()
 	end
-	
+
+	if E.db.benikui.general.shadows then
+		frame.Power.backdrop:CreateShadow('Default')
+		frame.Power.backdrop.shadow:Hide()
+	end
+
 	local f = CreateFrame("Frame", nil, frame)
 	frame.portraitmover = f
 	
 	self:ArrangeTarget()
 end
+
+local r, g, b = 0, 0, 0
 
 function UFB:RecolorTargetDetachedPortraitStyle()
 	local frame = _G["ElvUF_Target"]
@@ -53,33 +60,34 @@ function UFB:RecolorTargetDetachedPortraitStyle()
 			if not power.colorClass then
 				if maxValue > 0 then
 					if color then
-						portrait.backdrop.style.color:SetVertexColor(color[1], color[2], color[3])
+						r, g, b = color[1], color[2], color[3]
 					else
-						portrait.backdrop.style.color:SetVertexColor(altR, altG, altB)
+						r, g, b = altR, altG, altB
 					end
 				else
 					if color then
-						portrait.backdrop.style.color:SetVertexColor(color[1] * mu, color[2] * mu, color[3] * mu)
+						r, g, b = color[1] * mu, color[2] * mu, color[3] * mu
 					end
 				end
 			else
 				local reaction = UnitReaction('target', 'player')
 				if maxValue > 0 then
 					if isPlayer then
-						portrait.backdrop.style.color:SetVertexColor(classColor.r, classColor.g, classColor.b)
+						r, g, b = classColor.r, classColor.g, classColor.b
 					else
 						if reaction then
 							local tpet = ElvUF.colors.reaction[reaction]
-							portrait.backdrop.style.color:SetVertexColor(tpet[1], tpet[2], tpet[3])
+							r, g, b = tpet[1], tpet[2], tpet[3]
 						end
 					end
 				else
 					if reaction then
 						local t = ElvUF.colors.reaction[reaction]
-						portrait.backdrop.style.color:SetVertexColor(t[1] * mu, t[2] * mu, t[3] * mu)
+						r, g, b = t[1] * mu, t[2] * mu, t[3] * mu
 					end
 				end
-			end	
+			end
+			portrait.backdrop.style:SetBackdropColor(r, g, b, (E.db.benikui.colors.styleAlpha or 1))
 		end
 	end
 end
@@ -96,8 +104,9 @@ function UFB:ArrangeTarget()
 		frame.PORTRAIT_STYLING = E.db.benikui.unitframes.target.portraitStyle
 		frame.PORTRAIT_STYLING_HEIGHT = E.db.benikui.unitframes.target.portraitStyleHeight
 		frame.DETACHED_PORTRAIT_WIDTH = E.db.benikui.unitframes.target.getPlayerPortraitSize and E.db.benikui.unitframes.player.portraitWidth or E.db.benikui.unitframes.target.portraitWidth
-		frame.DETACHED_PORTRAIT_HEIGHT = E.db.benikui.unitframes.target.getPlayerPortraitSize and E.db.benikui.unitframes.player.ortraitHeight or E.db.benikui.unitframes.target.portraitHeight
-	
+		frame.DETACHED_PORTRAIT_HEIGHT = E.db.benikui.unitframes.target.getPlayerPortraitSize and E.db.benikui.unitframes.player.portraitHeight or E.db.benikui.unitframes.target.portraitHeight
+		frame.DETACHED_PORTRAIT_STRATA = E.db.benikui.unitframes.target.portraitFrameStrata
+
 		frame.PORTRAIT_AND_INFOPANEL = E.db.benikui.unitframes.infoPanel.fixInfoPanel and frame.USE_INFO_PANEL and frame.PORTRAIT_WIDTH 
 		frame.POWER_VERTICAL = db.power.vertical
 	end

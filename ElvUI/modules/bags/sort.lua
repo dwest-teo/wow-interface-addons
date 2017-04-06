@@ -556,8 +556,17 @@ function B.Sort(bags, sorter, invertDirection)
 			end
 
 			if not blackListedSlots[bagSlot] then
+				local method, allowPartialMatch
 				for _,itemsearchquery in pairs(blackListQueries) do
-					local success, result = pcall(Search.Matches, Search, link, itemsearchquery)
+					method = Search.Matches
+					if Search.Filters.tipPhrases.keywords[itemsearchquery] then
+						if itemsearchquery == "rel" or itemsearchquery == "reli" or itemsearchquery == "relic" then
+							allowPartialMatch = true
+						end
+						method = Search.TooltipPhrase
+						itemsearchquery = Search.Filters.tipPhrases.keywords[itemsearchquery]
+					end
+					local success, result = pcall(method, Search, link, itemsearchquery, allowPartialMatch)
 					if success and result then
 						blackListedSlots[bagSlot] = result
 						break

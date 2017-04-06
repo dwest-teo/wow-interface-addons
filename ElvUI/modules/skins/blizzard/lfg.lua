@@ -481,6 +481,7 @@ local function LoadSkin()
 	S:HandleCheckBox(LFGListFrame.EntryCreation.ItemLevel.CheckButton)
 	S:HandleCheckBox(LFGListFrame.EntryCreation.HonorLevel.CheckButton)
 	S:HandleCheckBox(LFGListFrame.EntryCreation.VoiceChat.CheckButton)
+	S:HandleCheckBox(LFGListFrame.EntryCreation.PrivateGroup.CheckButton)
 
 	LFGListFrame.EntryCreation.ActivityFinder.Dialog:StripTextures()
 	LFGListFrame.EntryCreation.ActivityFinder.Dialog:SetTemplate("Transparent")
@@ -533,13 +534,44 @@ local function LoadSkin()
 	LFGListFrame.SearchPanel.SignUpButton:Point("BOTTOMRIGHT", -6, 3)
 	LFGListFrame.SearchPanel.ResultsInset:StripTextures()
 	S:HandleScrollBar(LFGListSearchPanelScrollFrameScrollBar)
-	LFGListFrame.SearchPanel.AutoCompleteFrame:StripTextures()
-	LFGListFrame.SearchPanel.AutoCompleteFrame:SetTemplate("Transparent")
 
 	S:HandleButton(LFGListFrame.SearchPanel.FilterButton)
+	LFGListFrame.SearchPanel.FilterButton:SetPoint("LEFT", LFGListFrame.SearchPanel.SearchBox, "RIGHT", 5, 0)
 	S:HandleButton(LFGListFrame.SearchPanel.RefreshButton)
-	LFGListFrame.SearchPanel.RefreshButton:Size(26)
+	LFGListFrame.SearchPanel.RefreshButton:Size(24)
+	LFGListFrame.SearchPanel.RefreshButton.Icon:SetPoint("CENTER")
 
+	hooksecurefunc("LFGListSearchPanel_UpdateAutoComplete", function(self)
+		for i = 1, LFGListFrame.SearchPanel.AutoCompleteFrame:GetNumChildren() do
+			local child = select(i, LFGListFrame.SearchPanel.AutoCompleteFrame:GetChildren())
+			if child and not child.isSkinned and child:GetObjectType() == "Button" then
+				S:HandleButton(child)
+				child.isSkinned = true
+			end
+		end
+
+		local text = self.SearchBox:GetText()
+		local matchingActivities = C_LFGList.GetAvailableActivities(self.categoryID, nil, self.filters, text)
+		local numResults = math.min(#matchingActivities, MAX_LFG_LIST_SEARCH_AUTOCOMPLETE_ENTRIES)
+
+		for i = 2, numResults do
+			local button = self.AutoCompleteFrame.Results[i]
+			if button and not button.moved then
+				button:SetPoint("TOPLEFT", self.AutoCompleteFrame.Results[i-1], "BOTTOMLEFT", 0, -2)
+				button:SetPoint("TOPRIGHT", self.AutoCompleteFrame.Results[i-1], "BOTTOMRIGHT", 0, -2)
+				button.moved = true
+			end
+		end
+		self.AutoCompleteFrame:SetHeight(numResults * (self.AutoCompleteFrame.Results[1]:GetHeight() + 3.5) + 8)
+	end)
+
+	LFGListFrame.SearchPanel.AutoCompleteFrame:StripTextures()
+	LFGListFrame.SearchPanel.AutoCompleteFrame:CreateBackdrop("Transparent")
+	LFGListFrame.SearchPanel.AutoCompleteFrame.backdrop:SetPoint("TOPLEFT", LFGListFrame.SearchPanel.AutoCompleteFrame, "TOPLEFT", 0, 3)
+	LFGListFrame.SearchPanel.AutoCompleteFrame.backdrop:SetPoint("BOTTOMRIGHT", LFGListFrame.SearchPanel.AutoCompleteFrame, "BOTTOMRIGHT", 6, 3)
+
+	LFGListFrame.SearchPanel.AutoCompleteFrame:SetPoint("TOPLEFT", LFGListFrame.SearchPanel.SearchBox, "BOTTOMLEFT", -2, -8)
+	LFGListFrame.SearchPanel.AutoCompleteFrame:SetPoint("TOPRIGHT", LFGListFrame.SearchPanel.SearchBox, "BOTTOMRIGHT", -4, -8)
 
 	--ApplicationViewer (Custom Groups)
 	LFGListFrame.ApplicationViewer.InfoBackground:SetTexCoord(unpack(E.TexCoords))
@@ -606,6 +638,11 @@ local function LoadSecondarySkin()
 	ChallengesFrameInset:StripTextures()
 	ChallengesFrameInset:Hide()
 	ChallengesFrameInsetBg:Hide()
+
+	-- Mythic Dungeon Tab
+	ChallengesFrame.GuildBest:StripTextures()
+	ChallengesFrame.GuildBest:CreateBackdrop("Transparent")
+	ChallengesFrame.GuildBest.Line:Hide()
 
 	-- Mythic+ KeyStoneFrame
 	S:HandleCloseButton(ChallengesKeystoneFrame.CloseButton)

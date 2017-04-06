@@ -11,7 +11,7 @@ local UnitPower = UnitPower
 local UnitPowerMax = UnitPowerMax
 
 function mod:UpdateElement_MaxPower(frame)
-	local maxValue = UnitPowerMax(frame.displayedUnit, frame.PowerToken);
+	local maxValue = UnitPowerMax(frame.displayedUnit, frame.PowerType);
 	frame.PowerBar:SetMinMaxValues(0, maxValue);
 end
 
@@ -19,23 +19,32 @@ local temp = {r = 1, b = 1, g = 1}
 function mod:UpdateElement_Power(frame)
 	self:UpdateElement_MaxPower(frame)
 
-	local curValue = UnitPower(frame.displayedUnit, frame.PowerToken);
-	local maxValue = UnitPowerMax(frame.displayedUnit, frame.PowerToken);
-	frame.PowerBar:SetValue(curValue);
+	local curValue = UnitPower(frame.displayedUnit, frame.PowerType);
+	local maxValue = UnitPowerMax(frame.displayedUnit, frame.PowerType);
+	if (curValue == 0 and self.db.units[frame.UnitType].powerbar.hideWhenEmpty) then
+		frame.PowerBar:Hide()
+	else
+		frame.PowerBar:Show()
+		frame.PowerBar:SetValue(curValue);
 
-	local color = E.db.unitframe.colors.power[frame.PowerToken] or PowerBarColor[frame.PowerToken] or temp
+		local color = E.db.unitframe.colors.power[frame.PowerToken] or PowerBarColor[frame.PowerToken] or temp
+		if(color) then
+			frame.PowerBar:SetStatusBarColor(color.r, color.g, color.b)
+		end
 
-	if(color) then
-		frame.PowerBar:SetStatusBarColor(color.r, color.g, color.b)
+		if self.db.units[frame.UnitType].powerbar.text.enable then
+			frame.PowerBar.text:SetText(E:GetFormattedText(self.db.units[frame.UnitType].powerbar.text.format, curValue, maxValue))
+		else
+			frame.PowerBar.text:SetText("")
+		end
 	end
+
 	if(self.db.classbar.enable and self.db.classbar.position == "BELOW") then
 		self:ClassBar_Update(frame)
 	end
-	
-	if self.db.units[frame.UnitType].powerbar.text.enable then
-		frame.PowerBar.text:SetText(E:GetFormattedText(self.db.units[frame.UnitType].powerbar.text.format, curValue, maxValue))
-	else
-		frame.PowerBar.text:SetText("")
+
+	if (self.db.units[frame.UnitType].castbar.enable) then
+		self:ConfigureElement_CastBar(frame)
 	end
 end
 

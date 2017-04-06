@@ -17,7 +17,9 @@ function UFB:ChangeRaidHealthBarTexture()
 		for j = 1, group:GetNumChildren() do
 			local unitbutton = select(j, group:GetChildren())
 			if unitbutton.Health then
-				unitbutton.Health:SetStatusBarTexture(bar)
+				if not unitbutton.Health.isTransparent or (unitbutton.Health.isTransparent and E.db.benikui.unitframes.textures.ignoreTransparency) then
+					unitbutton.Health:SetStatusBarTexture(bar)
+				end
 			end
 		end
 	end
@@ -34,7 +36,9 @@ function UFB:ChangeRaid40HealthBarTexture()
 		for j = 1, group:GetNumChildren() do
 			local unitbutton = select(j, group:GetChildren())
 			if unitbutton.Health then
-				unitbutton.Health:SetStatusBarTexture(bar)
+				if not unitbutton.Health.isTransparent or (unitbutton.Health.isTransparent and E.db.benikui.unitframes.textures.ignoreTransparency) then
+					unitbutton.Health:SetStatusBarTexture(bar)
+				end
 			end
 		end
 	end
@@ -51,7 +55,9 @@ function UFB:ChangePartyHealthBarTexture()
 		for j = 1, group:GetNumChildren() do
 			local unitbutton = select(j, group:GetChildren())
 			if unitbutton.Health then
-				unitbutton.Health:SetStatusBarTexture(bar)
+				if not unitbutton.Health.isTransparent or (unitbutton.Health.isTransparent and E.db.benikui.unitframes.textures.ignoreTransparency) then
+					unitbutton.Health:SetStatusBarTexture(bar)
+				end
 			end
 		end
 	end

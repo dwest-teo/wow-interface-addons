@@ -11,7 +11,7 @@ function UFB:Construct_PlayerFrame()
 	local frame = _G["ElvUF_Player"]
 	
 	if not frame.Portrait.backdrop.shadow then
-		frame.Portrait.backdrop:CreateSoftShadow()
+		frame.Portrait.backdrop:CreateShadow('Default')
 		frame.Portrait.backdrop.shadow:Hide()
 	end
 
@@ -19,7 +19,12 @@ function UFB:Construct_PlayerFrame()
 		frame.Portrait.backdrop:Style('Outside')
 		frame.Portrait.backdrop.style:Hide()
 	end
-	
+
+	if E.db.benikui.general.shadows then
+		frame.Power.backdrop:CreateShadow('Default')
+		frame.Power.backdrop.shadow:Hide()
+	end
+
 	local f = CreateFrame("Frame", nil, frame)
 	frame.portraitmover = f
 
@@ -39,6 +44,7 @@ function UFB:ArrangePlayer()
 		frame.PORTRAIT_STYLING_HEIGHT = E.db.benikui.unitframes.player.portraitStyleHeight
 		frame.DETACHED_PORTRAIT_WIDTH = E.db.benikui.unitframes.player.portraitWidth
 		frame.DETACHED_PORTRAIT_HEIGHT = E.db.benikui.unitframes.player.portraitHeight
+		frame.DETACHED_PORTRAIT_STRATA = E.db.benikui.unitframes.player.portraitFrameStrata
 		
 		frame.PORTRAIT_AND_INFOPANEL = E.db.benikui.unitframes.infoPanel.fixInfoPanel and frame.USE_INFO_PANEL and frame.PORTRAIT_WIDTH 
 		frame.POWER_VERTICAL = db.power.vertical

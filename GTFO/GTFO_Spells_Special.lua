@@ -235,3 +235,40 @@ GTFO.SpellID["217936"] = {
   --desc = "Hellfire (Mazgoroth - Legion Event)";
   sound = 3;
 };
+
+GTFO.SpellID["236015"] = {
+  --desc = "Devour (Ravenous Larva - Un'goro Madness)";
+  applicationOnly = true;
+  sound = 3;
+};
+
+GTFO.SpellID["235681"] = {
+  --desc = "Caustic Blood (Clutchmother Zavas - Un'goro Madness)";
+  sound = 1;
+};
+
+GTFO.SpellID["235887"] = {
+  --desc = "Call Pack (Queen Zavra - Un'goro Madness)";
+  sound = 3;
+  applicationOnly = true;
+};
+
+GTFO.SpellID["236423"] = {
+  --desc = "Sun's Fury (Sunkeeper Croesus - Un'goro Madness)";
+  sound = 1;
+};
+
+GTFO.SpellID["236183"] = {
+  --desc = "Fiery Breath (Worm - Un'goro Madness)";
+  sound = 1;
+};
+
+GTFO.SpellID["235677"] = {
+  --desc = "Explosive Spores (Tyrantus - Un'goro Madness)";
+  sound = 3;
+};
+
+GTFO.SpellID["236338"] = {
+  --desc = "Boiling Tar (Tar Tyrant - Un'goro Madness)";
+  sound = 1;
+};

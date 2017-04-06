@@ -25,3 +25,17 @@ GTFO.FFSpellID["203788"] = {
   --desc = "Volatile Infection (Emeriss)";
   sound = 1;
 };
+
+-- *************
+-- * Nighthold *
+-- *************
+
+-- TODO: Arcing Bonds (Trilliax) -- FF Damage
+-- TODO: Call of Night (High Botanist Tel'arn)
+-- TODO: Collapse of Night (High Botanist Tel'arn)
+-- TODO: Flames of Sargeras (Gul'dan) -- FF 
+
+GTFO.FFSpellID["208501"] = {
+  --desc = "Sterilize (Trilliax)";
+  sound = 1;
+};

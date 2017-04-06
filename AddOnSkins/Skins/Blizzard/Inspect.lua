@@ -10,6 +10,8 @@ function AS:Blizzard_Inspect(event, addon)
 		AS:SkinTab(_G["InspectFrameTab"..i])
 	end
 
+	AS:SkinButton(InspectPaperDollFrame.ViewButton)
+
 	InspectModelFrameBorderTopLeft:SetTexture('')
 	InspectModelFrameBorderTopRight:SetTexture('')
 	InspectModelFrameBorderTop:SetTexture('')
@@ -22,44 +24,45 @@ function AS:Blizzard_Inspect(event, addon)
 	InspectModelFrameBackgroundOverlay:SetTexture('')
 	AS:SkinBackdropFrame(InspectModelFrame, nil, true)
 	
-	local InspectSlots = {
-		InspectHeadSlot,
-		InspectNeckSlot,
-		InspectShoulderSlot,
-		InspectBackSlot,
-		InspectChestSlot,
-		InspectShirtSlot,
-		InspectTabardSlot,
-		InspectWristSlot,
-		InspectHandsSlot,
-		InspectWaistSlot,
-		InspectLegsSlot,
-		InspectFeetSlot,
-		InspectFinger0Slot,
-		InspectFinger1Slot,
-		InspectTrinket0Slot,
-		InspectTrinket1Slot,
-		InspectMainHandSlot,
-		InspectSecondaryHandSlot,
+	local Slots = {
+		'Head',
+		'Neck',
+		'Shoulder',
+		'Back',
+		'Chest',
+		'Shirt',
+		'Tabard',
+		'Wrist',
+		'Hands',
+		'Waist',
+		'Legs',
+		'Feet',
+		'Finger0',
+		'Finger1',
+		'Trinket0',
+		'Trinket1',
+		'MainHand',
+		'SecondaryHand',
 	}
 
-	for _, Slot in pairs(InspectSlots) do
-		AS:SkinTexture(Slot.icon)
-		AS:SkinFrame(Slot)
-		Slot.icon:SetInside()
-		Slot.IconBorder:SetTexture(nil)
-		Slot:SetFrameLevel(Slot:GetFrameLevel() + 2)
-		hooksecurefunc(Slot.IconBorder, 'SetVertexColor', function(self, r, g, b)
-			Slot:SetBackdropBorderColor(r, g, b)
+	for _, Slot in pairs(Slots) do
+		local Button = _G['Inspect'..Slot..'Slot']
+		AS:SkinFrame(Button)
+		AS:SkinTexture(Button.icon)
+		Button.icon:SetInside()
+		Button.IconBorder:SetAlpha(0)
+		Button:SetFrameLevel(Button:GetFrameLevel() + 2)
+		hooksecurefunc(Button.IconBorder, 'SetVertexColor', function(self, r, g, b)
+			Button:SetBackdropBorderColor(r, g, b)
 		end)
-		hooksecurefunc(Slot.IconBorder, 'Hide', function(self)
-			Slot:SetBackdropBorderColor(unpack(AS.BorderColor))
+		hooksecurefunc(Button.IconBorder, 'Hide', function(self)
+			Button:SetBackdropBorderColor(unpack(AS.BorderColor))
 		end)
-		AS:StyleButton(Slot)
+		AS:StyleButton(Button)
 	end
 
 	AS:StripTextures(InspectPVPFrame)
-	for _, Section in pairs({ 'RatedBG', 'Arena2v2', 'Arena3v3', 'Arena5v5'}) do
+	for _, Section in pairs({ 'RatedBG', 'Arena2v2', 'Arena3v3'}) do
 		local Frame = InspectPVPFrame[Section]
 		AS:SkinFrame(Frame)
 		Frame:EnableMouse(true)
@@ -105,52 +108,6 @@ function AS:Blizzard_Inspect(event, addon)
 		end
 	end
 
-	InspectTalentFrame:HookScript('OnShow', function(self)
-		if self.isGlyphsDone then return end
-		for i = 1, 6 do
-			local Glyph = InspectGlyphs["Glyph"..i]
-			AS:SetTemplate(Glyph)
-			Glyph:SetBackdropColor(0,0,0,0)
-			Glyph:SetFrameLevel(Glyph:GetFrameLevel() + 5)
-			Glyph.ring:Hide()
-			Glyph.highlight:SetTexture(nil)
-			Glyph.glyph:Hide()
-
-			Glyph.icon = Glyph:CreateTexture(nil, 'OVERLAY')
-			Glyph.icon:SetInside()
-			AS:SkinTexture(Glyph.icon)
-			if i % 2 == 1 then
-				Glyph:Size(Glyph:GetWidth() * .8, Glyph:GetHeight() * .8)
-			end
-		end
-		InspectGlyphs.Glyph1:SetPoint("TOPLEFT", 80, -7)
-		InspectGlyphs.Glyph3:SetPoint("TOPLEFT", 80, -97)
-		InspectGlyphs.Glyph5:SetPoint("TOPLEFT", 80, -187)
-		InspectGlyphFrameGlyph_UpdateGlyphs(self.InspectGlyphs, false)
-		self.isGlyphsDone = true
-	end)
-
-	hooksecurefunc('InspectGlyphFrameGlyph_UpdateSlot', function(self)
-		local id = self:GetID();
-		local talentGroup = PlayerTalentFrame and PlayerTalentFrame.talentGroup;
-		local enabled, glyphType, glyphTooltipIndex, glyphSpell, iconFilename, glyphID = GetGlyphSocketInfo(id, talentGroup, true, INSPECTED_UNIT);
-		if self.icon then
-			self.icon:SetTexture("Interface\\Spellbook\\UI-Glyph-Rune1")
-		end
-		if not glyphType then
-			return;
-		end
-		if ( not enabled ) then
-		elseif (not glyphSpell or (clear == true)) then
-		else
-			if self.icon then
-				if (iconFilename) then
-					self.icon:SetTexture(iconFilename);
-				end
-			end
-		end
-	end)
-	
 	InspectGuildFrameBG:SetTexture('')
 end
 

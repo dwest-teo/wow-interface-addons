@@ -20,7 +20,7 @@ local function skinDecursive()
 	_G["DecursiveMainBar"]:StripTextures()
 	_G["DecursiveMainBar"]:SetTemplate('Default', true)
 	_G["DecursiveMainBar"]:Height(20)
-	
+
 	local mainButtons = {_G["DecursiveMainBarPriority"], _G["DecursiveMainBarSkip"], _G["DecursiveMainBarHide"]}
 	for i, button in pairs(mainButtons) do
 		S:HandleButton(button)
@@ -30,9 +30,9 @@ local function skinDecursive()
 			button:Point('LEFT', _G["DecursiveMainBar"], 'RIGHT', SPACING, 0)
 		else
 			button:Point('LEFT', mainButtons[i - 1], 'RIGHT', SPACING, 0)
-		end		
+		end
 	end
-	
+
 	-- Priority List Frame
 	_G["DecursivePriorityListFrame"]:StripTextures()
 	_G["DecursivePriorityListFrame"]:CreateBackdrop('Transparent')
@@ -46,18 +46,18 @@ local function skinDecursive()
 			button:Point('TOP', _G["DecursivePriorityListFrame"], 'TOPLEFT', 54, -20)
 		else
 			button:Point('LEFT', priorityButton[i - 1], 'RIGHT', SPACING, 0)
-		end			
+		end
 	end
 
 	_G["DecursivePopulateListFrame"]:StripTextures()
 	_G["DecursivePopulateListFrame"]:CreateBackdrop('Transparent')
 	_G["DecursivePopulateListFrame"].backdrop:Style('Outside')
-	
+
 	for i = 1, 8 do
 		local groupButton = _G["DecursivePopulateListFrameGroup"..i]
 		S:HandleButton(groupButton)
 	end
-	
+
 	local classPop = {'Warrior', 'Priest', 'Mage', 'Warlock', 'Hunter', 'Rogue', 'Druid', 'Shaman', 'Monk', 'Paladin', 'Deathknight', 'Close'}
 	for _, classBtn in pairs(classPop) do
 		local btnName = _G["DecursivePopulateListFrame"..classBtn]
@@ -68,7 +68,7 @@ local function skinDecursive()
 	_G["DecursiveSkipListFrame"]:StripTextures()
 	_G["DecursiveSkipListFrame"]:CreateBackdrop('Transparent')
 	_G["DecursiveSkipListFrame"].backdrop:Style('Outside')	
-	
+
 	local skipButton = {_G["DecursiveSkipListFrameAdd"], _G["DecursiveSkipListFramePopulate"], _G["DecursiveSkipListFrameClear"], _G["DecursiveSkipListFrameClose"]}
 	for i, button in pairs(skipButton) do
 		S:HandleButton(button)
@@ -77,14 +77,13 @@ local function skinDecursive()
 			button:Point('TOP', _G["DecursiveSkipListFrame"], 'TOPLEFT', 54, -20)
 		else
 			button:Point('LEFT', skipButton[i - 1], 'RIGHT', SPACING, 0)
-		end			
+		end
 	end
-	
+
 	-- Tooltip
 	_G["DcrDisplay_Tooltip"]:StripTextures()
 	_G["DcrDisplay_Tooltip"]:CreateBackdrop('Transparent')
 	_G["DcrDisplay_Tooltip"].backdrop:Style('Outside')
-
 end
 
 local function skinStoryline()
@@ -119,7 +118,7 @@ local function SkadaDecor()
 		if not skada.Backdrop.ishooked then
 			hooksecurefunc(AS, 'Embed_Check', function(self, message)
 				if skada.Backdrop.style then
-					if E.private.addonskins.EmbedSystem and E.private.addonskins.EmbedSkada then
+					if AS.db.EmbedSystem and AS.db.EmbedSkada then
 						skada.Backdrop.style:Hide()
 					else
 						skada.Backdrop.style:Show()
@@ -161,7 +160,7 @@ local function RecountDecor()
 		-- Fix for blurry pixel fonts
 		Recount.db.profile.Scaling = 0.95
 		if E.db.benikui.general.benikuiStyle ~= true then return end
-		if E.private.addonskins.EmbedSystem then
+		if AS.db.EmbedSystem then
 			_G["recountMain"]:Hide()
 		else
 			_G["recountMain"]:Show()
@@ -227,9 +226,11 @@ end
 local function CliqueDecor()
 	if not E.db.benikuiSkins.addonSkins.clique then return end
 	_G["CliqueConfig"]:Style('Small')
+	_G["CliqueDialog"]:Style('Small')
 	local tab = _G["CliqueSpellTab"]
 	if not tab.style then
 		tab:Style('Inside')
+		tab.style:SetFrameLevel(5)
 	end
 	tab:GetNormalTexture():SetTexCoord(.08, 0.92, 0.08, 0.92)
 end
@@ -244,6 +245,16 @@ local function oRA3Decor()
 	end
 end
 
+local function PawnDecor()
+	if not E.db.benikuiSkins.addonSkins.pawn then return end
+	local frame = PawnUIFrame
+
+	if not frame.style then
+		frame:Style('Outside')
+	end
+end
+
+
 if AS:CheckAddOn('Skada') then AS:RegisterSkin('Skada', SkadaDecor, 2) end
 if AS:CheckAddOn('Recount') then AS:RegisterSkin('Recount', RecountDecor, 2) end
 if AS:CheckAddOn('TinyDPS') then AS:RegisterSkin('TinyDPS', TinyDPSDecor, 2) end
@@ -253,6 +264,7 @@ if AS:CheckAddOn('RareCoordinator') then AS:RegisterSkin('RareCoordinator', Rare
 if AS:CheckAddOn('ZygorGuidesViewer') then AS:RegisterSkin('Zygor', ZygorDecor, 2) end
 if AS:CheckAddOn('Clique') then AS:RegisterSkin('Clique', CliqueDecor, 2) end
 if AS:CheckAddOn('oRA3') then AS:RegisterSkin('oRA3', oRA3Decor, 2) end
+if AS:CheckAddOn('Pawn') then AS:RegisterSkin('Pawn', PawnDecor, 2) end
 
 hooksecurefunc(AS, 'AcceptFrame', function(self)
 	if not _G["AcceptFrame"].style then

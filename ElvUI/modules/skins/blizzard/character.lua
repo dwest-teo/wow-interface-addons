@@ -11,6 +11,7 @@ local SquareButton_SetIcon = SquareButton_SetIcon
 
 local function LoadSkin()
 	if E.private.skins.blizzard.enable ~= true or E.private.skins.blizzard.character ~= true then return end
+
 	S:HandleCloseButton(CharacterFrameCloseButton)
 	S:HandleScrollBar(ReputationListScrollFrameScrollBar)
 	S:HandleScrollBar(TokenFrameContainerScrollBar)
@@ -88,18 +89,20 @@ local function LoadSkin()
 		local categoryYOffset = -5;
 		local statYOffset = 0;
 
-		if ( level >= MIN_PLAYER_LEVEL_FOR_ITEM_LEVEL_DISPLAY ) then
-			PaperDollFrame_SetItemLevel(CharacterStatsPane.ItemLevelFrame, "player");
-			CharacterStatsPane.ItemLevelFrame.Value:SetTextColor(GetItemLevelColor());
-			CharacterStatsPane.ItemLevelCategory:Show();
-			CharacterStatsPane.ItemLevelFrame:Show();
-			CharacterStatsPane.AttributesCategory:SetPoint("TOP", 0, -76);
-		else
-			CharacterStatsPane.ItemLevelCategory:Hide();
-			CharacterStatsPane.ItemLevelFrame:Hide();
-			CharacterStatsPane.AttributesCategory:SetPoint("TOP", 0, -20);
-			categoryYOffset = -12;
-			statYOffset = -6;
+		if (not IsAddOnLoaded("DejaCharacterStats")) then 
+			if ( level >= MIN_PLAYER_LEVEL_FOR_ITEM_LEVEL_DISPLAY ) then
+				PaperDollFrame_SetItemLevel(CharacterStatsPane.ItemLevelFrame, "player");
+				CharacterStatsPane.ItemLevelFrame.Value:SetTextColor(GetItemLevelColor());
+				CharacterStatsPane.ItemLevelCategory:Show();
+				CharacterStatsPane.ItemLevelFrame:Show();
+				CharacterStatsPane.AttributesCategory:SetPoint("TOP", 0, -76);
+			else
+				CharacterStatsPane.ItemLevelCategory:Hide();
+				CharacterStatsPane.ItemLevelFrame:Hide();
+				CharacterStatsPane.AttributesCategory:SetPoint("TOP", 0, -20);
+				categoryYOffset = -12;
+				statYOffset = -6;
+			end
 		end
 
 		local spec = GetSpecialization();
@@ -119,7 +122,7 @@ local function LoadSkin()
 				local stat = PAPERDOLL_STATCATEGORIES[catIndex].stats[statIndex];
 				local showStat = true;
 				if ( showStat and stat.primary ) then
-					local primaryStat = select(7, GetSpecializationInfo(spec, nil, nil, nil, UnitSex("player")));
+					local primaryStat = select(6, GetSpecializationInfo(spec, nil, nil, nil, UnitSex("player")));
 					if ( stat.primary ~= primaryStat ) then
 						showStat = false;
 					end
@@ -163,7 +166,6 @@ local function LoadSkin()
 		-- release the current stat frame
 		CharacterStatsPane.statsFramePool:Release(statFrame);
 	end)
-
 
 	--Strip Textures
 	local charframe = {
@@ -240,11 +242,9 @@ local function LoadSkin()
 
 	--Swap item flyout frame (shown when holding alt over a slot)
 	EquipmentFlyoutFrame:HookScript("OnShow", SkinItemFlyouts)
-	-- hooksecurefunc("EquipmentFlyout_Show", SkinItemFlyouts)	--This spams like crazy. Are Blizzard using this in an OnUpdate somewhere? It doesn't seem to be needed either so comment out for now.
 
 	--Icon in upper right corner of character frame
 	CharacterFramePortrait:Kill()
-	--CharacterModelFrame:CreateBackdrop("Default")
 
 	local scrollbars = {
 		"PaperDollTitlesPaneScrollBar",
@@ -258,6 +258,9 @@ local function LoadSkin()
 	for _, object in pairs(charframe) do
 		_G[object]:StripTextures()
 	end
+	--Re-add the overlay texture which was removed right above
+	CharacterModelFrameBackgroundOverlay:SetColorTexture(0,0,0)
+
 	local function StatsPane(type)
 		CharacterStatsPane[type]:StripTextures()
 		CharacterStatsPane[type]:CreateBackdrop("Transparent")
@@ -265,17 +268,11 @@ local function LoadSkin()
 		CharacterStatsPane[type].backdrop:SetPoint("CENTER")
 		CharacterStatsPane[type].backdrop:SetWidth(150)
 		CharacterStatsPane[type].backdrop:SetHeight(18)
-		--CharacterStatsPane[type].backdrop:CreateShadow()
-		--CharacterStatsPane[type].backdrop.shadow:SetBackdropBorderColor(0.8, 0.8, 0.8, 0.7)
-		--E:Flash(CharacterStatsPane[type].backdrop.shadow, 1, true)
-		--CharacterStatsPane[type].Title:SetTextColor(RAID_CLASS_COLORS[E.myclass].r, RAID_CLASS_COLORS[E.myclass].g, RAID_CLASS_COLORS[E.myclass].b)
 	end
 	CharacterFrame:SetTemplate("Transparent")
 	StatsPane("EnhancementsCategory")
 	StatsPane("ItemLevelCategory")
 	StatsPane("AttributesCategory")
-
-
 
 	--Titles
 	PaperDollTitlesPane:HookScript("OnShow", function(self)
@@ -283,8 +280,6 @@ local function LoadSkin()
 			object.BgTop:SetTexture(nil)
 			object.BgBottom:SetTexture(nil)
 			object.BgMiddle:SetTexture(nil)
-
-			--object.Check:SetTexture(nil)
 			object.text:FontTemplate()
 			hooksecurefunc(object.text, "SetFont", function(self, font, fontSize, fontStyle)
 				if font ~= E["media"].normFont then
@@ -302,64 +297,29 @@ local function LoadSkin()
 	PaperDollEquipmentManagerPaneEquipSet:Point("TOPLEFT", PaperDollEquipmentManagerPane, "TOPLEFT", 8, 0)
 	PaperDollEquipmentManagerPaneSaveSet:Point("LEFT", PaperDollEquipmentManagerPaneEquipSet, "RIGHT", 4, 0)
 	PaperDollEquipmentManagerPaneEquipSet.ButtonBackground:SetTexture(nil)
-	PaperDollEquipmentManagerPane:HookScript("OnShow", function(self)
-		for x, object in pairs(PaperDollEquipmentManagerPane.buttons) do
-			object.BgTop:SetTexture(nil)
-			object.BgBottom:SetTexture(nil)
-			object.BgMiddle:SetTexture(nil)
-			object.icon:Size(36, 36)
-			--object.Check:SetTexture(nil)
-			object.icon:SetTexCoord(unpack(E.TexCoords))
-
-			--Making all icons the same size and position because otherwise BlizzardUI tries to attach itself to itself when it refreshes
-			object.icon:Point("LEFT", object, "LEFT", 4, 0)
-			hooksecurefunc(object.icon, "SetPoint", function(self, point, attachTo, anchorPoint, xOffset, yOffset, isForced)
-				if isForced ~= true then
-					self:SetPoint("LEFT", object, "LEFT", 4, 0, true)
-				end
-			end)
-
-
-			hooksecurefunc(object.icon, "SetSize", function(self, width, height)
-				if width == 30 or height == 30 then
-					self:Size(36, 36)
-				end
-			end)
-
-			-- Is this still needed?
-			--[[if not object.icon.bordertop then
-				E:GetModule("NamePlates"):CreateBackdrop(object, object.icon)
-			end]]
-		end
-		GearManagerDialogPopup:StripTextures()
-		GearManagerDialogPopup:SetTemplate("Transparent")
-		GearManagerDialogPopup:Point("LEFT", PaperDollFrame, "RIGHT", 4, 0)
-		GearManagerDialogPopupScrollFrame:StripTextures()
-		GearManagerDialogPopupEditBox:StripTextures()
-		GearManagerDialogPopupEditBox:SetTemplate("Default")
-		S:HandleButton(GearManagerDialogPopupOkay)
-		S:HandleButton(GearManagerDialogPopupCancel)
-
-		for i=1, NUM_GEARSET_ICONS_SHOWN do
-			local button = _G["GearManagerDialogPopupButton"..i]
-			local icon = button.icon
-
-			if button then
-				button:StripTextures()
-				button:StyleButton(true)
-
-				icon:SetTexCoord(unpack(E.TexCoords))
-				_G["GearManagerDialogPopupButton"..i.."Icon"]:SetTexture(nil)
-
-				icon:SetInside()
-				button:SetFrameLevel(button:GetFrameLevel() + 2)
-				if not button.backdrop then
-					button:CreateBackdrop("Default")
-					button.backdrop:SetAllPoints()
-				end
+	--Itemset buttons
+	for _, object in pairs(PaperDollEquipmentManagerPane.buttons) do
+		object.BgTop:SetTexture(nil)
+		object.BgBottom:SetTexture(nil)
+		object.BgMiddle:SetTexture(nil)
+		object.icon:Size(36, 36)
+		object.icon:SetTexCoord(unpack(E.TexCoords))
+		--Making all icons the same size and position because otherwise BlizzardUI tries to attach itself to itself when it refreshes
+		object.icon:Point("LEFT", object, "LEFT", 4, 0)
+		hooksecurefunc(object.icon, "SetPoint", function(self, point, attachTo, anchorPoint, xOffset, yOffset, isForced)
+			if isForced ~= true then
+				self:SetPoint("LEFT", object, "LEFT", 4, 0, true)
 			end
-		end
-	end)
+		end)
+		hooksecurefunc(object.icon, "SetSize", function(self, width, height)
+			if width == 30 or height == 30 then
+				self:Size(36, 36)
+			end
+		end)
+	end
+
+	--Icon selection frame
+	S:HandleIconSelectionFrame(GearManagerDialogPopup, NUM_GEARSET_ICONS_SHOWN, "GearManagerDialogPopupButton", frameNameOverride)
 
 	--Handle Tabs at bottom of character frame
 	for i=1, 4 do
@@ -398,13 +358,10 @@ local function LoadSkin()
 	end
 	hooksecurefunc("PaperDollFrame_UpdateSidebarTabs", FixSidebarTabCoords)
 
-	-- Must be redone?!
-	--Stat panels, atm it looks like 7 is the max
-	--[[for i=1, 7 do
-		_G["CharacterStatsPaneCategory.."..i]:StripTextures()
-	end]]
-
 	--Reputation
+	if E.wowbuild >= 23623 then --7.2
+		S:HandleCloseButton(CharacterFrame.ReputationTabHelpBox.CloseButton)
+	end
 	local function UpdateFactionSkins()
 		ReputationListScrollFrame:StripTextures()
 		ReputationFrame:StripTextures(true)
@@ -420,8 +377,6 @@ local function LoadSkin()
 				end
 
 				_G["ReputationBar"..i.."Background"]:SetTexture(nil)
-				--_G["ReputationBar"..i.."LeftLine"]:Kill()
-				--_G["ReputationBar"..i.."BottomLine"]:Kill()
 				_G["ReputationBar"..i.."ReputationBarHighlight1"]:SetTexture(nil)
 				_G["ReputationBar"..i.."ReputationBarHighlight2"]:SetTexture(nil)
 				_G["ReputationBar"..i.."ReputationBarAtWarHighlight1"]:SetTexture(nil)
@@ -438,6 +393,26 @@ local function LoadSkin()
 	ReputationFrame:HookScript("OnShow", UpdateFactionSkins)
 	hooksecurefunc("ExpandFactionHeader", UpdateFactionSkins)
 	hooksecurefunc("CollapseFactionHeader", UpdateFactionSkins)
+
+	if E.wowbuild >= 23623 then --7.2
+		--Reputation Paragon Tooltip
+		local tooltip = ReputationParagonTooltip
+		local statusBar = ReputationParagonTooltipStatusBar.Bar
+		local reward = tooltip.ItemTooltip
+		local icon = reward.Icon
+		tooltip:SetTemplate("Transparent")
+		statusBar:StripTextures()
+		statusBar:SetStatusBarTexture(E["media"].normTex)
+		statusBar:CreateBackdrop("Transparent")
+		if icon then
+			S:HandleIcon(icon)
+			reward.IconBorder:SetTexture(nil)
+			reward.IconBorder:SetAlpha(0)
+		end
+		tooltip:HookScript("OnShow", function(self)
+			self:SetTemplate("Transparent")
+		end)
+	end
 
 	--Currency
 	TokenFrame:HookScript("OnShow", function()

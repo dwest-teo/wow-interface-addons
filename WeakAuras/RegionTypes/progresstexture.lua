@@ -1,7 +1,3 @@
-local SharedMedia = LibStub("LibSharedMedia-3.0");
-
--- GLOBALS: WeakAuras
-
 -- Credit to CommanderSirow for taking the time to properly craft the ApplyTransform function
 -- to the enhance the abilities of Progress Textures.
 -- Also Credit to Semlar for explaining how circular progress can be shown
@@ -48,10 +44,6 @@ local function ApplyTransform(x, y, region)
   end
 
   -- 5) Rotate texture by user-defined value
-  --[[local x_tmp = region.cos_rotation * x - region.sin_rotation * y
-  local y_tmp = region.sin_rotation * x + region.cos_rotation * y
-  x = x_tmp
-  y = y_tmp]]
   x, y = region.cos_rotation * x - region.sin_rotation * y, region.sin_rotation * x + region.cos_rotation * y
 
   -- 6) Translate texture-coords back to (0,0)
@@ -63,13 +55,13 @@ local function ApplyTransform(x, y, region)
     y = y + region.user_y
   end
 
-  -- Return results
   return x, y
 end
 
-local function Transform(tx, x, y, angle, aspect) -- Translates texture to x, y and rotates about its center
+local function Transform(tx, x, y, angle, aspect) -- Translates texture to x, y and rotates around its center
     local c, s = cos(angle), sin(angle)
-    local y, oy = y / aspect, 0.5 / aspect
+    y = y / aspect
+    local oy =  0.5 / aspect
 
 
     local ULx, ULy = 0.5 + (x - 0.5) * c - (y - oy) * s, (oy + (y - oy) * c + (x - 0.5) * s) * aspect
@@ -105,6 +97,7 @@ local default = {
     rotation = 0,
     selfPoint = "CENTER",
     anchorPoint = "CENTER",
+    anchorFrameType = "SCREEN",
     xOffset = 0,
     yOffset = 0,
     font = "Friz Quadrata TT",
@@ -178,11 +171,38 @@ local function betweenAngles(low, high, needle1, needle2)
   return false;
 end
 
+local function animRotate(object, degrees, anchor, regionRotate, aspect)
+    if (not anchor) then
+        anchor = "CENTER";
+    end
+
+    object.degrees = degrees;
+    object.regionRotate = regionRotate;
+    object.aspect = aspect;
+
+    -- Something to rotate
+    -- Create AnimationGroup and rotation animation
+    if (not object.animationGroup) then
+      object.animationGroup = object:CreateAnimationGroup();
+      object.animationGroup:SetScript('OnUpdate', function()
+        Transform(object, -0.5, -0.5, -object.degrees + object.regionRotate, object.aspect)
+      end);
+    end
+
+    object.animationGroup.rotate = object.animationGroup.rotate or object.animationGroup:CreateAnimation("rotation");
+
+    local rotate = object.animationGroup.rotate;
+    rotate:SetOrigin(anchor, 0, 0);
+    rotate:SetDegrees(degrees);
+    rotate:SetDuration( 0 );
+    rotate:SetEndDelay(2147483647);
+    object.animationGroup:Play();
+end
+
 function spinnerFunctions.SetProgress(self, region, startAngle, endAngle, progress, clockwise)
   local pAngle = progress * (endAngle - startAngle) + startAngle;
 
   -- Show/hide necessary textures if we need to
-  local showing = {};
   for i = 1, 4 do
      local quadrantAngle1;
      local quadrantAngle2;
@@ -197,10 +217,8 @@ function spinnerFunctions.SetProgress(self, region, startAngle, endAngle, progre
 
      if clockwise then
        self.circularTextures[i]:SetShown(betweenAngles(startAngle, pAngle, quadrantAngle1, quadrantAngle2));
-       showing[i] = betweenAngles(startAngle, pAngle, quadrantAngle1, quadrantAngle2);
      else
        self.circularTextures[i]:SetShown(betweenAngles(startAngle, pAngle, quadrantAngle1, quadrantAngle2));
-       showing[i] = betweenAngles(startAngle, pAngle, quadrantAngle1, quadrantAngle2);
      end
   end
 
@@ -231,9 +249,8 @@ function spinnerFunctions.SetProgress(self, region, startAngle, endAngle, progre
 
   local degree = pAngle;
   if not clockwise then degree = -degree + 90 end
-  Transform(self.wedge, -0.5, -0.5, degree + region.rotation, region.aspect)
 
-  WeakAuras.animRotate(self.wedge, -degree, "BOTTOMRIGHT");
+  animRotate(self.wedge, -degree, "BOTTOMRIGHT", region.rotation, region.aspect);
 end
 
 function spinnerFunctions.SetBackgroundOffset(self, region, offset)
@@ -299,7 +316,7 @@ local function createSpinner(parent, layer, frameLevel)
     return spinner;
 end
 
--- Make available for the Thumbmail display
+-- Make available for the thumbnail display
 WeakAuras.createSpinner = createSpinner;
 
 local function create(parent)
@@ -330,12 +347,6 @@ local function modify(parent, region, data)
     local background, foreground = region.background, region.foreground;
     local foregroundSpinner, backgroundSpinner = region.foregroundSpinner, region.backgroundSpinner;
 
-    if(data.frameStrata == 1) then
-        region:SetFrameStrata(region:GetParent():GetFrameStrata());
-    else
-        region:SetFrameStrata(WeakAuras.frame_strata_types[data.frameStrata]);
-    end
-
     region:SetWidth(data.width);
     region:SetHeight(data.height);
     region.aspect =  data.width / data.height;
@@ -348,7 +359,7 @@ local function modify(parent, region, data)
     backgroundSpinner:SetHeight((data.height + data.backgroundOffset * 2) * scaleWedge);
 
     region:ClearAllPoints();
-    region:SetPoint(data.selfPoint, parent, data.anchorPoint, data.xOffset, data.yOffset);
+    WeakAuras.AnchorFrame(data, region, parent)
     region:SetAlpha(data.alpha);
 
     background:SetTexture(data.sameTexture and data.foregroundTexture or data.backgroundTexture);
@@ -464,7 +475,6 @@ local function modify(parent, region, data)
             function region:SetValue(progress)
                 region.progress = progress;
 
-
                 local ULx, ULy = ApplyTransform(0, 0, region)
                 local LLx, LLy = ApplyTransform(0, 1, region)
                 local URx, URy = ApplyTransform(1, 0, region)
@@ -478,10 +488,10 @@ local function modify(parent, region, data)
             function region:SetValue(progress)
                 region.progress = progress;
 
-                local ULx , ULy  = ApplyTransform(0, 1-progress, region)
+                local ULx , ULy  = ApplyTransform(0, 1 - progress, region)
                 local ULx_, ULy_ = ApplyTransform(0, 0, region)
                 local LLx , LLy  = ApplyTransform(0, 1, region)
-                local URx , URy  = ApplyTransform(1, 1-progress, region)
+                local URx , URy  = ApplyTransform(1, 1 - progress, region)
                 local URx_, URy_ = ApplyTransform(1, 0, region)
                 local LRx , LRy  = ApplyTransform(1, 1, region)
 
@@ -498,7 +508,6 @@ local function modify(parent, region, data)
         if(data.compress) then
             function region:SetValue(progress)
                 region.progress = progress;
-
 
                 local ULx, ULy = ApplyTransform(0, 0, region)
                 local LLx, LLy = ApplyTransform(0, 1, region)
@@ -540,7 +549,7 @@ local function modify(parent, region, data)
         endAngle = endAngle + 360;
       end
 
-      -- start is now 0-359, end 1-719, but atmost 360 difference
+      -- start is now 0-359, end 1-719, but at most 360 difference
 
       region.orientation = clockwise and "CLOCKWISE" or "ANTICLOCKWISE";
 

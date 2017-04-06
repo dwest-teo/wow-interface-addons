@@ -14,9 +14,17 @@ local function StyleTooltip()
 	GameTooltip.style:SetClampedToScreen(true)
 
 	-- Grab the style color
-	local r, g, b = GameTooltip.style.color:GetVertexColor()
+	local r, g, b = GameTooltip.style:GetBackdropColor()
 	ttr, ttg, ttb = r, g, b
-	
+
+	if E.db.benikui.general.shadows then
+		if not GameTooltipStatusBar.backdrop.shadow then
+			GameTooltipStatusBar.backdrop:CreateShadow('Default')
+		end
+	end
+
+	GameTooltipStatusBar:SetFrameLevel(GameTooltip.style:GetFrameLevel() +2)
+
 	-- FreebTip support
 	if IsAddOnLoaded('FreebTip') then
 		GameTooltip.style:ClearAllPoints()
@@ -33,7 +41,16 @@ local function RecolorTooltipStyle()
 	else
 		r, g, b = ttr, ttg, ttb
 	end
-	GameTooltip.style.color:SetVertexColor(r, g, b)
+	GameTooltip.style:SetBackdropColor(r, g, b, (E.db.benikui.colors.styleAlpha or 1))
+end
+
+local function TooltipStyleToggle()
+	if not GameTooltip.style then return end
+	if TT.db.healthBar.statusPosition == "BOTTOM" then
+		GameTooltip.style:Show()
+	elseif TT.db.healthBar.statusPosition == "TOP" and GameTooltipStatusBar then
+		GameTooltip.style:Hide()
+	end
 end
 
 function BTT:Initialize()

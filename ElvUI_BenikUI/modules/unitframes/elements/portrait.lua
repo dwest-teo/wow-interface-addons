@@ -44,7 +44,7 @@ function UFB:Configure_Portrait(frame, isPlayer)
 					if isPlayer then
 						if frame.USE_POWERBAR then
 							local r, g, b = frame.Power:GetStatusBarColor()
-							portrait.backdrop.style.color:SetVertexColor(r, g, b)
+							portrait.backdrop.style:SetBackdropColor(r, g, b, (E.db.benikui.colors.styleAlpha or 1))
 						end
 					end
 				else
@@ -66,7 +66,7 @@ function UFB:Configure_Portrait(frame, isPlayer)
 				end
 
 				if db.portrait.style == '3D' then
-					portrait.backdrop:SetFrameStrata(frame:GetFrameStrata())
+					portrait.backdrop:SetFrameStrata(frame.DETACHED_PORTRAIT_STRATA)
 					portrait:SetFrameStrata(portrait.backdrop:GetFrameStrata())
 				end
 				
@@ -77,7 +77,16 @@ function UFB:Configure_Portrait(frame, isPlayer)
 						E:CreateMover(frame.portraitmover, 'PlayerPortraitMover', 'Player Portrait', nil, nil, nil, 'ALL,SOLO')
 					elseif frame.unit == "target" then
 						frame.portraitmover:Point('TOPLEFT', frame, 'TOPRIGHT', frame.BORDER, 0)
-						E:CreateMover(frame.portraitmover, 'TargetPortraitMover', 'Target Portrait', nil, nil, nil, 'ALL,SOLO')					
+						E:CreateMover(frame.portraitmover, 'TargetPortraitMover', 'Target Portrait', nil, nil, nil, 'ALL,SOLO')
+					elseif frame.unit == "targettarget" then
+						frame.portraitmover:Point('TOPLEFT', frame, 'TOPRIGHT', frame.BORDER, 0)
+						E:CreateMover(frame.portraitmover, 'TargetTargetPortraitMover', 'TargetTarget Portrait', nil, nil, nil, 'ALL,SOLO')
+					elseif frame.unit == "focus" then
+						frame.portraitmover:Point('TOPLEFT', frame, 'TOPRIGHT', frame.BORDER, 0)
+						E:CreateMover(frame.portraitmover, 'FocusPortraitMover', 'Focus Portrait', nil, nil, nil, 'ALL,SOLO')
+					elseif frame.unit == "pet" then
+						frame.portraitmover:Point('TOPLEFT', frame, 'TOPRIGHT', frame.BORDER, 0)
+						E:CreateMover(frame.portraitmover, 'PetPortraitMover', 'Pet Portrait', nil, nil, nil, 'ALL,SOLO')	
 					end
 					frame.portraitmover:ClearAllPoints()
 					frame.portraitmover:SetPoint("BOTTOMLEFT", frame.portraitmover.mover, "BOTTOMLEFT")
@@ -89,6 +98,8 @@ function UFB:Configure_Portrait(frame, isPlayer)
 				portrait:SetAlpha(1)
 				portrait.backdrop:Show()
 				if db.portrait.style == '3D' then
+					portrait.backdrop:SetFrameStrata(frame:GetFrameStrata())
+					portrait:SetFrameStrata(portrait.backdrop:GetFrameStrata())					
 					portrait:SetFrameLevel(frame.Health:GetFrameLevel() -4) --Make sure portrait is behind Health and Power
 				end
 

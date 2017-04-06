@@ -14,15 +14,21 @@ local GetCursorPosition = GetCursorPosition
 local IsXPUserDisabled = IsXPUserDisabled
 local UnitLevel = UnitLevel
 local InCombatLockdown = InCombatLockdown
+local GetSpecialization = GetSpecialization
+local GetActiveSpecGroup = GetActiveSpecGroup
+local GetSpecializationInfo = GetSpecializationInfo
+local GetAverageItemLevel = GetAverageItemLevel
 
 local TIMEMANAGER_TOOLTIP_LOCALTIME, TIMEMANAGER_TOOLTIP_REALMTIME, MAX_PLAYER_LEVEL_TABLE = TIMEMANAGER_TOOLTIP_LOCALTIME, TIMEMANAGER_TOOLTIP_REALMTIME, MAX_PLAYER_LEVEL_TABLE
 local CAMP_TIMER, LEVEL, NONE = CAMP_TIMER, LEVEL, NONE
+local ITEM_UPGRADE_STAT_AVERAGE_ITEM_LEVEL, MIN_PLAYER_LEVEL_FOR_ITEM_LEVEL_DISPLAY = ITEM_UPGRADE_STAT_AVERAGE_ITEM_LEVEL, MIN_PLAYER_LEVEL_FOR_ITEM_LEVEL_DISPLAY
 
 -- GLOBALS: CreateAnimationGroup, UIParent
 
 -- Source wowhead.com
 local stats = {
 	60,		-- Total deaths
+	94,		-- Quests abandoned
 	97,		-- Daily quests completed
 	98,		-- Quests completed
 	107,	-- Creatures killed
@@ -39,6 +45,7 @@ local stats = {
 	339,	-- Mounts owned
 	342,	-- Epic items acquired
 	349,	-- Flight paths taken
+	353,	-- Number of times hearthed
 	377,	-- Most factions at Exalted
 	588,	-- Total Honorable Kills
 	837,	-- Arenas won
@@ -55,75 +62,27 @@ local stats = {
 	1047,	-- Total facepalms
 	1065,	-- Total waves
 	1066,	-- Total times LOL'd
-	1088,	-- Kael'thas Sunstrider kills (Tempest Keep)
 	1149,	-- Talent tree respecs
 	1197,	-- Total kills
-	1098,	-- Onyxia kills (Onyxia's Lair)
 	1198,	-- Total kills that grant experience or honor
 	1339,	-- Mage portal taken most
 	1487,	-- Killing Blows
 	1491,	-- Battleground Killing Blows
 	1518,	-- Fish caught
 	1716,	-- Battleground with the most Killing Blows
-	4687,	-- Victories over the Lich King (Icecrown 25 player)
+	2277,	-- Summons accepted
 	5692,	-- Rated battlegrounds played
 	5694,	-- Rated battlegrounds won
-	6167,	-- Deathwing kills (Dragon Soul)
 	7399,	-- Challenge mode dungeons completed
 	8278,	-- Pet Battles won at max level
-	8632,	-- Garrosh Hellscream (LFR Siege of Orgrimmar)
-	
-	-- Draenor Raiding stats. Thanks Flodropp for the effort :)
-	--[[
-	9297,	-- Brackenspore kills (Normal Highmaul)
-	9298,	-- Brackenspore kills (Heroic Highmaul)
-	9283,	-- Kargath Bladefist defeats (Normal Highmaul)
-	9284,	-- Kargath Bladefist defeats (Heroic Highmaul)
-	9287,	-- The Butcher kills (Normal Highmaul)
-	9288,	-- The Butcher kills (Heroic Highmaul)
-	9292,	-- Tectus kills (Normal Highmaul)
-	9293,	-- Tectus kills (Heroic Highmaul)
-	9302,	-- Twin Ogron kills (Normal Highmaul)
-	9303,	-- Twin Ogron kills (Heroic Highmaul)
-	9309,	-- Ko'ragh kills (Normal Highmaul)
-	9310,	-- Ko'ragh kills (Heroic Highmaul)
-	9313,	-- Imperator Mar'gok kills (Normal Highmaul)
-	9314,	-- Imperator Mar'gok kills (Heroic Highmaul)
-	9317,	-- Gruul kills (Normal Blackrock Foundry)
-	9318,	-- Gruul kills (Heroic Blackrock Foundry)
-	9321,	-- Oregorger kills (Normal Blackrock Foundry)
-	9322,	-- Oregorger kills (Heroic Blackrock Foundry)
-	9327,	-- Hans'gar and Franzok kills (Normal Blackrock Foundry)
-	9328,	-- Hans'gar and Franzok kills (Heroic Blackrock Foundry)
-	9331,	-- Flamebender Ka'graz kills (Normal Blackrock Foundry)
-	9332,	-- Flamebender Ka'graz kills (Heroic Blackrock Foundry)
-	9336,	-- Beastlord Darmac kills (Normal Blackrock Foundry)
-	9337,	-- Beastlord Darmac kills (Heroic Blackrock Foundry)
-	9340,	-- Operator Thogar kills (Normal Blackrock Foundry)
-	9341,	-- Operator Thogar kills (Heroic Blackrock Foundry)
-	9350,	-- Blast Furnace destructions (Normal Blackrock Foundry)
-	9351,	-- Blast Furnace destructions (Heroic Blackrock Foundry)
-	9355,	-- Kromog kills (Normal Blackrock Foundry)
-	9356,	-- Kromog kills (Heroic Blackrock Foundry)
-	9359,	-- Iron Maidens kills (Normal Blackrock Foundry)
-	9360,	-- Iron Maidens kills (Heroic Blackrock Foundry)
-	9363,	-- Warlord Blackhand kills (Normal Blackrock Foundry)
-	9364,	-- Warlord Blackhand kills (Heroic Blackrock Foundry)
-	]]
-	9430,	-- Draenor dungeons completed (final boss defeated)
-	9561,	-- Draenor raid boss defeated the most
-	9558,	-- Draenor raids completed (final boss defeated)
 	10060,	-- Garrison Followers recruited
 	10181,	-- Garrision Missions completed
 	10184,	-- Garrision Rare Missions completed
+	11234,	-- Class Hall Champions recruited
+	11235,	-- Class Hall Troops recruited
+	11236,	-- Class Hall Missions completed
+	11237,	-- Class Hall Rare Missions completed
 }
-
--- Remove capitals from class except first letter
-local function handleClass()
-	local lowclass = E.myclass:lower()
-	local firstclass = lowclass:gsub("^%l", upper)
-	return firstclass
-end
 
 -- Create Time
 local function createTime()
@@ -190,9 +149,39 @@ local function createStats()
 	return format("%s: |cfff0ff00%s|r", name, result)
 end
 
+local active
+local function getSpec()
+	local specIndex = GetSpecialization();
+	if not specIndex then return end
+
+	active = GetActiveSpecGroup()
+
+	local talent = ''
+	local i = GetSpecialization(false, false, active)
+	if i then
+		i = select(2, GetSpecializationInfo(i))
+		if(i) then
+			talent = format('%s', i)
+		end
+	end
+
+	return format('%s', talent)
+end
+
+local function getItemLevel()
+	local level = UnitLevel("player");
+	local _, equipped = GetAverageItemLevel()
+	local ilvl = ''
+	if (level >= MIN_PLAYER_LEVEL_FOR_ITEM_LEVEL_DISPLAY) then
+		ilvl = format('\n%s: %d', ITEM_UPGRADE_STAT_AVERAGE_ITEM_LEVEL, equipped)
+	end
+	return ilvl
+end
+
 function AFK:UpdateStatMessage()
+	E:UIFrameFadeIn(self.AFKMode.statMsg.info, 1, 1, 0)
 	local createdStat = createStats()
-	self.AFKMode.statMsg.info:AddMessage(createdStat)
+	self.AFKMode.statMsg.info:SetText(createdStat)
 	E:UIFrameFadeIn(self.AFKMode.statMsg.info, 1, 0, 1)
 end
 
@@ -241,10 +230,14 @@ end
 AFK.BUISetAFK = AFK.SetAFK
 function AFK:SetAFK(status)
 	self:BUISetAFK(status)
+
 	if(status) then
 		local xptxt = GetXPinfo()
 		local level = UnitLevel('player')
-		local nonCapClass = handleClass()
+		local race = UnitRace('player')
+		local localizedClass = UnitClass('player')
+		local spec = getSpec()
+		local ilvl = getItemLevel()
 		self.AFKMode.top:SetHeight(0)
 		self.AFKMode.top.anim.height:Play()
 		self.AFKMode.bottom:SetHeight(0)
@@ -256,15 +249,15 @@ function AFK:SetAFK(status)
 			self.AFKMode.xp.text:SetText(xptxt)
 		else
 			self.AFKMode.xp:Hide()
-			self.AFKMode.xp.text:SetText("")		
+			self.AFKMode.xp.text:SetText("")
 		end
-		self.AFKMode.bottom.name:SetFormattedText("%s - %s \n%s %s %s %s", E.myname, E.myrealm, LEVEL, level, E.myrace, nonCapClass)
+		self.AFKMode.bottom.name:SetFormattedText("%s - %s\n%s %s %s %s %s%s", E.myname, E.myrealm, LEVEL, level, race, spec, localizedClass, ilvl)
 	else
 		self:CancelTimer(self.statsTimer)
 		self:CancelTimer(self.logoffTimer)
 
 		self.AFKMode.countd.text:SetFormattedText("%s: |cfff0ff00-30:00|r", L["Logout Timer"])
-		self.AFKMode.statMsg.info:AddMessage(format("|cffb3b3b3%s|r", L["Random Stats"]))
+		self.AFKMode.statMsg.info:SetFormattedText("|cffb3b3b3%s|r", L["Random Stats"])
 	end
 end
 
@@ -295,9 +288,12 @@ function AFK:Initialize()
 	self:InitializeBuiAfk()
 
 	local level = UnitLevel('player')
-	local nonCapClass = handleClass()
+	local race = UnitRace('player')
+	local localizedClass = UnitClass('player')
 	local className = E.myclass
-	
+	local spec = getSpec()
+	local ilvl = getItemLevel()
+
 	-- Create Top frame
 	self.AFKMode.top = CreateFrame('Frame', nil, self.AFKMode)
 	self.AFKMode.top:SetFrameLevel(0)
@@ -307,18 +303,18 @@ function AFK:Initialize()
 	self.AFKMode.top:SetWidth(GetScreenWidth() + (E.Border*2))
 
 	--Style the top frame
-	self.AFKMode.top:Style('Under')
-	
+	self.AFKMode.top:Style('Under', _, true)
+
 	--Top Animation
 	self.AFKMode.top.anim = CreateAnimationGroup(self.AFKMode.top)
 	self.AFKMode.top.anim.height = self.AFKMode.top.anim:CreateAnimation("Height")
 	self.AFKMode.top.anim.height:SetChange(GetScreenHeight() * (1 / 20))
 	self.AFKMode.top.anim.height:SetDuration(1)
 	self.AFKMode.top.anim.height:SetSmoothing("Bounce")
-	
+
 	-- move the chat lower
 	self.AFKMode.chat:SetPoint("TOPLEFT", self.AFKMode.top.style, "TOPLEFT", 4, -4)
-	
+
 	-- WoW logo
 	self.AFKMode.top.wowlogo = CreateFrame('Frame', nil, self.AFKMode) -- need this to upper the logo layer
 	self.AFKMode.top.wowlogo:SetPoint("TOP", self.AFKMode.top, "TOP", 0, -5)
@@ -327,7 +323,7 @@ function AFK:Initialize()
 	self.AFKMode.top.wowlogo.tex = self.AFKMode.top.wowlogo:CreateTexture(nil, 'OVERLAY')
 	self.AFKMode.top.wowlogo.tex:SetAtlas("Glues-WoW-LegionLogo")
 	self.AFKMode.top.wowlogo.tex:SetInside()
-	
+
 	-- Server/Local Time text
 	self.AFKMode.top.time = self.AFKMode.top:CreateFontString(nil, 'OVERLAY')
 	self.AFKMode.top.time:FontTemplate(nil, 16)
@@ -335,7 +331,7 @@ function AFK:Initialize()
 	self.AFKMode.top.time:SetPoint("RIGHT", self.AFKMode.top, "RIGHT", -20, 0)
 	self.AFKMode.top.time:SetJustifyH("LEFT")
 	self.AFKMode.top.time:SetTextColor(classColor.r, classColor.g, classColor.b)
-	
+
 	-- Date text
 	self.AFKMode.top.date = self.AFKMode.top:CreateFontString(nil, 'OVERLAY')
 	self.AFKMode.top.date:FontTemplate(nil, 16)
@@ -343,12 +339,13 @@ function AFK:Initialize()
 	self.AFKMode.top.date:SetPoint("LEFT", self.AFKMode.top, "LEFT", 20, 0)
 	self.AFKMode.top.date:SetJustifyH("RIGHT")
 	self.AFKMode.top.date:SetTextColor(classColor.r, classColor.g, classColor.b)
-	
+
 	-- Statusbar on Top frame decor showing time to log off (30mins)
 	self.AFKMode.top.Status = CreateFrame('StatusBar', nil, self.AFKMode.top)
 	self.AFKMode.top.Status:SetStatusBarTexture((E["media"].normTex))
 	self.AFKMode.top.Status:SetMinMaxValues(0, 1800)
 	self.AFKMode.top.Status:SetStatusBarColor(classColor.r, classColor.g, classColor.b, 1)
+	self.AFKMode.top.Status:SetFrameLevel(2)
 	if E.db.benikui.general.benikuiStyle and self.AFKMode.top.style then
 		self.AFKMode.top.Status:SetInside(self.AFKMode.top.style)
 	else
@@ -358,32 +355,38 @@ function AFK:Initialize()
 	self.AFKMode.top.Status:SetValue(0)
 
 	-- Style the bottom frame
-	self.AFKMode.bottom:Style('Inside')
+	self.AFKMode.bottom:Style('Inside', _, true)
+	if self.AFKMode.bottom.style then
+		self.AFKMode.bottom.style:SetFrameLevel(5)
+	end
 	
+	self.AFKMode.bottom.modelHolder:SetFrameLevel(7)
+
 	-- Bottom Frame Animation
 	self.AFKMode.bottom.anim = CreateAnimationGroup(self.AFKMode.bottom)
 	self.AFKMode.bottom.anim.height = self.AFKMode.bottom.anim:CreateAnimation("Height")
 	self.AFKMode.bottom.anim.height:SetChange(GetScreenHeight() * (1 / 9))
 	self.AFKMode.bottom.anim.height:SetDuration(1)
-	self.AFKMode.bottom.anim.height:SetSmoothing("Bounce")	
-	
+	self.AFKMode.bottom.anim.height:SetSmoothing("Bounce")
+
 	-- Move the factiongroup sign to the center
 	self.AFKMode.bottom.factionb = CreateFrame('Frame', nil, self.AFKMode) -- need this to upper the faction logo layer
 	self.AFKMode.bottom.factionb:SetPoint("BOTTOM", self.AFKMode.bottom, "TOP", 0, -40)
 	self.AFKMode.bottom.factionb:SetFrameStrata("MEDIUM")
+	self.AFKMode.bottom.factionb:SetFrameLevel(10)
 	self.AFKMode.bottom.factionb:SetSize(220, 220)
 	self.AFKMode.bottom.faction:ClearAllPoints()
 	self.AFKMode.bottom.faction:SetParent(self.AFKMode.bottom.factionb)
 	self.AFKMode.bottom.faction:SetInside()
 	-- Apply class texture rather than the faction
 	self.AFKMode.bottom.faction:SetTexture('Interface\\AddOns\\ElvUI_BenikUI\\media\\textures\\classIcons\\CLASS-'..className)
-	
+
 	-- Add more info in the name and position it to the center
-	self.AFKMode.bottom.name:ClearAllPoints()	
-	self.AFKMode.bottom.name:SetPoint("TOP", self.AFKMode.bottom.factionb, "BOTTOM")
-	self.AFKMode.bottom.name:SetFormattedText("%s - %s \n%s %s %s %s", E.myname, E.myrealm, LEVEL, level, E.myrace, nonCapClass)
+	self.AFKMode.bottom.name:ClearAllPoints()
+	self.AFKMode.bottom.name:SetPoint("TOP", self.AFKMode.bottom.factionb, "BOTTOM", 0, 5)
+	self.AFKMode.bottom.name:SetFormattedText("%s - %s\n%s %s %s %s %s%s", E.myname, E.myrealm, LEVEL, level, race, spec, localizedClass, ilvl)
 	self.AFKMode.bottom.name:SetJustifyH("CENTER")
-	self.AFKMode.bottom.name:FontTemplate(nil, 18)	
+	self.AFKMode.bottom.name:FontTemplate(nil, 18)
 
 	-- Lower the guild text size a bit
 	self.AFKMode.bottom.guild:ClearAllPoints()
@@ -405,7 +408,7 @@ function AFK:Initialize()
 	self.AFKMode.bottom.etext:SetTextColor(0.7, 0.7, 0.7)
 	-- Hide ElvUI logo
 	self.AFKMode.bottom.logo:Hide()
-	
+
 	-- Add BenikUI name
 	self.AFKMode.bottom.benikui = self.AFKMode.bottom:CreateFontString(nil, 'OVERLAY')
 	self.AFKMode.bottom.benikui:FontTemplate(nil, 24)
@@ -418,45 +421,45 @@ function AFK:Initialize()
 	self.AFKMode.bottom.btext:SetFormattedText("v%s", BUI.Version)
 	self.AFKMode.bottom.btext:SetPoint("TOP", self.AFKMode.bottom.benikui, "BOTTOM")
 	self.AFKMode.bottom.btext:SetTextColor(0.7, 0.7, 0.7)
-	
+
 	-- Random stats decor (taken from install routine)
 	self.AFKMode.statMsg = CreateFrame("Frame", nil, self.AFKMode)
 	self.AFKMode.statMsg:Size(418, 72)
 	self.AFKMode.statMsg:Point("CENTER", 0, 200)
-	
+
 	self.AFKMode.statMsg.bg = self.AFKMode.statMsg:CreateTexture(nil, 'BACKGROUND')
 	self.AFKMode.statMsg.bg:SetTexture([[Interface\LevelUp\LevelUpTex]])
 	self.AFKMode.statMsg.bg:SetPoint('BOTTOM')
 	self.AFKMode.statMsg.bg:Size(326, 103)
 	self.AFKMode.statMsg.bg:SetTexCoord(0.00195313, 0.63867188, 0.03710938, 0.23828125)
 	self.AFKMode.statMsg.bg:SetVertexColor(1, 1, 1, 0.7)
-	
+
 	self.AFKMode.statMsg.lineTop = self.AFKMode.statMsg:CreateTexture(nil, 'BACKGROUND')
 	self.AFKMode.statMsg.lineTop:SetDrawLayer('BACKGROUND', 2)
 	self.AFKMode.statMsg.lineTop:SetTexture([[Interface\LevelUp\LevelUpTex]])
 	self.AFKMode.statMsg.lineTop:SetPoint("TOP")
 	self.AFKMode.statMsg.lineTop:Size(418, 7)
 	self.AFKMode.statMsg.lineTop:SetTexCoord(0.00195313, 0.81835938, 0.01953125, 0.03320313)
-	
+
 	self.AFKMode.statMsg.lineBottom = self.AFKMode.statMsg:CreateTexture(nil, 'BACKGROUND')
 	self.AFKMode.statMsg.lineBottom:SetDrawLayer('BACKGROUND', 2)
 	self.AFKMode.statMsg.lineBottom:SetTexture([[Interface\LevelUp\LevelUpTex]])
 	self.AFKMode.statMsg.lineBottom:SetPoint("BOTTOM")
 	self.AFKMode.statMsg.lineBottom:Size(418, 7)
 	self.AFKMode.statMsg.lineBottom:SetTexCoord(0.00195313, 0.81835938, 0.01953125, 0.03320313)
-	
+
 	-- Countdown decor
 	self.AFKMode.countd = CreateFrame("Frame", nil, self.AFKMode)
 	self.AFKMode.countd:Size(418, 36)
 	self.AFKMode.countd:Point("TOP", self.AFKMode.statMsg.lineBottom, "BOTTOM")
-	
+
 	self.AFKMode.countd.bg = self.AFKMode.countd:CreateTexture(nil, 'BACKGROUND')
 	self.AFKMode.countd.bg:SetTexture([[Interface\LevelUp\LevelUpTex]])
 	self.AFKMode.countd.bg:SetPoint('BOTTOM')
 	self.AFKMode.countd.bg:Size(326, 56)
 	self.AFKMode.countd.bg:SetTexCoord(0.00195313, 0.63867188, 0.03710938, 0.23828125)
 	self.AFKMode.countd.bg:SetVertexColor(1, 1, 1, 0.7)
-	
+
 	self.AFKMode.countd.lineBottom = self.AFKMode.countd:CreateTexture(nil, 'BACKGROUND')
 	self.AFKMode.countd.lineBottom:SetDrawLayer('BACKGROUND', 2)
 	self.AFKMode.countd.lineBottom:SetTexture([[Interface\LevelUp\LevelUpTex]])
@@ -471,9 +474,9 @@ function AFK:Initialize()
 	self.AFKMode.countd.text:SetJustifyH("CENTER")
 	self.AFKMode.countd.text:SetFormattedText("%s: |cfff0ff00-30:00|r", L["Logout Timer"])
 	self.AFKMode.countd.text:SetTextColor(0.7, 0.7, 0.7)
-	
+
 	self.AFKMode.bottom.time:Hide()
-	
+
 	local xptxt = GetXPinfo()
 	-- XP info
 	self.AFKMode.xp = CreateFrame("Frame", nil, self.AFKMode)
@@ -497,16 +500,12 @@ function AFK:Initialize()
 	self.AFKMode.xp.text:SetJustifyH("CENTER")
 	self.AFKMode.xp.text:SetText(xptxt)
 	self.AFKMode.xp.text:SetTextColor(0.7, 0.7, 0.7)
-	
+
 	-- Random stats frame
-	self.AFKMode.statMsg.info = CreateFrame("ScrollingMessageFrame", nil, self.AFKMode.statMsg)
+	self.AFKMode.statMsg.info = self.AFKMode.statMsg:CreateFontString(nil, 'OVERLAY')
 	self.AFKMode.statMsg.info:FontTemplate(nil, 18)
-	self.AFKMode.statMsg.info:SetPoint("CENTER", self.AFKMode.statMsg, "CENTER", 0, 0)
-	self.AFKMode.statMsg.info:SetSize(800, 24)
-	self.AFKMode.statMsg.info:AddMessage(format("|cffb3b3b3%s|r", L["Random Stats"]))
-	self.AFKMode.statMsg.info:SetFading(true)
-	self.AFKMode.statMsg.info:SetFadeDuration(1)
-	self.AFKMode.statMsg.info:SetTimeVisible(4)
+	self.AFKMode.statMsg.info:Point("CENTER", self.AFKMode.statMsg, "CENTER", 0, -2)
+	self.AFKMode.statMsg.info:SetText(format("|cffb3b3b3%s|r", L["Random Stats"]))
 	self.AFKMode.statMsg.info:SetJustifyH("CENTER")
 	self.AFKMode.statMsg.info:SetTextColor(0.7, 0.7, 0.7)
 end

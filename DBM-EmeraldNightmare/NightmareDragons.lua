@@ -1,18 +1,18 @@
 local mod	= DBM:NewMod(1704, "DBM-EmeraldNightmare", nil, 768)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision(("$Revision: 15399 $"):sub(12, -3))
+mod:SetRevision(("$Revision: 15557 $"):sub(12, -3))
 mod:SetCreatureID(102679)--Ysondre, 102683 (Emeriss), 102682 (Lethon), 102681 (Taerar)
 mod:SetEncounterID(1854)
 mod:SetZone()
 mod:SetUsedIcons(8, 7, 6, 5, 4, 3, 2, 1)
---mod:SetHotfixNoticeRev(12324)
+mod:SetHotfixNoticeRev(15407)
 mod.respawnTime = 39
 
 mod:RegisterCombat("combat")
 
 mod:RegisterEventsInCombat(
-	"SPELL_CAST_START 203028 204767 205300 203817 203888 204100 204078 214540",
+	"SPELL_CAST_START 203028 204767 205300 203817 203888 204100 204078 214540 207573",
 	"SPELL_CAST_SUCCESS 203787 205298 205329",
 	"SPELL_AURA_APPLIED 203102 203125 203124 203121 203110 203770 203787 204040",
 	"SPELL_AURA_APPLIED_DOSE 203102 203125 203124 203121",
@@ -47,7 +47,7 @@ local warnShadowBurst				= mod:NewTargetAnnounce(204040, 3)
 --Taerar
 
 --All
-local specWarnMark					= mod:NewSpecialWarningStack("ej12809", nil, 7, nil, 1, 6)
+local specWarnMark					= mod:NewSpecialWarningStack("ej12809", nil, 7, nil, 2, 1, 6)
 local specWarnDragon				= mod:NewSpecialWarningTarget(204720, "Tank", nil, nil, 1, 2)
 --Ysondre
 --local specWarnNightmareBlast		= mod:NewSpecialWarningSpell(203153, nil, nil, nil, 2)
@@ -70,7 +70,7 @@ local specWarnShadesOfTaerar		= mod:NewSpecialWarningSwitch(204100, "Tank", nil,
 local specWarnBellowingRoar			= mod:NewSpecialWarningSpell(204078, nil, nil, nil, 2, 6)
 
 --All
-local timerMarkCD					= mod:NewNextTimer(7, "ej12809", 28836, nil, nil, 3, 203102)
+local timerMarkCD					= mod:NewNextTimer(7, "ej12809", 28836, false, 2, 3, 203102)--Now off by default, to further reduce timer clutter, plus sometimes it's wrong because in rare cases the dragons desync for some reason
 local timerBreathCD					= mod:NewCDSourceTimer(27, 203028, 21131, "Tank", nil, 5, nil, DBM_CORE_TANK_ICON)--27-34 for Ysondre, Cohorts 27-29.
 --Ysondre
 mod:AddTimerLine(Ysondre)
@@ -78,16 +78,16 @@ local timerNightmareBlastCD			= mod:NewCDTimer(15, 203153, nil, "-Tank", nil, 3)
 local timerDefiledSpiritCD			= mod:NewCDTimer(33.2, 207573, nil, nil, nil, 3)
 --Emeriss
 mod:AddTimerLine(Emeriss)
-local timerVolatileInfectionCD		= mod:NewCDTimer(45.4, 203787, nil, nil, nil, 3)
+local timerVolatileInfectionCD		= mod:NewCDTimer(45.4, 203787, nil, "-Tank", 2, 3)
 local timerEssenceOfCorruptionCD	= mod:NewNextTimer(30, 205298, nil, nil, nil, 1)
 --Lethon
 mod:AddTimerLine(Lethon)
-local timerSiphonSpiritCD			= mod:NewNextTimer(49.9, 203888, nil, nil, nil, 1)
-local timerShadowBurstCD			= mod:NewNextTimer(14.7, 204040, nil, nil, nil, 3)--Air
+local timerSiphonSpiritCD			= mod:NewNextTimer(49.9, 203888, nil, nil, nil, 1, nil, DBM_CORE_DAMAGE_ICON)
+local timerShadowBurstCD			= mod:NewNextTimer(14.5, 204040, nil, nil, nil, 3)--Air
 --Taerar
 mod:AddTimerLine(Taerar)
 local timerShadesOfTaerarCD			= mod:NewNextTimer(48.5, 204100, nil, "-Healer", nil, 1)
-local timerSeepingFogCD				= mod:NewCDTimer(15.5, 205341, nil, nil, nil, 3, 24814)
+local timerSeepingFogCD				= mod:NewCDTimer(15.5, 205341, nil, false, 2, 3, 24814)--Spawn pretty often, and timers don't help dodge, so now off by default
 local timerBellowingRoarCD			= mod:NewCDTimer(44.5, 204078, 118699, nil, nil, 2)--Air
 
 --Ysondre
@@ -146,7 +146,7 @@ local function whoDatUpThere(self)
 
 	end
 	if not lethonFound then -- Lethon
-		timerShadowBurstCD:Start(15)
+		timerShadowBurstCD:Start(12.6)
 	end
 	if not taerarFound then -- Taerar
 		timerBellowingRoarCD:Start(43)
@@ -161,9 +161,6 @@ do
 	local UnitDebuff, floor = UnitDebuff, math.floor
 	updateInfoFrame = function()
 		table.wipe(lines)
-		local highestDebuff, lowestDebuff = 0, 1000
-		local highestSpellName, lowestSpellName = nil, nil
-		local highestPlayer, lowestPlayer = nil, nil
 		local playersWithTwo = false
 		for uId in DBM:GetGroupMembers() do
 			local debuffCount = 0
@@ -171,65 +168,41 @@ do
 			if UnitDebuff(uId, spellName1) then
 				debuffCount = debuffCount + 1
 				local _, _, _, stackCount, _, _, expires = UnitDebuff(uId, spellName1)
-				local debuffTime = expires - GetTime()
-				text = floor(debuffTime)
-				if stackCount > highestDebuff then
-					highestDebuff = stackCount
-					highestSpellName = spellName1
-					highestPlayer = uId
-				end
-				if stackCount < lowestDebuff then
-					lowestDebuff = stackCount
-					lowestSpellName = spellName1
-					lowestPlayer = uId
+				if expires == 0 then
+					text = SPELL_FAILED_OUT_OF_RANGE
+				else
+					local debuffTime = expires - GetTime()
+					text = floor(debuffTime)
 				end
 			end
 			if UnitDebuff(uId, spellName2) then
 				debuffCount = debuffCount + 1
 				local _, _, _, stackCount, _, _, expires = UnitDebuff(uId, spellName2)
-				local debuffTime = expires - GetTime()
-				text = text..", "..floor(debuffTime)
-				if stackCount > highestDebuff then
-					highestDebuff = stackCount
-					highestSpellName = spellName2
-					highestPlayer = uId
-				end
-				if stackCount < lowestDebuff then
-					lowestDebuff = stackCount
-					lowestSpellName = spellName2
-					lowestPlayer = uId
+				if expires == 0 then
+					text = SPELL_FAILED_OUT_OF_RANGE
+				else
+					local debuffTime = expires - GetTime()
+					text = text..", "..floor(debuffTime)
 				end
 			end
 			if UnitDebuff(uId, spellName3) then
 				debuffCount = debuffCount + 1
 				local _, _, _, stackCount, _, _, expires = UnitDebuff(uId, spellName3)
-				local debuffTime = expires - GetTime()
-				text = text..", "..floor(debuffTime)
-				if stackCount > highestDebuff then
-					highestDebuff = stackCount
-					highestSpellName = spellName3
-					highestPlayer = uId
-				end
-				if stackCount < lowestDebuff then
-					lowestDebuff = stackCount
-					lowestSpellName = spellName3
-					lowestPlayer = uId
+				if expires == 0 then
+					text = SPELL_FAILED_OUT_OF_RANGE
+				else
+					local debuffTime = expires - GetTime()
+					text = text..", "..floor(debuffTime)
 				end
 			end
 			if UnitDebuff(uId, spellName4) then
 				debuffCount = debuffCount + 1
 				local _, _, _, stackCount, _, _, expires = UnitDebuff(uId, spellName4)
-				local debuffTime = expires - GetTime()
-				text = text..", "..floor(debuffTime)
-				if stackCount > highestDebuff then
-					highestDebuff = stackCount.." "..highestSpellName
-					highestSpellName = spellName4
-					highestPlayer = uId
-				end
-				if stackCount < lowestDebuff then
-					lowestDebuff = stackCount.." "..lowestSpellName
-					lowestSpellName = spellName4
-					lowestPlayer = UnitName(uId)
+				if expires == 0 then
+					text = SPELL_FAILED_OUT_OF_RANGE
+				else
+					local debuffTime = expires - GetTime()
+					text = text..", "..floor(debuffTime)
 				end
 			end
 			if debuffCount > 1 then
@@ -239,18 +212,8 @@ do
 		end
 		if not playersWithTwo then
 			--No players with two, show generic stats
-			if highestPlayer then
-				lines[HIGH] = highestDebuff
-				local expires = select(7, UnitDebuff(highestPlayer, highestSpellName))
-				local debuffTime = expires - GetTime()
-				lines[UnitName(highestPlayer)] = floor(debuffTime)
-			end
-			if lowestPlayer then
-				lines[LOW] = lowestDebuff
-				local expires = select(7, UnitDebuff(lowestPlayer, lowestSpellName))
-				local debuffTime = expires - GetTime()
-				lines[UnitName(lowestPlayer)] = floor(debuffTime)
-			end
+			--Do stuff
+			lines[ALL] = OKAY
 		end
 		return lines
 	end
@@ -362,7 +325,7 @@ function mod:SPELL_AURA_APPLIED(args)
 			specWarnMark:Show(amount)
 			voiceMark:Play("stackhigh")
 		end
-		if self:AntiSpam(4, 2) then
+		if self:AntiSpam(5, 2) then
 			if self:IsMythic() then
 				timerMarkCD:Start()
 			elseif self:IsHeroic() then
@@ -434,7 +397,7 @@ function mod:INSTANCE_ENCOUNTER_ENGAGE_UNIT()
 			local cid = self:GetUnitCreatureId(unitID)
 			--Subtracking .5 from all timers do to slight delay in IEEU vs ENCOUNTER_START
 			if cid == 102683 then -- Emeriss
-				timerBreathCD:Start(16, bossName)
+				timerBreathCD:Start(15.5, bossName)
 				timerVolatileInfectionCD:Start(19.5)
 				timerEssenceOfCorruptionCD:Start(29.5)
 				if DBM.BossHealth:IsShown() then

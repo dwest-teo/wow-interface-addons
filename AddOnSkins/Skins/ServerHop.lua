@@ -16,15 +16,15 @@ function AS:ServerHop()
 		end
 		if Button and Text then
 			AS:StripTextures(Frame)
-			Frame:Width(Width or 155)
+			Frame:SetWidth(Width or 155)
 			Text:ClearAllPoints()
-			Text:Point("RIGHT", Button, "LEFT", -2, 0)
+			Text:SetPoint("RIGHT", Button, "LEFT", -2, 0)
 			Button:ClearAllPoints()
-			Button:Point("RIGHT", Frame, "RIGHT", -10, 3)
+			Button:SetPoint("RIGHT", Frame, "RIGHT", -10, 3)
 			AS:SkinNextPrevButton(Button, true)
 			AS:CreateBackdrop(Frame)
-			Frame.Backdrop:Point("TOPLEFT", 20, -2)
-			Frame.Backdrop:Point("BOTTOMRIGHT", Button, "BOTTOMRIGHT", 2, -2)
+			Frame.Backdrop:SetPoint("TOPLEFT", 20, -2)
+			Frame.Backdrop:SetPoint("BOTTOMRIGHT", Button, "BOTTOMRIGHT", 2, -2)
 		end
 	end
 
@@ -193,6 +193,13 @@ function AS:ServerHop()
 
 	AS:SkinEditBox(hopAddonFavourites.editFrame.editBoxName)
 	AS:SkinFrame(hopfavdescr)
+
+	-- HopList MainFrame
+	AS:SkinFrame(SH_HopListMainFrame)
+	AS:SkinButton(SH_HopListMainFrame.refreshButton)
+	AS:SkinCloseButton(SH_HopListMainFrameClose)
+	AS:SkinScrollBar(SH_HopListScrollScrollBar)
+	AS:SkinCheckBox(SH_OnlyMyZoneCheck)
 
 	-- LFGButton
 	local LFGHopeButton = {LFGListFrame:GetChildren()}

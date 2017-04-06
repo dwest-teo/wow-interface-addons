@@ -223,6 +223,7 @@ GTFO.SpellID["213208"] = {
 GTFO.SpellID["188574"] = {
   --desc = "Explosive Blight (Forsaken Dreadwing)";
   sound = 3;
+  applicationOnly = true;
 };
 
 GTFO.SpellID["197499"] = {
@@ -315,6 +316,33 @@ GTFO.SpellID["222528"] = {
 
 GTFO.SpellID["214302"] = {
   --desc = "Erupting Shadow (Thondrax)";
+  sound = 3;
+};
+
+GTFO.SpellID["215806"] = {
+  --desc = "Tail Lash (Shar'thos)";
+  sound = 3;
+};
+
+GTFO.SpellID["229588"] = {
+  --desc = "Triggered Explosion (Proximity Mine)";
+  sound = 3;
+};
+
+GTFO.SpellID["231029"] = {
+  --desc = "Freezing Strike (Thoramir)";
+  sound = 3;
+};
+
+GTFO.SpellID["230329"] = {
+  --desc = "Negative Energy";
+  applicationOnly = true;
+  sound = 3;
+};
+
+GTFO.SpellID["204042"] = {
+  --desc = "Obliterate (Mo'arg Crusher)";
+  applicationOnly = true;
   sound = 3;
 };
 
@@ -449,10 +477,6 @@ GTFO.SpellID["201041"] = {
   --desc = "Madness (Inquisitor)";
   sound = 3;
 };
-
-
-
-
 
 
 -- ********************
@@ -981,6 +1005,22 @@ GTFO.SpellID["224188"] = {
   minimumStacks = 1;
 };
 
+GTFO.SpellID["221838"] = {
+  --desc = "Disorienting Gas (Kelorn Nightblade)";
+  applicationOnly = true;
+  sound = 3;
+};
+
+GTFO.SpellID["198781"] = {
+  --desc = "Whirling Blade (Kur'talos Ravencrest)";
+  sound = 3;
+};
+
+GTFO.SpellID["200914"] = {
+  --desc = "Indigestion (Wyrmtongue Scavenger)";
+  sound = 3;
+  tankSound = 0;
+}
 
 
 -- *************************
@@ -1011,6 +1051,22 @@ GTFO.SpellID["210850"] = {
   sound = 3;
 };
 
+GTFO.SpellID["210850"] = {
+  --desc = "Twisting Shadows (Elerethe Renferal)";
+  applicationOnly = true;
+  sound = 3;
+};
+
+GTFO.SpellID["213790"] = {
+  --desc = "Venomous Pool (Elerethe Renferal)";
+  sound = 3;
+};
+
+GTFO.SpellID["215503"] = {
+  --desc = "Violent Rupture (Elerethe Renferal)";
+  sound = 3;
+};
+
 GTFO.SpellID["225329"] = {
   --desc = "Drake's Wrath (Drake's Fury)";
   sound = 3;
@@ -1024,13 +1080,13 @@ GTFO.SpellID["210781"] = {
 GTFO.SpellID["209471"] = {
   --desc = "Nightmare Explosion (Nightmare Ichor - Il'gynoth)";
   sound = 3;
-  negatingBuffSpellID = 209471; -- Nightmare Explosion
+  negatingDebuffSpellID = 209471; -- Nightmare Explosion
 };
 
 GTFO.SpellID["215143"] = {
   --desc = "Cursed Blood (Il'gynoth)";
   sound = 4;
-  negatingBuffSpellID = 215128; -- Cursed Blood
+  negatingDebuffSpellID = 215128; -- Cursed Blood
   negatingIgnoreTime = 1;
   ignoreSelfInflicted = true;
 };
@@ -1132,13 +1188,55 @@ GTFO.SpellID["203110"] = {
 -- * Nighthold *
 -- *************
 
-GTFO.SpellID["218155"] = {
-  --desc = "Solar Collapse (High Botanist Tel'arn)";
+-- TODO: Volatile Resonance (Skorpyron)
+-- TODO: Arcane Slash (Trilliax) -- non-tank fail
+-- TODO: Burning Soul (Tichondrius) -- FF Fail
+-- TODO: Felburst (Krosus)
+-- TODO: Toxic Spores (High Botanist Tel'arn)
+-- TODO: Shatter (Star Augur Etaeus) -- FF fail
+-- TODO: Fel Ember (Star Augur Etaeus)
+-- TODO: World-Devouring Force (Star Augur Etaeus)
+-- TODO: Delphuric Beam (Grand Magistrix Elisande)
+-- TODO: Epocheric Orb (Grand Magistrix Elisande) -- when debuffed with Epocheric Vulnerability
+
+GTFO.SpellID["204483"] = {
+  --desc = "Focused Blast (Skorpyron)";
   sound = 3;
 };
 
-GTFO.SpellID["219235"] = {
-  --desc = "Toxic Spores (Naturalist Tel'arn)";
+GTFO.SpellID["204275"] = {
+  --desc = "Arcanoslash (Skorpyron)";
+  sound = 3;
+  tankSound = 0;
+};
+
+GTFO.SpellID["221153"] = {
+  --desc = "Beam (Pulsauron)";
+  sound = 3;
+};
+
+GTFO.SpellID["230438"] = {
+  --desc = "Devastating Strike (Torm the Brute)";
+  sound = 3;
+};
+
+GTFO.SpellID["221164"] = {
+  --desc = "Fulminate (Fulminant)";
+  sound = 3;
+};
+
+GTFO.SpellID["206612"] = {
+  --desc = "Burst of Time (Chronomatic Anomaly)";
+  sound = 3;
+};
+
+GTFO.SpellID["206792"] = {
+  --desc = "Toxic Slice (Trilliax)";
+  sound = 3;
+};
+
+GTFO.SpellID["207631"] = {
+  --desc = "Annihilation (Trilliax)";
   applicationOnly = true;
   sound = 3;
 };
@@ -1150,8 +1248,353 @@ GTFO.SpellID["224510"] = {
   test = true;
 };
 
-GTFO.SpellID["213328"] = {
-  --desc = "Detonate: Arcane Orb (Spellblade Aluriel)";
+GTFO.SpellID["213621"] = {
+  --desc = "Entombed in Ice (Spellblade Aluriel)";
+  applicationOnly = true;
   sound = 3;
 };
 
+GTFO.SpellID["205391"] = {
+  --desc = "Fel Beam (Krosus)";
+  sound = 3;
+};
+
+GTFO.SpellID["205863"] = {
+  --desc = "Slam (Krosus)";
+  sound = 3;
+  tankSound = 0;
+};
+
+GTFO.SpellID["215988"] = {
+  --desc = "Carrion Nightmare (Carrion Nightmare)";
+  sound = 3;
+};
+
+GTFO.SpellID["206474"] = {
+  --desc = "Seeker Swarm (Tichondrius)";
+  sound = 3;
+  negatingDebuffSpellID = 206480; -- Carrion Plague 
+  test = true; -- Not working because plague is getting applied first
+};
+
+GTFO.SpellID["218155"] = {
+  --desc = "Solar Collapse (High Botanist Tel'arn)";
+  sound = 3;
+};
+
+GTFO.SpellID["219235"] = {
+  --desc = "Toxic Spores (Naturalist Tel'arn)";
+  applicationOnly = true;
+  sound = 3;
+};
+
+GTFO.SpellID["225807"] = {
+  --desc = "Pillars of Night (Duskwatch Weaver)";
+  sound = 3;
+};
+
+GTFO.SpellID["219950"] = {
+  --desc = "Controlled Chaos (High Botanist Tel'arn)";
+  sound = 0;
+  test = true; -- DPS amount check
+};
+
+GTFO.SpellID["224484"] = {
+  --desc = "Falling Star";
+  sound = 3;
+};
+
+GTFO.SpellID["207720"] = {
+  --desc = "Witness the Void (Thing That Should Not Be)";
+  sound = 3;
+  applicationOnly = true;
+};
+
+GTFO.SpellID["221490"] = {
+  --desc = "Starfall (Astral Farseer)";
+  sound = 3;
+};
+
+GTFO.SpellID["206603"] = {
+  --desc = "Frozen Solid (Star Augur Etraeus)";
+  sound = 3;
+  applicationOnly = true;
+};
+
+GTFO.SpellID["206577"] = {
+  --desc = "Comet Impact (Star Augur Etraeus)";
+  sound = 3;
+  tankSound = 0;
+};
+
+GTFO.SpellID["206433"] = {
+  --desc = "Fel Impact (Star Augur Etraeus)";
+  sound = 3;
+  tankSound = 0;
+};
+
+GTFO.SpellID["207813"] = {
+  --desc = "Void Impact (Star Augur Etraeus)";
+  sound = 3;
+  tankSound = 0;
+};
+
+GTFO.SpellID["208865"] = {
+  --desc = "Leave the Nightwell (Elisande)";
+  sound = 3;
+};
+
+GTFO.SpellID["231005"] = {
+  --desc = "Arcane Emanations (Kar'zun)";
+  sound = 3;
+};
+
+GTFO.SpellID["212262"] = {
+  --desc = "Hand of Gul'dan (Gul'dan)";
+  sound = 3;
+};
+
+GTFO.SpellID["167819"] = {
+  --desc = "Storm of the Destroyer (Gul'dan)";
+  sound = 3;
+};
+
+GTFO.SpellID["167935"] = {
+  --desc = "Storm of the Destroyer (Gul'dan)";
+  sound = 3;
+};
+
+GTFO.SpellID["177380"] = {
+  --desc = "Storm of the Destroyer (Gul'dan)";
+  sound = 3;
+};
+
+GTFO.SpellID["152987"] = {
+  --desc = "Storm of the Destroyer (Gul'dan)";
+  sound = 3;
+};
+
+GTFO.SpellID["224440"] = {
+  --desc = "Crushing Stomp (Gilded Guardian)";
+  sound = 3;
+};
+
+GTFO.SpellID["231006"] = {
+  --desc = "Carve (Flightmaster Volnath)";
+  sound = 3;
+  tankSound = 0;
+};
+
+--- ******************
+--- * Trial of Valor *
+--- ******************
+
+GTFO.SpellID["228874"] = {
+  --desc = "Horn of Valor (Odyn)";
+  sound = 4;
+  ignoreSelfInflicted = true;
+};
+
+GTFO.SpellID["227781"] = {
+  --desc = "Glowing Fragment (Odyn)";
+  applicationOnly = true;
+  sound = 3;
+};
+
+GTFO.SpellID["227712"] = {
+  --desc = "Spear of Light (Odyn)";
+  sound = 3;
+};
+
+GTFO.SpellID["227811"] = {
+  --desc = "Raging Tempest (Odyn)";
+  sound = 3;
+};
+
+GTFO.SpellID["227843"] = {
+  --desc = "Trample (Guarm)";
+  sound = 3;
+};
+
+GTFO.SpellID["227514"] = {
+  --desc = "Flashing Fangs (Guarm)";
+  sound = 3;
+  tankSound = 0;
+};
+
+GTFO.SpellID["227642"] = {
+  --desc = "Multi-Headed (Guarm)";
+  sound = 3;
+  tankSound = 0;
+};
+
+GTFO.SpellID["227735"] = {
+  --desc = "Mixed Elements (Guarm)";
+  sound = 3;
+};
+
+GTFO.SpellID["227721"] = {
+  --desc = "Mixed Elements (Guarm)";
+  sound = 3;
+};
+
+GTFO.SpellID["227720"] = {
+  --desc = "Mixed Elements (Guarm)";
+  sound = 3;
+};
+
+GTFO.SpellID["228051"] = {
+  --desc = "Tainted Essence (Helya)";
+  sound = 3;
+};
+
+GTFO.SpellID["228631"] = {
+  --desc = "Give No Quarter (Night Watch Mariner)";
+  sound = 3;
+};
+
+GTFO.SpellID["228390"] = {
+  --desc = "Sludge Nova (Grimelord)";
+  sound = 3;
+};
+
+GTFO.SpellID["228519"] = {
+  --desc = "Anchor Slam (Grimelord)";
+  sound = 3;
+  tankSound = 0;
+};
+
+-- TODO: Expel Light (Odyn)
+-- TODO: Storm of Justice (Odyn)
+-- TODO: Unerring Blast (Odyn) - Mythic, without Protected debuff
+-- TODO: Echo of Radiance (Odyn) - Mythic, wrong rune combo
+-- TODO: Flame Lick (Guarm) -- If not original target
+-- TODO: Frost Lick (Guarm) -- If not original target
+-- TODO: Shadow Lick (Guarm) -- If not original target
+-- TODO: Corrupted Slicer (Helya) -- Mythic
+-- TODO: Bilewater Breath (Helya) -- Non-tank fail
+-- TODO: Turbulent Waters/Orbs of Muck (Helya) -- Mythic
+-- TODO: Fetid Rot (Helya) -- Dispel fail
+-- TODO: Anchor Slam (Helya) -- Non-tank/swap fail?
+-- TODO: Corrosive Slicer (Helya) -- Mythic
+
+
+--- **********************
+--- * Return to Karazhan *
+--- **********************
+
+-- TODO: Thunder Ritual (Mrrgria) -- If you're not the target
+-- TODO: Wash Away (Mrrgria)
+-- TODO: Bubble Blast (Shoreline Tidespeaker)
+-- TODO: Severe Dusting (Babblet)
+-- TODO: Mortal Strike (Attumen) -- Non-tank fail (Avoidable?)
+-- TODO: Will Breaker (Lord Crispin Ference) -- Non-tank fail
+-- TODO: Flame Wreath (Shade of Medivh) -- (If you cause it)
+-- TODO: Shadow Phlegm (Viz'aduum the Watcher) -- Avoidable?
+
+GTFO.SpellID["227416"] = {
+  --desc = "Wondrous Radiance (Galindre)";
+  sound = 3;
+};
+
+GTFO.SpellID["227776"] = {
+  --desc = "Magic Magnificent (Galindre)";
+  sound = 3;
+};
+
+GTFO.SpellID["227917"] = {
+  --desc = "Poetry Slam (Ghostly Understudy)";
+  sound = 3;
+};
+
+GTFO.SpellID["227925"] = {
+  --desc = "Final Curtain (Ghostly Understudy)";
+  sound = 3;
+};
+
+GTFO.SpellID["227977"] = {
+  --desc = "Flashlight (Skeletal Usher)";
+  applicationOnly = true;
+  sound = 3;
+};
+
+GTFO.SpellID["227339"] = {
+  --desc = "Mezair (Midnight)";
+  sound = 3;
+};
+
+GTFO.SpellID["227645"] = {
+  --desc = "Spectral Charge (Midnight)";
+  sound = 3;
+};
+
+GTFO.SpellID["227532"] = {
+  --desc = "Unstable Energy (Damaged Golem)";
+  sound = 3;
+};
+
+GTFO.SpellID["230044"] = {
+  --desc = "Cleave (Wrathguard Flamebringer)";
+  sound = 3;
+  tankSound = 0;
+};
+
+GTFO.SpellID["229988"] = {
+  --desc = "Burning Tile (Burning Tiles)";
+  sound = 3;
+};
+
+GTFO.SpellID["229597"] = {
+  --desc = "Fel Mortar (Fel Bat)";
+  sound = 3;
+};
+
+GTFO.SpellID["229696"] = {
+  --desc = "Stampede (Rat)";
+  sound = 3;
+};
+
+GTFO.SpellID["227620"] = {
+  --desc = "Arcane Bomb (Mana Devourer)";
+  sound = 3;
+};
+
+GTFO.SpellID["229384"] = {
+  --desc = "Queen Move (Queen)";
+  sound = 3;
+};
+
+GTFO.SpellID["229563"] = {
+  --desc = "Knight  Move (Knight)";
+  sound = 3;
+};
+
+GTFO.SpellID["229427"] = {
+  --desc = "Royal Slash (King)";
+  sound = 3;
+};
+
+GTFO.SpellID["229545"] = {
+  --desc = "Bishop Move (Bishop)";
+  sound = 3;
+};
+
+GTFO.SpellID["229559"] = {
+  --desc = "Bishop Move (Bishop)";
+  sound = 3;
+};
+
+GTFO.SpellID["229285"] = {
+  --desc = "Bombardment (Viz'aduum the Watcher)";
+  sound = 3;
+};
+
+GTFO.SpellID["229161"] = {
+  --desc = "Explosive Shadows (Viz'aduum the Watcher)";
+  sound = 3;
+};
+
+GTFO.SpellID["229151"] = {
+  --desc = "Disintegrate (Viz'aduum the Watcher)";
+  sound = 3;
+};

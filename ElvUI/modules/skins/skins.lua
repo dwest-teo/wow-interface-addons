@@ -4,7 +4,7 @@ local S = E:NewModule('Skins', 'AceTimer-3.0', 'AceHook-3.0', 'AceEvent-3.0')
 --Cache global variables
 --Lua functions
 local _G = _G
-local unpack, assert, pairs, select, type, pcall = unpack, assert, pairs, select, type, pcall
+local unpack, assert, pairs, ipairs, select, type, pcall = unpack, assert, pairs, ipairs, select, type, pcall
 local tinsert, wipe = table.insert, table.wipe
 --WoW API / Variables
 local SquareButton_SetIcon = SquareButton_SetIcon
@@ -22,7 +22,7 @@ S.addonsToLoad = {}
 S.nonAddonsToLoad = {}
 S.allowBypass = {}
 S.addonCallbacks = {}
-S.nonAddonCallbacks = {}
+S.nonAddonCallbacks = {["CallPriority"] = {}}
 
 local find = string.find
 
@@ -41,6 +41,8 @@ function S:HandleButton(f, strip)
 	if f.Left then f.Left:SetAlpha(0) end
 	if f.Middle then f.Middle:SetAlpha(0) end
 	if f.Right then f.Right:SetAlpha(0) end
+	if f.LeftSeparator then f.LeftSeparator:SetAlpha(0) end
+	if f.RightSeparator then f.RightSeparator:SetAlpha(0) end
 
 	if f.SetNormalTexture then f:SetNormalTexture("") end
 
@@ -559,16 +561,55 @@ function S:HandleShipFollowerPage(followerTab)
 	end
 end
 
+function S:HandleIconSelectionFrame(frame, numIcons, buttonNameTemplate, frameNameOverride)
+	assert(frame, "HandleIconSelectionFrame: frame argument missing")
+	assert(numIcons and type(numIcons) == "number", "HandleIconSelectionFrame: numIcons argument missing or not a number")
+	assert(buttonNameTemplate and type(buttonNameTemplate) == "string", "HandleIconSelectionFrame: buttonNameTemplate argument missing or not a string")
+
+	local frameName = frameNameOverride or frame:GetName() --We need override in case Blizzard fucks up the naming (guild bank)
+	local scrollFrame = _G[frameName.."ScrollFrame"]
+	local editBox = _G[frameName.."EditBox"]
+	local okayButton = _G[frameName.."OkayButton"] or _G[frameName.."Okay"]
+	local cancelButton = _G[frameName.."CancelButton"] or _G[frameName.."Cancel"]
+
+	frame:StripTextures()
+	frame.BorderBox:StripTextures()
+	scrollFrame:StripTextures()
+	editBox:DisableDrawLayer("BACKGROUND") --Removes textures around it
+
+	frame:SetTemplate("Transparent")
+	frame:Height(frame:GetHeight() + 10)
+	scrollFrame:Height(scrollFrame:GetHeight() + 10)
+
+	S:HandleButton(okayButton)
+	S:HandleButton(cancelButton)
+	S:HandleEditBox(editBox)
+
+	cancelButton:ClearAllPoints()
+	cancelButton:Point("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -5, 5)
+
+	for i = 1, numIcons do
+		local button = _G[buttonNameTemplate..i]
+		local icon = _G[button:GetName().."Icon"]
+		button:StripTextures()
+		button:SetTemplate("Default")
+		button:StyleButton(true)
+		icon:SetInside()
+		icon:SetTexCoord(unpack(E.TexCoords))
+	end
+end
+
 function S:ADDON_LOADED(event, addon)
 	if self.allowBypass[addon] then
-		if S.addonsToLoad[addon] then
+		if self.addonsToLoad[addon] then
 			--Load addons using the old deprecated register method
-			S.addonsToLoad[addon]()
-			S.addonsToLoad[addon] = nil
-		elseif S.addonCallbacks[addon] then
+			self.addonsToLoad[addon]()
+			self.addonsToLoad[addon] = nil
+		elseif self.addonCallbacks[addon] then
 			--Fire events to the skins that rely on this addon
-			for event in pairs(S.addonCallbacks[addon]) do
-				S.addonCallbacks[addon][event] = nil;
+			for index, event in ipairs(self.addonCallbacks[addon]["CallPriority"]) do
+				self.addonCallbacks[addon][event] = nil;
+				self.addonCallbacks[addon]["CallPriority"][index] = nil
 				E.callbacks:Fire(event)
 			end
 		end
@@ -577,12 +618,13 @@ function S:ADDON_LOADED(event, addon)
 
 	if not E.initialized then return end
 
-	if S.addonsToLoad[addon] then
-		S.addonsToLoad[addon]()
-		S.addonsToLoad[addon] = nil
-	elseif S.addonCallbacks[addon] then
-		for event in pairs(S.addonCallbacks[addon]) do
-			S.addonCallbacks[addon][event] = nil;
+	if self.addonsToLoad[addon] then
+		self.addonsToLoad[addon]()
+		self.addonsToLoad[addon] = nil
+	elseif self.addonCallbacks[addon] then
+		for index, event in ipairs(self.addonCallbacks[addon]["CallPriority"]) do
+			self.addonCallbacks[addon][event] = nil;
+			self.addonCallbacks[addon]["CallPriority"][index] = nil
 			E.callbacks:Fire(event)
 		end
 	end
@@ -624,7 +666,7 @@ function S:AddCallbackForAddon(addonName, eventName, loadFunc, forceLoad, bypass
 
 	--Create an event registry for this addon, so that we can fire multiple events when this addon is loaded
 	if not self.addonCallbacks[addonName] then
-		self.addonCallbacks[addonName] = {}
+		self.addonCallbacks[addonName] = {["CallPriority"] = {}}
 	end
 	
 	if self.addonCallbacks[addonName][eventName] then
@@ -641,6 +683,7 @@ function S:AddCallbackForAddon(addonName, eventName, loadFunc, forceLoad, bypass
 	else
 		--Insert eventName in this addons' registry
 		self.addonCallbacks[addonName][eventName] = true
+		self.addonCallbacks[addonName]["CallPriority"][#self.addonCallbacks[addonName]["CallPriority"] + 1] = eventName
 	end
 end
 
@@ -663,6 +706,7 @@ function S:AddCallback(eventName, loadFunc)
 
 	--Add event name to registry
 	self.nonAddonCallbacks[eventName] = true
+	self.nonAddonCallbacks["CallPriority"][#self.nonAddonCallbacks["CallPriority"] + 1] = eventName
 
 	--Register loadFunc to be called when event is fired
 	E.RegisterCallback(E, eventName, loadFunc)
@@ -672,18 +716,20 @@ function S:Initialize()
 	self.db = E.private.skins
 
 	--Fire events for Blizzard addons that are already loaded
-	for addon, events in pairs(self.addonCallbacks) do
+	for addon in pairs(self.addonCallbacks) do
 		if IsAddOnLoaded(addon) then
-			for event in pairs(events) do
+			for index, event in ipairs(S.addonCallbacks[addon]["CallPriority"]) do
 				self.addonCallbacks[addon][event] = nil;
+				self.addonCallbacks[addon]["CallPriority"][index] = nil
 				E.callbacks:Fire(event)
 			end
 		end
 	end
 	--Fire event for all skins that doesn't rely on a Blizzard addon
-	for eventName in pairs(self.nonAddonCallbacks) do
-		self.addonCallbacks[eventName] = nil;
-		E.callbacks:Fire(eventName)
+	for index, event in ipairs(self.nonAddonCallbacks["CallPriority"]) do
+		self.nonAddonCallbacks[event] = nil;
+		self.nonAddonCallbacks["CallPriority"][index] = nil
+		E.callbacks:Fire(event)
 	end
 
 	--Old deprecated load functions. We keep this for the time being in case plugins make use of it.

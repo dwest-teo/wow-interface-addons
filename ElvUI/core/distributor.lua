@@ -372,9 +372,16 @@ function D:Decode(dataString)
 
 		local serializedData, success
 		serializedData, profileInfo = E:SplitString(decompressedData, "^^::") -- "^^" indicates the end of the AceSerializer string
+
+		if not profileInfo then
+			E:Print("Error importing profile. String is invalid or corrupted!")
+			return
+		end
+
 		serializedData = format("%s%s", serializedData, "^^") --Add back the AceSerializer terminator
 		profileType, profileKey = E:SplitString(profileInfo, "::")
 		success, profileData = D:Deserialize(serializedData)
+
 		if not success then
 			E:Print("Error deserializing:", profileData)
 			return
@@ -382,12 +389,19 @@ function D:Decode(dataString)
 	elseif stringType == "Table" then
 		local profileDataAsString
 		profileDataAsString, profileInfo = E:SplitString(dataString, "}::") -- "}::" indicates the end of the table
-		profileDataAsString = format("%s%s", profileDataAsString, "}") --Add back the missing "}"
-		profileType, profileKey = E:SplitString(profileInfo, "::")
+
+		if not profileInfo then
+			E:Print("Error extracting profile info. Invalid import string!")
+			return
+		end
+
 		if not profileDataAsString then
 			E:Print("Error extracting profile data. Invalid import string!")
 			return
 		end
+
+		profileDataAsString = format("%s%s", profileDataAsString, "}") --Add back the missing "}"
+		profileType, profileKey = E:SplitString(profileInfo, "::")
 
 		local profileToTable = loadstring(format("%s %s", "return", profileDataAsString))
 		if profileToTable then

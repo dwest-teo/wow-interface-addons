@@ -15,6 +15,7 @@ local CreateFrame = CreateFrame
 local GameTooltip = _G["GameTooltip"]
 local UIFrameFadeIn, UIFrameFadeOut = UIFrameFadeIn, UIFrameFadeOut
 local GetCurrencyInfo = GetCurrencyInfo
+local IsShiftKeyDown = IsShiftKeyDown
 
 -- GLOBALS: hooksecurefunc, tokenFrames, tokenHolder, tokenHolderMover, sysHolder
 
@@ -46,7 +47,6 @@ local BUIcurrency = {
 	777,	-- Timeless Coin
 	789,	-- Bloody Coin
 	81,		-- Epicurean's Award
-	402,	-- Ironpaw Token
 	384,	-- Dwarf Archaeology Fragment
 	385,	-- Troll Archaeology Fragment
 	393,	-- Fossil Archaeology Fragment
@@ -86,13 +86,37 @@ local BUIcurrency = {
 	1154,	-- Shadowy Coins
 	1149,	-- Sightless Eye (PvP)
 	1268,	-- Timeworn Artifact (Honor Points?)
+	1299,	-- Brawler's Gold
+	1314,	-- Lingering Soul Fragment (Good luck with this one :D)
+	1342,	-- Legionfall War Supplies (Construction at the Broken Shore)
+	1355,	-- Felessence (Craft Legentary items)
+	1356,	-- Echoes of Battle (PvP Gear)
+	1357,	-- Echoes of Domination (Elite PvP Gear)
 }
+
+local classColor = E.myclass == 'PRIEST' and E.PriestColors or (CUSTOM_CLASS_COLORS and CUSTOM_CLASS_COLORS[E.myclass] or RAID_CLASS_COLORS[E.myclass])
 
 local function tholderOnFade()
 	tokenHolder:Hide()
 end
 
-local classColor = E.myclass == 'PRIEST' and E.PriestColors or (CUSTOM_CLASS_COLORS and CUSTOM_CLASS_COLORS[E.myclass] or RAID_CLASS_COLORS[E.myclass])
+local function Icon_OnEnter(self)
+	local id = self:GetParent().id
+	if E.db.dashboards.tokens.tooltip then
+		GameTooltip:SetOwner(self, 'ANCHOR_RIGHT', 3, 0);
+		GameTooltip:SetCurrencyByID(id)
+	end
+	if E.db.dashboards.tokens.mouseover then
+		E:UIFrameFadeIn(tokenHolder, 0.2, tokenHolder:GetAlpha(), 1)
+	end
+end
+
+local function Icon_OnLeave(self)
+	if E.db.dashboards.tokens.mouseover then
+		E:UIFrameFadeIn(tokenHolder, 0.2, tokenHolder:GetAlpha(), 0)
+	end
+	GameTooltip:Hide()
+end
 
 function BUIT:CreateTokensHolder()
 	local db = E.db.dashboards.tokens
@@ -140,6 +164,16 @@ function BUIT:EnableDisableCombat()
 	end
 end
 
+local function Icon_OnMouseUp(self, btn)
+	if btn == "RightButton" then
+		if IsShiftKeyDown() then
+			local id = self:GetParent().id
+			E.db.dashboards.tokens.chooseTokens[id] = false
+			BUIT:UpdateTokens()
+		end
+	end
+end
+
 function BUIT:UpdateTokens()
 	local db = E.db.dashboards.tokens
 	
@@ -150,15 +184,29 @@ function BUIT:UpdateTokens()
 		twipe( tokenFrames )
 		tokenHolder:Hide()
 	end
+	
+	if db.mouseover then tokenHolder:SetAlpha(0) else tokenHolder:SetAlpha(1) end
+	
+	tokenHolder:SetScript('OnEnter', function(self)
+		if db.mouseover then
+			E:UIFrameFadeIn(tokenHolder, 0.2, tokenHolder:GetAlpha(), 1)
+		end
+	end)
+
+	tokenHolder:SetScript('OnLeave', function(self)
+		if db.mouseover then
+			E:UIFrameFadeOut(tokenHolder, 0.2, tokenHolder:GetAlpha(), 0)
+		end
+	end)
 
 	for i, id in ipairs(BUIcurrency) do
 		local name, amount, icon, _, weeklyMax, totalMax, isDiscovered = GetCurrencyInfo(id)
 		
 		if name then
 			
-			if isDiscovered == false then db.chooseTokens[name] = false end
+			if isDiscovered == false then db.chooseTokens[id] = false end
 			
-			if db.chooseTokens[name] == true then
+			if db.chooseTokens[id] == true then
 				if db.zeroamount or amount > 0 then
 					tokenHolder:Show()
 					tokenHolder:Width(DASH_WIDTH)
@@ -173,6 +221,7 @@ function BUIT:UpdateTokens()
 					token:Width(DASH_WIDTH)
 					token:Point('TOPLEFT', tokenHolder, 'TOPLEFT', SPACING, -SPACING)
 					token:EnableMouse(true)
+					token.id = id
 
 					token.dummy = CreateFrame('Frame', nil, token)
 					token.dummy:Point('BOTTOMLEFT', token, 'BOTTOMLEFT', 2, (E.PixelMode and 2 or 0))
@@ -231,10 +280,13 @@ function BUIT:UpdateTokens()
 						end
 					end
 
-					token.IconBG = CreateFrame('Frame', nil, token)
+					token.IconBG = CreateFrame('Button', nil, token)
 					token.IconBG:SetTemplate('Transparent')
 					token.IconBG:Size(E.PixelMode and 18 or 20)
 					token.IconBG:Point('BOTTOMRIGHT', token, 'BOTTOMRIGHT', (E.PixelMode and -2 or -3), SPACING)
+					token.IconBG:SetScript('OnMouseUp', Icon_OnMouseUp)
+					token.IconBG:SetScript('OnEnter', Icon_OnEnter)
+					token.IconBG:SetScript('OnLeave', Icon_OnLeave)
 
 					token.IconBG.Icon = token.IconBG:CreateTexture(nil, 'ARTWORK')
 					token.IconBG.Icon:SetInside()
@@ -243,9 +295,8 @@ function BUIT:UpdateTokens()
 
 					token:SetScript('OnEnter', function(self)
 						token.Text:SetFormattedText('%s', name)
-						if db.tooltip then
-							GameTooltip:SetOwner(self, 'ANCHOR_RIGHT', 3, 0);
-							GameTooltip:SetCurrencyByID(id)
+						if db.mouseover then
+							E:UIFrameFadeIn(tokenHolder, 0.2, tokenHolder:GetAlpha(), 1)
 						end
 					end)
 					
@@ -265,6 +316,9 @@ function BUIT:UpdateTokens()
 							end
 						end				
 						GameTooltip:Hide()
+						if db.mouseover then
+							E:UIFrameFadeOut(tokenHolder, 0.2, tokenHolder:GetAlpha(), 0)
+						end
 					end)
 
 					tinsert(tokenFrames, token)

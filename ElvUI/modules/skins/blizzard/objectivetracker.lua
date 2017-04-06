@@ -22,9 +22,8 @@ local function LoadSkin()
 
 	local function OnClick(self)
 		local textObject = self.text
-		local text = textObject:GetText()
 
-		if (text and text == "-") then
+		if ObjectiveTrackerFrame.collapsed then
 			textObject:SetText("+")
 		else
 			textObject:SetText("-")
@@ -93,6 +92,7 @@ local function LoadSkin()
 			item.Count:SetPoint("TOPLEFT", 1, -1)
 			item.Count:SetFont(E["media"].normFont, 14, "OUTLINE")
 			item.Count:SetShadowOffset(5, -5)
+			E:RegisterCooldown(item.Cooldown)
 			item.skinned = true
 		end
 	end)

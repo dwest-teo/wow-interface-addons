@@ -1,0 +1,15 @@
+## Interface: 60000
+## Title: Killshot
+## Author: Zwarmapapa (zwarmapapa@hotmail.com)
+## Maintainer: Plastered (clemsonwaterski@gmail.com)
+## Notes: Killingblow notification for Raid, Party, Guild, BG and Arena.
+## Version: v6.0.2 (23-10-2014)
+## SavedVariables: saved, ks
+## SavedVariablesPerCharacter: saved_char, ks_char
+## X-Category: Interface Enhancements
+
+## OptionalDeps: Ace3
+## X-Embeds: Ace3
+
+embeds.xml
+Killshot.lua

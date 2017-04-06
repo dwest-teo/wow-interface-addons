@@ -244,6 +244,8 @@ local function LoadSkin()
 			frame.QuestTexture.b:SetTemplate("Default")
 			frame.QuestTexture.b:SetOutside(frame.QuestTexture)
 			frame.QuestTexture:SetParent(frame.QuestTexture.b)
+
+			frame.isSkinned = true
 		end
 	end
 
@@ -287,6 +289,8 @@ local function LoadSkin()
 				cover:SetColorTexture(0, 0, 0)
 				cover:SetAllPoints(squareBG)
 			end
+
+			frame.isSkinned = true
 		end
 
 		local color = ITEM_QUALITY_COLORS[quality]
@@ -309,6 +313,8 @@ local function LoadSkin()
 			frame:CreateBackdrop("Transparent")
 			frame.backdrop:Point('TOPLEFT', frame, 'TOPLEFT', 16, -3)
 			frame.backdrop:Point('BOTTOMRIGHT', frame, 'BOTTOMRIGHT', -16, 16)
+
+			frame.isSkinned = true
 		end
 	end
 
@@ -328,6 +334,8 @@ local function LoadSkin()
 			frame:CreateBackdrop("Transparent")
 			frame.backdrop:Point('TOPLEFT', frame, 'TOPLEFT', 8, -2)
 			frame.backdrop:Point('BOTTOMRIGHT', frame, 'BOTTOMRIGHT', -6, 2)
+
+			frame.isSkinned = true
 		end
 	end
 
@@ -347,6 +355,8 @@ local function LoadSkin()
 			frame.Icon.b:SetTemplate("Default")
 			frame.Icon.b:SetOutside(frame.Icon)
 			frame.Icon:SetParent(frame.Icon.b)
+
+			frame.isSkinned = true
 		end
 	end
 
@@ -367,6 +377,8 @@ local function LoadSkin()
 			frame:CreateBackdrop("Transparent")
 			frame.backdrop:Point('TOPLEFT', frame, 'TOPLEFT', 8, -2)
 			frame.backdrop:Point('BOTTOMRIGHT', frame, 'BOTTOMRIGHT', -6, 2)
+
+			frame.isSkinned = true
 		end
 	end
 
@@ -386,6 +398,8 @@ local function LoadSkin()
 			frame:CreateBackdrop("Transparent")
 			frame.backdrop:Point('TOPLEFT', frame, 'TOPLEFT', 8, -2)
 			frame.backdrop:Point('BOTTOMRIGHT', frame, 'BOTTOMRIGHT', -6, 2)
+
+			frame.isSkinned = true
 		end
 	end
 
@@ -407,6 +421,8 @@ local function LoadSkin()
 			frame:CreateBackdrop("Transparent")
 			frame.backdrop:Point('TOPLEFT', frame, 'TOPLEFT', 8, -2)
 			frame.backdrop:Point('BOTTOMRIGHT', frame, 'BOTTOMRIGHT', -6, 2)
+
+			frame.isSkinned = true
 		end
 		
 		local color = ITEM_QUALITY_COLORS[quality]
@@ -440,6 +456,8 @@ local function LoadSkin()
 			frame:CreateBackdrop("Transparent")
 			frame.backdrop:Point('TOPLEFT', frame, 'TOPLEFT', 20, -20)
 			frame.backdrop:Point('BOTTOMRIGHT', frame, 'BOTTOMRIGHT', -20, 20)
+
+			frame.isSkinned = true
 		end
 
 		local _, _, itemRarity = GetItemInfo(itemLink)
@@ -463,7 +481,11 @@ local function LoadSkin()
 		frame.shine:Kill()
 		frame.BGAtlas:Kill()
 		frame.PvPBackground:Kill()
-		if frame.SpecRing and frame.SpecIcon and frame.SpecIcon.GetTexture and frame.SpecIcon:GetTexture() == nil then frame.SpecRing:Hide() end
+
+		frame.SpecRing:SetTexture("")
+		frame.SpecIcon:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -15)
+		frame.SpecIcon:SetTexCoord(unpack(E.TexCoords))
+
 
 		-- Icon border
 		if not frame.Icon.b then
@@ -472,6 +494,16 @@ local function LoadSkin()
 			frame.Icon.b:SetOutside(frame.Icon)
 			frame.Icon:SetParent(frame.Icon.b)
 		end
+
+		if not frame.SpecIcon.b then
+			frame.SpecIcon.b = CreateFrame("Frame", nil, frame)
+			frame.SpecIcon.b:SetFrameLevel(3)
+			frame.SpecIcon.b:SetTemplate("Default")
+			frame.SpecIcon.b:SetPoint("TOPLEFT", frame.SpecIcon, "TOPLEFT", -2, 2)
+			frame.SpecIcon.b:SetPoint("BOTTOMRIGHT", frame.SpecIcon, "BOTTOMRIGHT", 2, -2)
+			frame.SpecIcon:SetParent(frame.SpecIcon.b)
+		end
+		frame.SpecIcon.b:SetShown(frame.SpecIcon:IsShown() and frame.SpecIcon:GetTexture() ~= nil)
 
 		if not frame.backdrop then
 			frame:CreateBackdrop("Transparent")

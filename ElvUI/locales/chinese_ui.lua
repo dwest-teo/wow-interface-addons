@@ -4,10 +4,10 @@ local L = AceLocale:NewLocale("ElvUI", "zhCN")
 if not L then return end
 
 --*_ADDON locales
-L["INCOMPATIBLE_ADDON"] = "插件 %s 不相容于 ElvUI 的 %s 模组。请停用不相容的插件，或停用模组。"
+L["INCOMPATIBLE_ADDON"] = "插件 %s 不相容于 ElvUI 的 %s 模组, 请停用不相容的插件, 或停用模组."
 
 --*_MSG locales
-L["LOGIN_MSG"] = "欢迎使用 %sElvUI|r %s%s|r 版，请输入 /ec 进入设定介面。如需技术支援，请至 http://www.tukui.org"
+L["LOGIN_MSG"] = "欢迎使用 %sElvUI|r %s%s|r 版, 请输入/ec进入设定介面. 如需技术支持,请至 http://www.tukui.org"
 
 --ActionBars
 L["Binding"] = "绑定"
@@ -26,14 +26,14 @@ L["KEY_PAGEUP"] = "PU"
 L["KEY_SHIFT"] = "S"
 L["KEY_SPACE"] = "SpB"
 L["No bindings set."] = "无绑定设定"
-L["Remove Bar %d Action Page"] = "移除第 %d 动作条"
+L["Remove Bar %d Action Page"] = "移除第%d动作条"
 L["Trigger"] = "触发器"
 
 --Bags
 L["Bank"] = "银行"
 L["Deposit Reagents"] = "导入材料"
-L["Hold Control + Right Click:"] = '按住 Ctrl 并按鼠标右键：'
-L["Hold Shift + Drag:"] = '按住 Shift 并拖动: '
+L["Hold Control + Right Click:"] = '按住 Ctrl 并按鼠标右键:'
+L["Hold Shift + Drag:"] = '按住 Shift 并拖动:'
 L["Purchase Bags"] = "购买背包"
 L["Purchase"] = "购买"
 L["Reagent Bank"] = "材料银行"
@@ -63,8 +63,9 @@ L["yells"] = "大喊"
 
 --DataBars
 L["Current Level:"] = "当前等级:"
-L["Honor XP:"] = "荣誉值:"
 L["Honor Remaining:"] = "荣誉值剩余:"
+L["Honor XP:"] = "荣誉值:"
+L["In Bags:"] = "背包内:"
 
 --DataTexts
 L["(Hold Shift) Memory Usage"] = "(按住Shift) 内存占用"
@@ -79,7 +80,6 @@ L["Character: "] = "角色: "
 L["Chest"] = "胸"
 L["Combat"] = "战斗"
 L["copperabbrev"] = "|cffeda55f铜|r"
-L["Defeated"] = "已击杀"
 L["Deficit:"] = "赤字:"
 L["Download"] = "下载"
 L["DPS"] = "伤害输出"
@@ -91,7 +91,6 @@ L["Gold:"] = "金:"
 L["goldabbrev"] = "|cffffd700金|r"
 L["Hands"] = "手"
 L["Head"] = "头"
-L["Hit"] = "命中"
 L["Hold Shift + Right Click:"] = "按住Shift + 右键点击"
 L["Home Latency:"] = "本机延迟:"
 L["HP"] = "生命值"
@@ -107,9 +106,9 @@ L["Offhand"] = "副手"
 L["Profit:"] = "利润:"
 L["Reset Data: Hold Shift + Right Click"] = "重置数据: 按住 Shift + 右键点击"
 L["Saved Raid(s)"] = "已有进度的副本"
-L["Saved Dungeon(s)"] = true;
+L["Saved Dungeon(s)"] = "已有进度的地下城"
 L["Server: "] = "服务器: "
-L["Session:"] = "本次登入:"
+L["Session:"] = "本次登陆:"
 L["Shoulder"] = "肩"
 L["silverabbrev"] = "|cffc7c7cf银|r"
 L["SP"] = "法术强度"
@@ -167,7 +166,7 @@ L["Icons Only"] = "图标"
 L["If you have an icon or aurabar that you don't want to display simply hold down shift and right click the icon for it to disapear."] = "如果你有不想显示的图标或光环条, 你可以简单的通过按住Shift右键点击使它隐藏."
 L["Importance: |cff07D400High|r"] = "重要度: |cff07D400高|r"
 L["Importance: |cffD3CF00Medium|r"] = "重要性: |cffD3CF00中|r"
-L["Importance: |cffFF0000Low|r"] = "重要性：|cffFF0000低|r"
+L["Importance: |cffFF0000Low|r"] = "重要性:|cffFF0000低|r"
 L["Installation Complete"] = "安装完成"
 L["Layout Set"] = "界面布局设置"
 L["Layout"] = "界面布局"
@@ -181,13 +180,13 @@ L["Please click the button below to setup your CVars."] = "请按下方按钮设
 L["Please press the continue button to go onto the next step."] = "请按继续按钮到下一步"
 L["Resolution Style Set"] = "分辨率样式设置"
 L["Resolution"] = "分辨率"
-L["Select the type of aura system you want to use with ElvUI's unitframes. Set to Aura Bar & Icons to use both aura bars and icons, set to icons only to only see icons."] = true;
+L["Select the type of aura system you want to use with ElvUI's unitframes. Set to Aura Bar & Icons to use both aura bars and icons, set to icons only to only see icons."] = "选择你想要在ElvUI的单位框体里使用何种光环系统. 选择光环条和图标将同时使用光环条和图标, 选择图标来仅仅显示图标."
 L["Setup Chat"] = "设定聊天框"
 L["Setup CVars"] = "设定参数"
 L["Skip Process"] = "略过"
 L["Sticky Frames"] = "框架依附"
 L["Tank"] = "坦克"
-L["The chat windows function the same as Blizzard standard chat windows, you can right click the tabs and drag them around, rename, etc. Please click the button below to setup your chat windows."] = "对话视窗与 WOW 原始对话视窗的操作方式相同，你可以拖拉、移动分页或重新命名分页。请按下方按钮以设定对话视窗。"
+L["The chat windows function the same as Blizzard standard chat windows, you can right click the tabs and drag them around, rename, etc. Please click the button below to setup your chat windows."] = "对话窗口与 WOW 原始对话窗口的操作方式相同，你可以拖拉、移动分页或重新命名分页。请按下方按钮以设定对话窗口。"
 L["The in-game configuration menu can be accessed by typing the /ec command or by clicking the 'C' button on the minimap. Press the button below if you wish to skip the installation process."] = "若要进入内建设定选单，请输入 /ec，或者按一下小地图旁的 C 按钮。若要略过安装程序，请按下方按钮。"
 L["Theme Set"] = "主题设置"
 L["Theme Setup"] = "主题安装"
@@ -200,32 +199,26 @@ L["This resolution requires that you change some settings to get everything to f
 L["This will change the layout of your unitframes and actionbars."] = "这将会改变你单位框架和动作条的构架。"
 L["Trade"] = "拾取/交易"
 L["Welcome to ElvUI version %s!"] = "欢迎使用 ElvUI 版本 %s!"
-L["You are now finished with the installation process. If you are in need of technical support please visit us at http://www.tukui.org."] = true;
-L["You can always change fonts and colors of any element of elvui from the in-game configuration."] = "你可以在游戏内的设定选项内更改ElvUI的字体、颜色等设定."
+L["You are now finished with the installation process. If you are in need of technical support please visit us at http://www.tukui.org."] = "你已经完成安装过程. 如果你需要技术支持请访问http://www.tukui.org"
+L["You can always change fonts and colors of any element of ElvUI from the in-game configuration."] = "你可以在游戏内的设定选项内更改ElvUI的字体、颜色等设定."
 L["You can now choose what layout you wish to use based on your combat role."] = "你现在可以根据你的战斗角色选择合适的布局。"
 L["You may need to further alter these settings depending how low you resolution is."] = "根据你的分辨率你可能需要改动这些设置。"
 L["Your current resolution is %s, this is considered a %s resolution."] = "你当前的分辨率是 %s, 这被认为是个 %s 分辨率。"
 
 --Misc
 L["ABOVE_THREAT_FORMAT"] = '%s: %.0f%% [%.0f%% 以上 |cff%02x%02x%02x%s|r]'
-L["Average Group iLvl:"] = "平均小队装等"
 L["Bars"] = "条"
 L["Calendar"] = "日历"
 L["Can't Roll"] = "无法需求此装备"
 L["Disband Group"] = "解散队伍"
+L["Empty Slot"] = true;
 L["Enable"] = "启用"
 L["Experience"] = "经验/声望条"
 L["Fishy Loot"] = "贪婪"
-L["iLvl"] = "装等" --Column header in raidbrowser
-L["Important Group Members:"] = "重要小队成员"
-L["Left Click:"] = "鼠标左键："
-L["Raid Browser"] = true; -- Minimap middle click menu
+L["Left Click:"] = "鼠标左键:"
 L["Raid Menu"] = "团队菜单"
 L["Remaining:"] = "剩余:"
 L["Rested:"] = "休息:"
-L["Right Click:"] = "鼠标右键："
-L["Show BG Texts"] = "显示战场资讯文字"
-L["Talent Spec"] = true; --Column header in raidbrowser
 L["Toggle Chat Frame"] = "开关聊天框架"
 L["Toggle Configuration"] = "设置开关"
 L["XP:"] = "经验:"
@@ -243,10 +236,10 @@ L["Bags"] = "背包" --Also in DataTexts
 L["Bank Mover (Grow Down)"] = "银行框架(向下)"
 L["Bank Mover (Grow Up)"] = "银行框架(向上)"
 L["Bar "] = "动作条 " --Also in ActionBars
-L["BNet Frame"] = "战网提示资讯"
+L["BNet Frame"] = "战网提示信息"
 L["Boss Button"] = "特殊技能键"
 L["Boss Frames"] = "首领框架"
-L["Class Bar"] = "职业条"
+L["Class Totems"] = "职业图腾"
 L["Classbar"] = "职业特有条"
 L["Experience Bar"] = "经验条"
 L["Focus Castbar"] = "焦点目标施法条"
@@ -255,7 +248,8 @@ L["FocusTarget Frame"] = "专注目标的目标框架"
 L["GM Ticket Frame"] = "GM 对话框"
 L["Honor Bar"] = "荣誉条"
 L["Left Chat"] = "左侧对话框"
-L["Loot / Alert Frames"] = "拾取 / 提醒框"
+L["Level Up Display / Boss Banner"] = "升级提示/Boss拾取"
+L["Loot / Alert Frames"] = "拾取/提醒框"
 L["Loot Frame"] = "拾取框架"
 L["Loss Control Icon"] = "失去控制图标"
 L["MA Frames"] = "主助理框"
@@ -289,7 +283,7 @@ L["TargetTarget Frame"] = "目标的目标框架"
 L["TargetTargetTarget Frame"] = "目标的目标的目标框架"
 L["Tooltip"] = "鼠标提示"
 L["Vehicle Seat Frame"] = "载具座位框"
-L["Zone Ability"] = true
+L["Zone Ability"] = "区域技能"
 L["DESC_MOVERCONFIG"] = [=[解除框架移动锁定. 现在可以移动它们, 移好后请点击「锁定」.
 
 Options:
@@ -309,8 +303,8 @@ L[" |cff00ff00bound to |r"] = " |cff00ff00绑定到 |r"
 L["%s frame(s) has a conflicting anchor point, please change either the buff or debuff anchor point so they are not attached to each other. Forcing the debuffs to be attached to the main unitframe until fixed."] = "%s 个框架锚点冲突，请移动buff或者debuff锚点让他们彼此不依附。暂时强制debuff依附到主框架。"
 L["All keybindings cleared for |cff00ff00%s|r."] = "取消 |cff00ff00%s|r 所有绑定的快捷键."
 L["Already Running.. Bailing Out!"] = '正在运行!'
-L["Battleground datatexts temporarily hidden, to show type /bgstats or right click the 'C' icon near the minimap."] = '战场资讯暂时隐藏, 你可以通过输入 /bgstats 或右键点击小地图旁「C」按钮显示.'
-L["Battleground datatexts will now show again if you are inside a battleground."] = "当你处于战场时战场资讯将再次显示."
+L["Battleground datatexts temporarily hidden, to show type /bgstats or right click the 'C' icon near the minimap."] = '战场信息暂时隐藏, 你可以通过输入/bgstats 或右键点击小地图旁「C」按钮显示.'
+L["Battleground datatexts will now show again if you are inside a battleground."] = "当你处于战场时战场信息将再次显示."
 L["Binds Discarded"] = "取消绑定"
 L["Binds Saved"] = "储存绑定"
 L["Confused.. Try Again!"] = '请再试一次！'
@@ -341,7 +335,6 @@ L["Do you swear not to post in technical support about something not working wit
 L["ElvUI is five or more revisions out of date. You can download the newest version from www.tukui.org. Get premium membership and have ElvUI automatically updated with the Tukui Client!"] = "ElvUI每天有5个或者更多的版本。你可以在www.tukui.org下载到最新的版本。购买会员来让Tukui客户端自动更新ElvUI"
 L["ElvUI is out of date. You can download the newest version from www.tukui.org. Get premium membership and have ElvUI automatically updated with the Tukui Client!"] = true;
 L["ElvUI needs to perform database optimizations please be patient."] = "ElvUI需要进行数据库优化，请耐性等待。"
-L["Enabling/Disabling Bar #6 will toggle a paging option from your main actionbar to prevent duplicating bars, are you sure you want to do this?"] = true;
 L["Hover your mouse over any actionbutton or spellbook button to bind it. Press the escape key or right click to clear the current actionbutton's keybinding."] = "移动滑鼠到动作条或技能书按钮上绑定快捷键. 按ESC或滑鼠右键取消目前快捷键"
 L["I Swear"] = '我承诺'
 L["It appears one of your AddOns have disabled the AddOn Blizzard_CompactRaidFrames. This can cause errors and other issues. The AddOn will now be re-enabled."] = true;

@@ -20,6 +20,7 @@ local GetRealZoneText, GetMinimapZoneText, GetPlayerMapPosition, GetZonePVPInfo 
 local GetScreenWidth = GetScreenWidth
 local HideUIPanel, ShowUIPanel = HideUIPanel, ShowUIPanel
 local IsInGuild = IsInGuild
+local InCombatLockdown = InCombatLockdown
 local CloseMenus = CloseMenus
 local CloseAllWindows = CloseAllWindows
 local MainMenuMicroButton_SetNormal = MainMenuMicroButton_SetNormal
@@ -37,11 +38,6 @@ local TAXI_CANCEL_DESCRIPTION, UNKNOWN = TAXI_CANCEL_DESCRIPTION, UNKNOWN
 
 -- GLOBALS: UIParent, FlightModeLocation, selectioncolor, LeftChatPanel, ElvUI_ContainerFrame
 -- GLOBALS: FlightModeMenuBtn, CreateAnimationGroup, LeftChatMover, BuiDummyChat, Minimap, AddOnSkins
--- GLOBALS: SpellBookFrame, PlayerTalentFrame, TalentFrame_LoadUI, GlyphFrame, GlyphFrame_LoadUI
--- GLOBALS: GuildFrame, GuildFrame_LoadUI, GuildFrame_Toggle, LookingForGuildFrame, LookingForGuildFrame_LoadUI,  LookingForGuildFrame_Toggle
--- GLOBALS: GameTimeFrame, EncounterJournal_LoadUI, EncounterJournal, GameMenuFrame
--- GLOBALS: VideoOptionsFrame, VideoOptionsFrameCancel, AudioOptionsFrame, AudioOptionsFrameCancel
--- GLOBALS: InterfaceOptionsFrame, InterfaceOptionsFrameCancel, StoreMicroButton
 -- GLOBALS: ObjectiveTrackerFrame, ZoneTextFrame
 
 local menuFrame = CreateFrame('Frame', 'BuiGameClickMenu', E.UIParent)
@@ -51,70 +47,6 @@ menuFrame:CreateWideShadow()
 local LOCATION_WIDTH = 400
 local classColor = E.myclass == 'PRIEST' and E.PriestColors or (CUSTOM_CLASS_COLORS and CUSTOM_CLASS_COLORS[E.myclass] or RAID_CLASS_COLORS[E.myclass])
 local CAMERA_SPEED = 0.035
-
-local menuList = {
-	{text = CHARACTER_BUTTON, func = function() ToggleCharacter("PaperDollFrame") end},
-	{text = SPELLBOOK_ABILITIES_BUTTON, func = function() if not SpellBookFrame:IsShown() then ShowUIPanel(SpellBookFrame) else HideUIPanel(SpellBookFrame) end end},
-	{text = TALENTS_BUTTON,
-	func = function()
-		if not PlayerTalentFrame then
-			TalentFrame_LoadUI()
-		end
-
-		if not PlayerTalentFrame:IsShown() then
-			ShowUIPanel(PlayerTalentFrame)
-		else
-			HideUIPanel(PlayerTalentFrame)
-		end
-	end},
-	{text = LFG_TITLE, func = function() ToggleLFDParentFrame(); end},
-	{text = ACHIEVEMENT_BUTTON, func = function() ToggleAchievementFrame() end},
-	{text = REPUTATION, func = function() ToggleCharacter('ReputationFrame') end},
-	{text = GARRISON_LANDING_PAGE_TITLE, func = function() GarrisonLandingPageMinimapButton_OnClick() end},
-	{text = ACHIEVEMENTS_GUILD_TAB,
-	func = function()
-		if IsInGuild() then
-			if not GuildFrame then GuildFrame_LoadUI() end
-			GuildFrame_Toggle()
-		else
-			if not LookingForGuildFrame then LookingForGuildFrame_LoadUI() end
-			if not LookingForGuildFrame then return end
-			LookingForGuildFrame_Toggle()
-		end
-	end},
-	{text = L["Calendar"], func = function() GameTimeFrame:Click() end},
-	{text = MOUNTS, func = function() ToggleCollectionsJournal(1) end},
-	{text = PET_JOURNAL, func = function() ToggleCollectionsJournal(2) end},
-	{text = TOY_BOX, func = function() ToggleCollectionsJournal(3) end},
-	{text = HEIRLOOMS, func = function() ToggleCollectionsJournal(4) end},
-	{text = WARDROBE, func = function() ToggleCollectionsJournal(5) end},
-	{text = MACROS, func = function() GameMenuButtonMacros:Click() end},
-	{text = TIMEMANAGER_TITLE, func = function() ToggleFrame(TimeManagerFrame) end},
-	{text = ENCOUNTER_JOURNAL, func = function() if not IsAddOnLoaded('Blizzard_EncounterJournal') then EncounterJournal_LoadUI(); end ToggleFrame(EncounterJournal) end},
-	{text = SOCIAL_BUTTON, func = function() ToggleFriendsFrame() end},
-	{text = MAINMENU_BUTTON,
-	func = function()
-		if ( not GameMenuFrame:IsShown() ) then
-			if ( VideoOptionsFrame:IsShown() ) then
-					VideoOptionsFrameCancel:Click();
-			elseif ( AudioOptionsFrame:IsShown() ) then
-					AudioOptionsFrameCancel:Click();
-			elseif ( InterfaceOptionsFrame:IsShown() ) then
-					InterfaceOptionsFrameCancel:Click();
-			end
-			CloseMenus();
-			CloseAllWindows()
-			PlaySound("igMainMenuOpen");
-			ShowUIPanel(GameMenuFrame);
-		else
-			PlaySound("igMainMenuQuit");
-			HideUIPanel(GameMenuFrame);
-			MainMenuMicroButton_SetNormal();
-		end
-	end},
-	{text = HELP_BUTTON, func = function() ToggleHelpFrame() end},
-	{text = BLIZZARD_STORE, func = function() StoreMicroButton:Click() end}
-}
 
 local function AutoColoring()
 	local pvpType = GetZonePVPInfo()
@@ -181,8 +113,8 @@ function BFM:UpdateCoords()
 		else
 			yt = y
 		end
-		self.FlightMode.top.location.x.text:SetText(x)
-		self.FlightMode.top.location.y.text:SetText(y)
+		self.FlightMode.top.location.x.text:SetText(xt)
+		self.FlightMode.top.location.y.text:SetText(yt)
 	end
 end
 
@@ -214,6 +146,8 @@ function BFM:UpdateFps()
 end
 
 function BFM:SetFlightMode(status)
+	if(InCombatLockdown()) then return end
+
 	if(status) then
 		if E.db.benikui.misc.flightMode.cameraRotation then
 			MoveViewLeftStart(CAMERA_SPEED);
@@ -232,13 +166,19 @@ function BFM:SetFlightMode(status)
 		-- Bags
 		if ElvUI_ContainerFrame then
 			ElvUI_ContainerFrame:SetParent(self.FlightMode)
-			ElvUI_ContainerFrame.shadow:Show()
+			ElvUI_ContainerFrame.wideshadow:Show()
+			if ElvUI_ContainerFrame.shadow then
+				ElvUI_ContainerFrame.shadow:Hide()
+			end
 		end
 
 		-- Left Chat
 		BuiDummyChat:SetParent(self.FlightMode)
 		LeftChatPanel:SetParent(self.FlightMode)
-		LeftChatPanel.backdrop.shadow:Show()
+		if LeftChatPanel.backdrop.shadow then
+			LeftChatPanel.backdrop.shadow:Hide()
+		end
+		LeftChatPanel.backdrop.wideshadow:Show()
 		LeftChatPanel:ClearAllPoints()
 		LeftChatPanel:Point("BOTTOMLEFT", self.FlightMode.bottom, "TOPLEFT", 24, 24)
 		
@@ -280,10 +220,7 @@ function BFM:SetFlightMode(status)
 			ZoneTextFrame:RegisterEvent("ZONE_CHANGED")
 		end
 
-		self:CancelTimer(self.locationTimer)
-		self:CancelTimer(self.coordsTimer)
-		self:CancelTimer(self.timer)
-		self:CancelTimer(self.fpsTimer)
+		self:CancelAllTimers()
 
 		self.FlightMode.bottom.timeFlying.txt:SetText("00:00")
 		self.FlightMode.bottom.requestStop:EnableMouse(true)
@@ -296,22 +233,24 @@ function BFM:SetFlightMode(status)
 		-- Revert Bags
 		if ElvUI_ContainerFrame then
 			ElvUI_ContainerFrame:SetParent(E.UIParent)
-			ElvUI_ContainerFrame.shadow:Hide()
+			ElvUI_ContainerFrame.wideshadow:Hide()
+			if ElvUI_ContainerFrame.shadow then
+				ElvUI_ContainerFrame.shadow:Show()
+			end
 		end
 
 		if IsAddOnLoaded('AddOnSkins') then
 			local AS = unpack(AddOnSkins) or nil
-			if GetAddOnMetadata("AddOnSkins", "Version") <= "3.39" then 
-				if E.private.addonskins.EmbedSystem or E.private.addonskins.EmbedSystemDual then AS:Embed_Show() end
-			else
-				if AS.db.EmbedSystem or AS.db.EmbedSystemDual then AS:Embed_Show() end
-			end
+			if AS.db.EmbedSystem or AS.db.EmbedSystemDual then AS:Embed_Show() end
 		end
 
 		-- revert Left Chat
 		BuiDummyChat:SetParent(E.UIParent)
 		LeftChatPanel:SetParent(E.UIParent)
-		LeftChatPanel.backdrop.shadow:Hide()
+		if LeftChatPanel.backdrop.shadow then
+			LeftChatPanel.backdrop.shadow:Show()
+		end
+		LeftChatPanel.backdrop.wideshadow:Hide()
 		LeftChatPanel:ClearAllPoints()
 		LeftChatPanel:Point("BOTTOMLEFT", LeftChatMover, "BOTTOMLEFT")
 		
@@ -327,7 +266,7 @@ function BFM:SetFlightMode(status)
 end
 
 function BFM:OnEvent(...)
-	if (UnitOnTaxi("player")) then
+	if (UnitOnTaxi("player")) and not IsInInstance() then
 		self:SetFlightMode(true)
 	else
 		self:SetFlightMode(false)
@@ -391,7 +330,7 @@ function BFM:Initialize()
 	end)
 	
 	self.FlightMode.top.menuButton:SetScript('OnClick', function()
-		BUI:Dropmenu(menuList, menuFrame, FlightModeMenuBtn, 'bRight', (E.PixelMode and -32 or -30), (E.PixelMode and -13 or -15), 4, 36)
+		BUI:Dropmenu(BUI.MenuList, menuFrame, FlightModeMenuBtn, 'bRight', (E.PixelMode and -32 or -30), (E.PixelMode and -13 or -15), 4, 36)
 		PlaySound("igMainMenuOptionCheckBoxOff");
 	end)
 	
@@ -685,12 +624,13 @@ function BFM:Initialize()
 	-- Add Shadow at the bags
 	if ElvUI_ContainerFrame then
 		ElvUI_ContainerFrame:CreateWideShadow()
-		ElvUI_ContainerFrame.shadow:Hide()
+		ElvUI_ContainerFrame.wideshadow:Hide()
 	end
 	
 	-- Add Shadow at the left chat
 	LeftChatPanel.backdrop:CreateWideShadow()
-	LeftChatPanel.backdrop.shadow:Hide()
+	LeftChatPanel.backdrop.wideshadow:Hide()
+	LeftChatPanel.backdrop.wideshadow:SetFrameLevel(LeftChatPanel.backdrop:GetFrameLevel() - 1)
 
 	self:Toggle()
 end

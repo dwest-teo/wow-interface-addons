@@ -66,100 +66,9 @@ local Bui_dthreat = CreateFrame('Frame', 'BuiDummyThreat', E.UIParent)
 local menuFrame = CreateFrame('Frame', 'BuiGameClickMenu', E.UIParent)
 menuFrame:SetTemplate('Transparent', true)
 
-local menuList = {
-	{text = CHARACTER_BUTTON, func = function() ToggleCharacter("PaperDollFrame") end},
-	{text = SPELLBOOK_ABILITIES_BUTTON, func = function() if not SpellBookFrame:IsShown() then ShowUIPanel(SpellBookFrame) else HideUIPanel(SpellBookFrame) end end},
-	{text = SPECIALIZATION,
-	func = function()
-		if not PlayerTalentFrame then
-			TalentFrame_LoadUI()
-		end
-
-		if not PlayerTalentFrame:IsShown() then
-			ShowUIPanel(PlayerTalentFrame)
-			_G["PlayerTalentFrameTab"..SPECIALIZATION_TAB]:Click()
-		else
-			HideUIPanel(PlayerTalentFrame)
-		end
-	end},
-	{text = TALENTS,
-	func = function()
-		if not PlayerTalentFrame then
-			TalentFrame_LoadUI()
-		end
-
-		if not PlayerTalentFrame:IsShown() then
-			ShowUIPanel(PlayerTalentFrame)
-			_G["PlayerTalentFrameTab"..TALENTS_TAB]:Click()
-		else
-			HideUIPanel(PlayerTalentFrame)
-		end
-	end},
-	{text = PVP_TALENTS,
-	func = function()
-		if not PlayerTalentFrame then
-			TalentFrame_LoadUI()
-		end
-
-		if not PlayerTalentFrame:IsShown() then
-			ShowUIPanel(PlayerTalentFrame)
-			_G["PlayerTalentFrameTab"..PVP_TALENTS_TAB]:Click()
-		else
-			HideUIPanel(PlayerTalentFrame)
-		end
-	end},
-	{text = LFG_TITLE, func = function() ToggleLFDParentFrame(); end},
-	{text = ACHIEVEMENT_BUTTON, func = function() ToggleAchievementFrame() end},
-	{text = REPUTATION, func = function() ToggleCharacter('ReputationFrame') end},
-	{text = GARRISON_LANDING_PAGE_TITLE, func = function() GarrisonLandingPageMinimapButton_OnClick() end},
-	{text = ACHIEVEMENTS_GUILD_TAB,
-	func = function()
-		if IsInGuild() then
-			if not GuildFrame then GuildFrame_LoadUI() end
-			GuildFrame_Toggle()
-		else
-			if not LookingForGuildFrame then LookingForGuildFrame_LoadUI() end
-			if not LookingForGuildFrame then return end
-			LookingForGuildFrame_Toggle()
-		end
-	end},
-	{text = L["Calendar"], func = function() GameTimeFrame:Click() end},
-	{text = MOUNTS, func = function() ToggleCollectionsJournal(1) end},
-	{text = PET_JOURNAL, func = function() ToggleCollectionsJournal(2) end},
-	{text = TOY_BOX, func = function() ToggleCollectionsJournal(3) end},
-	{text = HEIRLOOMS, func = function() ToggleCollectionsJournal(4) end},
-	{text = WARDROBE, func = function() ToggleCollectionsJournal(5) end},
-	{text = MACROS, func = function() GameMenuButtonMacros:Click() end},
-	{text = TIMEMANAGER_TITLE, func = function() ToggleFrame(TimeManagerFrame) end},
-	{text = ENCOUNTER_JOURNAL, func = function() if not IsAddOnLoaded('Blizzard_EncounterJournal') then EncounterJournal_LoadUI(); end ToggleFrame(EncounterJournal) end},
-	{text = SOCIAL_BUTTON, func = function() ToggleFriendsFrame() end},
-	{text = MAINMENU_BUTTON,
-	func = function()
-		if ( not GameMenuFrame:IsShown() ) then
-			if ( VideoOptionsFrame:IsShown() ) then
-					VideoOptionsFrameCancel:Click();
-			elseif ( AudioOptionsFrame:IsShown() ) then
-					AudioOptionsFrameCancel:Click();
-			elseif ( InterfaceOptionsFrame:IsShown() ) then
-					InterfaceOptionsFrameCancel:Click();
-			end
-			CloseMenus();
-			CloseAllWindows()
-			PlaySound("igMainMenuOpen");
-			ShowUIPanel(GameMenuFrame);
-		else
-			PlaySound("igMainMenuQuit");
-			HideUIPanel(GameMenuFrame);
-			MainMenuMicroButton_SetNormal();
-		end
-	end},
-	{text = HELP_BUTTON, func = function() ToggleHelpFrame() end},
-	{text = BLIZZARD_STORE, func = function() StoreMicroButton:Click() end}
-}
-
 local function BuiGameMenu_OnMouseUp(self)
 	GameTooltip:Hide()
-	BUI:Dropmenu(menuList, menuFrame, self:GetName(), 'tLeft', -SPACING, SPACING, 4)
+	BUI:Dropmenu(BUI.MenuList, menuFrame, self:GetName(), 'tLeft', -SPACING, SPACING, 4)
 	PlaySound("igMainMenuOptionCheckBoxOff");
 end
 
@@ -171,7 +80,7 @@ local function ChatButton_OnClick(self)
 		UIFrameFadeIn(self.parent, 0.2, self.parent:GetAlpha(), 1)
 		if IsAddOnLoaded('AddOnSkins') then
 			local AS = unpack(AddOnSkins) or nil			
-			if E.private.addonskins.EmbedSystem or E.private.addonskins.EmbedSystemDual then AS:Embed_Show() end
+			if AS.db.EmbedSystem or AS.db.EmbedSystemDual then AS:Embed_Show() end
 		end
 	else
 		E.db[self.parent:GetName()..'Faded'] = true
@@ -210,12 +119,17 @@ function BUIL:ToggleBuiDts()
 end
 
 function BUIL:ResizeMinimapPanels()
-
-	LeftMiniPanel:Point('TOPLEFT', Minimap.backdrop, 'BOTTOMLEFT', 0, -SPACING)
-	LeftMiniPanel:Point('BOTTOMRIGHT', Minimap.backdrop, 'BOTTOM', -SPACING, -(SPACING + PANEL_HEIGHT))
-	RightMiniPanel:Point('TOPRIGHT', Minimap.backdrop, 'BOTTOMRIGHT', 0, -SPACING)
-	RightMiniPanel:Point('BOTTOMLEFT', LeftMiniPanel, 'BOTTOMRIGHT', SPACING, 0)
-
+	if E.db.benikui.general.shadows then
+		LeftMiniPanel:Point('TOPLEFT', Minimap.backdrop, 'BOTTOMLEFT', 0, (E.PixelMode and -SPACING -2 or -SPACING))
+		LeftMiniPanel:Point('BOTTOMRIGHT', Minimap.backdrop, 'BOTTOM', (E.PixelMode and -SPACING -2 or -SPACING), (E.PixelMode and -(SPACING + PANEL_HEIGHT) -2 or -(SPACING + PANEL_HEIGHT)))
+		RightMiniPanel:Point('TOPRIGHT', Minimap.backdrop, 'BOTTOMRIGHT', 0, (E.PixelMode and -SPACING -2 or -SPACING))
+		RightMiniPanel:Point('BOTTOMLEFT', LeftMiniPanel, 'BOTTOMRIGHT', (E.PixelMode and SPACING +2 or SPACING), 0)
+	else
+		LeftMiniPanel:Point('TOPLEFT', Minimap.backdrop, 'BOTTOMLEFT', 0, -SPACING)
+		LeftMiniPanel:Point('BOTTOMRIGHT', Minimap.backdrop, 'BOTTOM', -SPACING, -(SPACING + PANEL_HEIGHT))
+		RightMiniPanel:Point('TOPRIGHT', Minimap.backdrop, 'BOTTOMRIGHT', 0, -SPACING)
+		RightMiniPanel:Point('BOTTOMLEFT', LeftMiniPanel, 'BOTTOMRIGHT', SPACING, 0)
+	end
 end
 
 function BUIL:ToggleTransparency()
@@ -299,6 +213,7 @@ local function updateButtonFont()
 	for i = 1, BUTTON_NUM do
 		if bbuttons[i].text then
 			bbuttons[i].text:SetFont(LSM:Fetch('font', E.db.datatexts.font), E.db.datatexts.fontSize, E.db.datatexts.fontOutline)
+			bbuttons[i].text:SetTextColor(BUI:unpackColor(E.db.general.valuecolor))
 		end
 	end
 end
@@ -314,34 +229,54 @@ function BUIL:ChangeLayout()
 
 	-- Left dt panel
 	Bui_ldtp:SetFrameStrata('BACKGROUND')
-	Bui_ldtp:Point('TOPLEFT', LeftChatPanel, 'BOTTOMLEFT', (SPACING + PANEL_HEIGHT), -SPACING)
-	Bui_ldtp:Point('BOTTOMRIGHT', LeftChatPanel, 'BOTTOMRIGHT', -(SPACING + PANEL_HEIGHT), -PANEL_HEIGHT-SPACING)
-	Bui_ldtp:Style('Outside')
+	if E.db.benikui.general.shadows then
+		Bui_ldtp:Point('TOPLEFT', LeftChatPanel, 'BOTTOMLEFT', (E.PixelMode and SPACING +PANEL_HEIGHT +2 or SPACING +PANEL_HEIGHT), (E.PixelMode and -SPACING -2 or -SPACING))
+		Bui_ldtp:Point('BOTTOMRIGHT', LeftChatPanel, 'BOTTOMRIGHT', (E.PixelMode and -(SPACING +PANEL_HEIGHT) -2 or -(SPACING +PANEL_HEIGHT)), (E.PixelMode and -PANEL_HEIGHT -SPACING -2 or -PANEL_HEIGHT -SPACING))
+	else
+		Bui_ldtp:Point('TOPLEFT', LeftChatPanel, 'BOTTOMLEFT', (SPACING +PANEL_HEIGHT), -SPACING)
+		Bui_ldtp:Point('BOTTOMRIGHT', LeftChatPanel, 'BOTTOMRIGHT', -(SPACING +PANEL_HEIGHT), -PANEL_HEIGHT -SPACING)
+	end
+	Bui_ldtp:Style('Outside', nil, false, true)
 	
 	-- Right dt panel
 	Bui_rdtp:SetFrameStrata('BACKGROUND')
-	Bui_rdtp:Point('TOPLEFT', RightChatPanel, 'BOTTOMLEFT', (SPACING + PANEL_HEIGHT), -SPACING)
-	Bui_rdtp:Point('BOTTOMRIGHT', RightChatPanel, 'BOTTOMRIGHT', -(SPACING + PANEL_HEIGHT), -PANEL_HEIGHT-SPACING)
-	Bui_rdtp:Style('Outside')
+	if E.db.benikui.general.shadows then
+		Bui_rdtp:Point('TOPLEFT', RightChatPanel, 'BOTTOMLEFT', (E.PixelMode and SPACING +PANEL_HEIGHT +2 or SPACING +PANEL_HEIGHT), (E.PixelMode and -SPACING -2 or -SPACING))
+		Bui_rdtp:Point('BOTTOMRIGHT', RightChatPanel, 'BOTTOMRIGHT', (E.PixelMode and -(SPACING +PANEL_HEIGHT) -2 or -(SPACING +PANEL_HEIGHT)), (E.PixelMode and -PANEL_HEIGHT -SPACING -2 or -PANEL_HEIGHT -SPACING))
+	else
+		Bui_rdtp:Point('TOPLEFT', RightChatPanel, 'BOTTOMLEFT', (SPACING +PANEL_HEIGHT), -SPACING)
+		Bui_rdtp:Point('BOTTOMRIGHT', RightChatPanel, 'BOTTOMRIGHT', -(SPACING +PANEL_HEIGHT), -PANEL_HEIGHT -SPACING)
+	end
+	Bui_rdtp:Style('Outside', nil, false, true)
 	
 	-- Middle dt panel
 	Bui_mdtp:SetFrameStrata('BACKGROUND')
 	Bui_mdtp:Point('BOTTOM', E.UIParent, 'BOTTOM', 0, 2)
 	Bui_mdtp:Width(E.db.benikui.datatexts.middle.width or 400)
 	Bui_mdtp:Height(E.db.benikui.datatexts.middle.height or PANEL_HEIGHT)
-	Bui_mdtp:Style('Outside')
+	Bui_mdtp:Style('Outside', nil, false, true)
 
 	E:CreateMover(Bui_mdtp, "BuiMiddleDtMover", L['BenikUI Middle DataText'])
 
 	-- dummy frame for chat/threat (left)
 	Bui_dchat:SetFrameStrata('LOW')
-	Bui_dchat:Point('TOPLEFT', LeftChatPanel, 'BOTTOMLEFT', 0, -SPACING)
-	Bui_dchat:Point('BOTTOMRIGHT', LeftChatPanel, 'BOTTOMRIGHT', 0, -PANEL_HEIGHT-SPACING)
+	if E.db.benikui.general.shadows then
+		Bui_dchat:Point('TOPLEFT', LeftChatPanel, 'BOTTOMLEFT', 0, (E.PixelMode and -SPACING -2 or -SPACING))
+		Bui_dchat:Point('BOTTOMRIGHT', LeftChatPanel, 'BOTTOMRIGHT', 0, (E.PixelMode and -PANEL_HEIGHT -SPACING -2 or -PANEL_HEIGHT -SPACING))
+	else
+		Bui_dchat:Point('TOPLEFT', LeftChatPanel, 'BOTTOMLEFT', 0, -SPACING)
+		Bui_dchat:Point('BOTTOMRIGHT', LeftChatPanel, 'BOTTOMRIGHT', 0, -PANEL_HEIGHT -SPACING)
+	end
 	
 	-- dummy frame for threat (right)
 	Bui_dthreat:SetFrameStrata('LOW')
-	Bui_dthreat:Point('TOPLEFT', RightChatPanel, 'BOTTOMLEFT', 0, -SPACING)
-	Bui_dthreat:Point('BOTTOMRIGHT', RightChatPanel, 'BOTTOMRIGHT', 0, -PANEL_HEIGHT-SPACING)
+	if E.db.benikui.general.shadows then
+		Bui_dthreat:Point('TOPLEFT', RightChatPanel, 'BOTTOMLEFT', 0, (E.PixelMode and -SPACING -2 or -SPACING))
+		Bui_dthreat:Point('BOTTOMRIGHT', RightChatPanel, 'BOTTOMRIGHT', 0, (E.PixelMode and -PANEL_HEIGHT -SPACING -2 or -PANEL_HEIGHT -SPACING))
+	else
+		Bui_dthreat:Point('TOPLEFT', RightChatPanel, 'BOTTOMLEFT', 0, -SPACING)
+		Bui_dthreat:Point('BOTTOMRIGHT', RightChatPanel, 'BOTTOMRIGHT', 0, -PANEL_HEIGHT -SPACING)
+	end
 	
 	-- Buttons
 	for i = 1, BUTTON_NUM do
@@ -350,7 +285,7 @@ function BUIL:ChangeLayout()
 		bbuttons[i]:SetFrameStrata('BACKGROUND')
 		bbuttons[i]:CreateSoftGlow()
 		bbuttons[i].sglow:Hide()
-		bbuttons[i]:Style('Outside')
+		bbuttons[i]:Style('Outside', nil, false, true)
 		bbuttons[i].text = bbuttons[i]:CreateFontString(nil, 'OVERLAY')
 		bbuttons[i].text:FontTemplate(LSM:Fetch('font', E.db.datatexts.font), E.db.datatexts.fontSize, E.db.datatexts.fontOutline)
 		bbuttons[i].text:SetPoint('CENTER', 1, 0)
@@ -359,15 +294,29 @@ function BUIL:ChangeLayout()
 		
 		-- ElvUI Config
 		if i == 1 then
-			bbuttons[i]:Point('TOPLEFT', Bui_rdtp, 'TOPRIGHT', SPACING, 0)
-			bbuttons[i]:Point('BOTTOMRIGHT', Bui_rdtp, 'BOTTOMRIGHT', PANEL_HEIGHT + SPACING, 0)
+			if E.db.benikui.general.shadows then
+				bbuttons[i]:Point('TOPLEFT', Bui_rdtp, 'TOPRIGHT', (E.PixelMode and SPACING +2 or SPACING), 0)
+				bbuttons[i]:Point('BOTTOMRIGHT', Bui_rdtp, 'BOTTOMRIGHT', (E.PixelMode and PANEL_HEIGHT +SPACING +2 or PANEL_HEIGHT +SPACING), 0)
+			else
+				bbuttons[i]:Point('TOPLEFT', Bui_rdtp, 'TOPRIGHT', SPACING, 0)
+				bbuttons[i]:Point('BOTTOMRIGHT', Bui_rdtp, 'BOTTOMRIGHT', PANEL_HEIGHT + SPACING, 0)
+			end
 			bbuttons[i].parent = RightChatPanel
 			bbuttons[i].text:SetText('C')
 
 			bbuttons[i]:SetScript('OnEnter', function(self)
+				GameTooltip:SetOwner(self, 'ANCHOR_TOPRIGHT', 0, 2 )
+				GameTooltip:ClearLines()
+				GameTooltip:AddLine(L['LeftClick: Toggle Configuration'], selectioncolor)
+				if IsAddOnLoaded('AddOnSkins') then
+					GameTooltip:AddLine(L['RightClick: Toggle Embedded Addon'], selectioncolor)
+				end
+				GameTooltip:AddLine(L['ShiftClick to toggle chat'], selectioncolor)
+
 				if not E.db.benikui.datatexts.chat.styled then
 					self.sglow:Show()
 				end
+
 				if IsShiftKeyDown() then
 					self.text:SetText('>')
 					self:SetScript('OnClick', ChatButton_OnClick)
@@ -377,15 +326,25 @@ function BUIL:ChangeLayout()
 						if btn == 'LeftButton' then
 							E:ToggleConfig()
 						else
-							E:BGStats()
+							if IsAddOnLoaded('AddOnSkins') then
+								local AS = unpack(AddOnSkins) or nil
+								if AS:CheckOption('EmbedRightChat') then
+									if EmbedSystem_MainWindow:IsShown() then
+										AS:SetOption('EmbedIsHidden', true)
+										EmbedSystem_MainWindow:Hide()
+									else
+										AS:SetOption('EmbedIsHidden', false)
+										EmbedSystem_MainWindow:Show()
+									end
+								end
+							else
+								E:BGStats()
+							end
 						end
 						PlaySound("igMainMenuOptionCheckBoxOff");
 					end)
 				end
-				GameTooltip:SetOwner(self, 'ANCHOR_TOPRIGHT', 0, 2 )
-				GameTooltip:ClearLines()
-				GameTooltip:AddLine(L['Toggle Configuration'], selectioncolor)
-				GameTooltip:AddLine(L['ShiftClick to toggle chat'], 0.7, 0.7, 1)
+
 				GameTooltip:Show()
 				if InCombatLockdown() then GameTooltip:Hide() end
 			end)
@@ -398,8 +357,13 @@ function BUIL:ChangeLayout()
 		
 		-- Game menu button
 		elseif i == 2 then
-			bbuttons[i]:Point('TOPRIGHT', Bui_rdtp, 'TOPLEFT', -SPACING, 0)
-			bbuttons[i]:Point('BOTTOMLEFT', Bui_rdtp, 'BOTTOMLEFT', -(PANEL_HEIGHT + SPACING), 0)
+			if E.db.benikui.general.shadows then
+				bbuttons[i]:Point('TOPRIGHT', Bui_rdtp, 'TOPLEFT', (E.PixelMode and -SPACING -2 or -SPACING), 0)
+				bbuttons[i]:Point('BOTTOMLEFT', Bui_rdtp, 'BOTTOMLEFT', (E.PixelMode and -(PANEL_HEIGHT +SPACING +2) or -(PANEL_HEIGHT +SPACING)), 0)
+			else
+				bbuttons[i]:Point('TOPRIGHT', Bui_rdtp, 'TOPLEFT', -SPACING, 0)
+				bbuttons[i]:Point('BOTTOMLEFT', Bui_rdtp, 'BOTTOMLEFT', -(PANEL_HEIGHT + SPACING), 0)
+			end
 			bbuttons[i].text:SetText('G')
 
 			bbuttons[i]:SetScript('OnClick', BuiGameMenu_OnMouseUp)
@@ -422,8 +386,13 @@ function BUIL:ChangeLayout()
 	
 		-- AddOns Button	
 		elseif i == 3 then
-			bbuttons[i]:Point('TOPRIGHT', Bui_ldtp, 'TOPLEFT', -SPACING, 0)
-			bbuttons[i]:Point('BOTTOMLEFT', Bui_ldtp, 'BOTTOMLEFT', -(PANEL_HEIGHT + SPACING), 0)
+			if E.db.benikui.general.shadows then
+				bbuttons[i]:Point('TOPRIGHT', Bui_ldtp, 'TOPLEFT', (E.PixelMode and -SPACING -2 or -SPACING), 0)
+				bbuttons[i]:Point('BOTTOMLEFT', Bui_ldtp, 'BOTTOMLEFT', (E.PixelMode and -(PANEL_HEIGHT + SPACING +2) or -(PANEL_HEIGHT + SPACING)), 0)
+			else
+				bbuttons[i]:Point('TOPRIGHT', Bui_ldtp, 'TOPLEFT', -SPACING, 0)
+				bbuttons[i]:Point('BOTTOMLEFT', Bui_ldtp, 'BOTTOMLEFT', -(PANEL_HEIGHT + SPACING), 0)
+			end
 			bbuttons[i].parent = LeftChatPanel
 			bbuttons[i].text:SetText('A')
 			
@@ -456,8 +425,13 @@ function BUIL:ChangeLayout()
 			
 		-- LFG Button
 		elseif i == 4 then
-			bbuttons[i]:Point('TOPLEFT', Bui_ldtp, 'TOPRIGHT', SPACING, 0)
-			bbuttons[i]:Point('BOTTOMRIGHT', Bui_ldtp, 'BOTTOMRIGHT', PANEL_HEIGHT + SPACING, 0)
+			if E.db.benikui.general.shadows then
+				bbuttons[i]:Point('TOPLEFT', Bui_ldtp, 'TOPRIGHT', (E.PixelMode and SPACING +2 or SPACING), 0)
+				bbuttons[i]:Point('BOTTOMRIGHT', Bui_ldtp, 'BOTTOMRIGHT', (E.PixelMode and PANEL_HEIGHT +SPACING +2 or PANEL_HEIGHT +SPACING), 0)
+			else
+				bbuttons[i]:Point('TOPLEFT', Bui_ldtp, 'TOPRIGHT', SPACING, 0)
+				bbuttons[i]:Point('BOTTOMRIGHT', Bui_ldtp, 'BOTTOMRIGHT', PANEL_HEIGHT + SPACING, 0)
+			end
 			bbuttons[i].text:SetText('L')
 			
 			bbuttons[i]:SetScript('OnClick', function(self)
@@ -485,6 +459,15 @@ function BUIL:ChangeLayout()
 
 	LeftChatPanel.backdrop:Style('Outside', 'LeftChatPanel_Bui') -- keeping the names. Maybe use them as rep or xp bars... dunno... yet
 	RightChatPanel.backdrop:Style('Outside', 'RightChatPanel_Bui')
+
+	if E.db.benikui.general.shadows then
+		LeftMiniPanel:CreateShadow('Default')
+		RightMiniPanel:CreateShadow('Default')
+		LeftChatDataPanel:CreateShadow('Default')
+		LeftChatToggleButton:CreateShadow('Default')
+		RightChatDataPanel:CreateShadow('Default')
+		RightChatToggleButton:CreateShadow('Default')
+	end
 	
 	-- Minimap elements styling
 	if E.private.general.minimap.enable then Minimap.backdrop:Style('Outside') end
@@ -573,6 +556,7 @@ function BUIL:Initialize()
 	hooksecurefunc(LO, 'ToggleChatPanels', BUIL.ChatStyles)
 	hooksecurefunc(M, 'UpdateSettings', BUIL.ResizeMinimapPanels)
 	hooksecurefunc(DT, 'LoadDataTexts', updateButtonFont)
+	hooksecurefunc(E, 'UpdateMedia', updateButtonFont)
 	self:RegisterEvent('PLAYER_ENTERING_WORLD')
 	self:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED', 'regEvents')
 end

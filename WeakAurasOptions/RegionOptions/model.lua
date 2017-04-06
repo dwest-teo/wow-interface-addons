@@ -1,9 +1,4 @@
-local SharedMedia = LibStub("LibSharedMedia-3.0");
 local L = WeakAuras.L;
-
--- GLOBALS: WeakAuras UIParent AceGUIWidgetLSMlists
-
--- Create region options table
 
 local function createOptions(id, data)
     local options = {
@@ -25,7 +20,7 @@ local function createOptions(id, data)
             name = L["Choose"],
             order = 2,
             func = function()
-                WeakAuras.OpenModelPick(data, "model_path");
+                WeakAuras.OpenModelPicker(data, "model_path");
             end,
             hidden = function() return data.modelIsUnit end
         },
@@ -184,17 +179,13 @@ local function createOptions(id, data)
         }
     };
 
-	--
     options = WeakAuras.AddPositionOptions(options, id, data);
-
-	--
 	options = WeakAuras.AddBorderOptions(options, id, data);
 
-	--
     return options;
 end
 
-local function createThumbnail(parent, fullCreate)
+local function createThumbnail(parent)
     local borderframe = CreateFrame("FRAME", nil, parent);
     borderframe:SetWidth(32);
     borderframe:SetHeight(32);

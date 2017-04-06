@@ -28,6 +28,19 @@ function AS:Blizzard_Others()
 		-- end
 	-- end
 
+	local function SkinNavBarButtons(self)
+		local navButton = self.navList[#self.navList]
+		if navButton and not navButton.isSkinned then
+			AS:SkinButton(navButton, true)
+			if navButton.MenuArrowButton then
+				AS:SkinNextPrevButton(navButton.MenuArrowButton, true)
+			end
+
+			navButton.isSkinned = true
+		end
+	end
+	hooksecurefunc("NavBar_AddButton", SkinNavBarButtons)
+
 	--LFD Role Picker frame
 	AS:StripTextures(LFDRoleCheckPopup)
 	AS:SetTemplate(LFDRoleCheckPopup, 'Default')
@@ -76,8 +89,8 @@ function AS:Blizzard_Others()
 			-- AS:SkinEditBox(_G["StaticPopup"..i.."MoneyInputFrameGold"])
 			-- AS:SkinEditBox(_G["StaticPopup"..i.."MoneyInputFrameSilver"])
 			-- AS:SkinEditBox(_G["StaticPopup"..i.."MoneyInputFrameCopper"])
-			-- _G["StaticPopup"..i.."EditBox"].backdrop:Point("TOPLEFT", -2, -4)
-			-- _G["StaticPopup"..i.."EditBox"].backdrop:Point("BOTTOMRIGHT", 2, 4)
+			-- _G["StaticPopup"..i.."EditBox"].backdrop:SetPoint("TOPLEFT", -2, -4)
+			-- _G["StaticPopup"..i.."EditBox"].backdrop:SetPoint("BOTTOMRIGHT", 2, 4)
 			-- _G["StaticPopup"..i.."ItemFrameNameFrame"]:Kill()
 			-- _G["StaticPopup"..i.."ItemFrame"]:GetNormalTexture():Kill()
 			-- AS:SetTemplate(_G["StaticPopup"..i.."ItemFrame"], 'Default')

@@ -11,34 +11,34 @@ local function CreateWideShadow(f)
 	local borderr, borderg, borderb = 0, 0, 0
 	local backdropr, backdropg, backdropb = 0, 0, 0
 
-	local shadow = f.shadow or CreateFrame('Frame', nil, f) -- This way you can replace current shadows.
-	shadow:SetFrameLevel(1)
-	shadow:SetFrameStrata(f:GetFrameStrata())
-	shadow:SetOutside(f, 6, 6)
-	shadow:SetBackdrop( { 
+	local wideshadow = f.wideshadow or CreateFrame('Frame', nil, f) -- This way you can replace current shadows.
+	wideshadow:SetFrameLevel(1)
+	wideshadow:SetFrameStrata(f:GetFrameStrata())
+	wideshadow:SetOutside(f, 6, 6)
+	wideshadow:SetBackdrop( { 
 		edgeFile = LSM:Fetch('border', 'ElvUI GlowBorder'), edgeSize = E:Scale(6),
 		insets = {left = E:Scale(8), right = E:Scale(8), top = E:Scale(8), bottom = E:Scale(8)},
 	})
-	shadow:SetBackdropColor(backdropr, backdropg, backdropb, 0)
-	shadow:SetBackdropBorderColor(borderr, borderg, borderb, 0.5)
-	f.shadow = shadow
+	wideshadow:SetBackdropColor(backdropr, backdropg, backdropb, 0)
+	wideshadow:SetBackdropBorderColor(borderr, borderg, borderb, 0.5)
+	f.wideshadow = wideshadow
 end
 
 local function CreateSoftShadow(f)
 	local borderr, borderg, borderb = 0, 0, 0
 	local backdropr, backdropg, backdropb = 0, 0, 0
 
-	local shadow = f.shadow or CreateFrame('Frame', nil, f) -- This way you can replace current shadows.
-	shadow:SetFrameLevel(1)
-	shadow:SetFrameStrata(f:GetFrameStrata())
-	shadow:SetOutside(f, 2, 2)
-	shadow:SetBackdrop( { 
+	local softshadow = f.softshadow or CreateFrame('Frame', nil, f) -- This way you can replace current shadows.
+	softshadow:SetFrameLevel(1)
+	softshadow:SetFrameStrata(f:GetFrameStrata())
+	softshadow:SetOutside(f, 2, 2)
+	softshadow:SetBackdrop( { 
 		edgeFile = LSM:Fetch('border', 'ElvUI GlowBorder'), edgeSize = E:Scale(2),
 		insets = {left = E:Scale(5), right = E:Scale(5), top = E:Scale(5), bottom = E:Scale(5)},
 	})
-	shadow:SetBackdropColor(backdropr, backdropg, backdropb, 0)
-	shadow:SetBackdropBorderColor(borderr, borderg, borderb, 0.4)
-	f.shadow = shadow
+	softshadow:SetBackdropColor(backdropr, backdropg, backdropb, 0)
+	softshadow:SetBackdropBorderColor(borderr, borderg, borderb, 0.4)
+	f.softshadow = softshadow
 end
 
 local function CreateSoftGlow(f)
@@ -47,7 +47,7 @@ local function CreateSoftGlow(f)
 	local sglow = CreateFrame('Frame', nil, f)
 	sglow:SetFrameLevel(1)
 	sglow:SetFrameStrata(f:GetFrameStrata())
-	sglow:SetOutside(f, 2, 2)
+	sglow:SetOutside(f, 3, 3)
 	sglow:SetBackdrop( { 
 		edgeFile = LSM:Fetch('border', 'ElvUI GlowBorder'), edgeSize = E:Scale(3),
 		insets = {left = E:Scale(5), right = E:Scale(5), top = E:Scale(5), bottom = E:Scale(5)},
@@ -57,22 +57,34 @@ local function CreateSoftGlow(f)
 	f.sglow = sglow
 end
 
-local function Style(f, template, name, colored)
+local r, g, b = 0, 0, 0
+
+local function Style(f, template, name, ignoreColor, ignoreVisibility)
 	if f.style or E.db.benikui.general.benikuiStyle ~= true then return end
 
 	local style = CreateFrame('Frame', name or nil, f)
 	if not template then
-		style:CreateBackdrop('Default', true)
+		style:CreateBackdrop('Transparent', true)
 	else
-		style:SetTemplate('Default', true)
+		style:SetTemplate('Transparent', true)
 	end
 	
-	style:SetFrameLevel(f:GetFrameLevel())
+	style.ignoreUpdates = true
+
+	if(ignoreColor) then
+	   style.ignoreColor = ignoreColor
+	end
+	
+	if(ignoreVisibility) then
+	   style.ignoreVisibility = ignoreVisibility
+	end
+
+	style:SetFrameLevel(f:GetFrameLevel() + 2)
 	
 	local tlx, tly, brx, bry
 	
 	if template == 'Inside' then
-		tlx, tly, brx, bry = 0, (E.PixelMode and 1 or 3), 0, (E.PixelMode and -4 or -3)
+		tlx, tly, brx, bry = 0, (E.PixelMode and 0 or 2), 0, (E.PixelMode and -5 or -4)
 	elseif template == 'Outside' then
 		tlx, tly, brx, bry = 0, (E.PixelMode and 4 or 7), 0, (E.PixelMode and -1 or 1)
 	elseif template == 'Small' then
@@ -89,24 +101,36 @@ local function Style(f, template, name, colored)
 		style:Point('BOTTOMRIGHT', f, 'TOPRIGHT', brx, bry)
 	end
 	
-	if not colored then
-		if not style.color then
-			style.color = style:CreateTexture(nil, 'OVERLAY')
-			style.color:SetInside()
-			style.color:SetTexture(E['media'].BuiFlat)
-			if E.db.benikui.colors.StyleColor == 1 then
-				style.color:SetVertexColor(classColor.r, classColor.g, classColor.b)
-			elseif E.db.benikui.colors.StyleColor == 2 then
-				style.color:SetVertexColor(BUI:unpackColor(E.db.benikui.colors.customStyleColor))
-			elseif E.db.benikui.colors.StyleColor == 3 then
-				style.color:SetVertexColor(BUI:unpackColor(E.db.general.valuecolor))
-			else
-				style.color:SetVertexColor(BUI:unpackColor(E.db.general.backdropcolor))
-			end
+	if not ignoreColor then
+		if E.db.benikui.colors.StyleColor == 1 then
+			r, g, b = classColor.r, classColor.g, classColor.b
+		elseif E.db.benikui.colors.StyleColor == 2 then
+			r, g, b = BUI:unpackColor(E.db.benikui.colors.customStyleColor)
+		elseif E.db.benikui.colors.StyleColor == 3 then
+			r, g, b = BUI:unpackColor(E.db.general.valuecolor)
+		else
+			r, g, b = BUI:unpackColor(E.db.general.backdropcolor)
 		end
+		style:SetBackdropColor(r, g, b, (E.db.benikui.colors.styleAlpha or 1))
+	else
+		style:SetBackdropColor(unpack(E["media"].backdropcolor))
 	end
-	
+
+	if E.db.benikui.general.shadows then
+		f:CreateShadow('Default')
+	end
+
+	if E.db.benikui.general.hideStyle then
+		style:Hide()
+	else
+		style:Show()
+	end
+
 	f.style = style
+
+	if not style.ignoreColor then
+		BUI["styles"][style] = true
+	end
 end
 
 local function addapi(object)

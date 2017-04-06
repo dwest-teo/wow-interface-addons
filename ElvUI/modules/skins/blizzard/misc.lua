@@ -32,6 +32,12 @@ local function LoadSkin()
 		"StackSplitFrame",
 		"QueueStatusFrame",
 		"LFDReadyCheckPopup",
+
+		--DropDownMenu library support
+		"Lib_DropDownList1MenuBackdrop",
+		"Lib_DropDownList2MenuBackdrop",
+		"Lib_DropDownList1Backdrop",
+		"Lib_DropDownList2Backdrop",
 	}
 
 	QueueStatusFrame:StripTextures()
@@ -260,17 +266,6 @@ local function LoadSkin()
 
 	-- mac menu/option panel, made by affli.
 	if IsMacClient() then
-		S:HandleDropDownBox(MovieRecordingOptionsFrameResolutionDropDown)
-		S:HandleDropDownBox(MovieRecordingOptionsFrameFramerateDropDown)
-		S:HandleDropDownBox(MovieRecordingOptionsFrameCodecDropDown)
-
-		S:HandleButton(MovieRecordingOptionsButtonCompress)
-		S:HandleSliderFrame(MovieRecordingOptionsFrameQualitySlider)
-
-		for i=1, 6 do
-			S:HandleCheckBox(_G["MovieRecordingOptionsFrameCheckButton"..i])
-		end
-
 		S:HandleCheckBox(MacKeyboardOptionsFrameCheckButton9)
 		S:HandleCheckBox(MacKeyboardOptionsFrameCheckButton10)
 		S:HandleCheckBox(MacKeyboardOptionsFrameCheckButton11)
@@ -755,6 +750,9 @@ local function LoadSkin()
 		"AccessibilityPanelCinematicSubtitles",
 		"AccessibilityPanelColorblindMode",
 	}
+	if E.wowbuild >= 23623 then --7.2
+		table.insert(interfacecheckbox, "SocialPanelAutoAcceptQuickJoinRequests")
+	end
 
 	for i = 1, getn(interfacecheckbox) do
 		local icheckbox = _G["InterfaceOptions"..interfacecheckbox[i]]
@@ -933,7 +931,16 @@ local function LoadSkin()
 		S:HandleButton(CompactUnitFrameProfilesGeneralOptionsFrameResetPositionButton)
 		S:HandleButton(CompactUnitFrameProfilesSaveButton)
 		S:HandleButton(CompactUnitFrameProfilesDeleteButton)
+
+		CompactUnitFrameProfilesNewProfileDialog:StripTextures()
+		CompactUnitFrameProfilesNewProfileDialog:CreateBackdrop("Transparent")
+		S:HandleEditBox(CompactUnitFrameProfilesNewProfileDialogEditBox)
+		CompactUnitFrameProfilesNewProfileDialogEditBox:SetSize(150, 20)
+		S:HandleDropDownBox(CompactUnitFrameProfilesNewProfileDialogBaseProfileSelector)
+		S:HandleButton(CompactUnitFrameProfilesNewProfileDialogCreateButton)
+		S:HandleButton(CompactUnitFrameProfilesNewProfileDialogCancelButton)
 	end
+
 	GraphicsButton:StripTextures()
 	RaidButton:StripTextures()
 	local raidcheckbox = {

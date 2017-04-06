@@ -87,13 +87,14 @@ function AS:SetTemplate(Frame, Template, UseTexture, TextureFile)
 	local R, G, B = unpack(AS.BackdropColor)
 	local Alpha = (Template == "Transparent" and .8 or 1)
 
-	if IsAddOnLoaded('ElvUI') then
+	if AS:CheckAddOn('ElvUI') then
 		if Template == "Transparent" then
 			R, G, B, Alpha = unpack(ElvUI[1]["media"].backdropfadecolor)
 		else
 			R, G, B = unpack(ElvUI[1]["media"].backdropcolor)
 		end
 
+		Frame.template = Template
 		ElvUI[1]["frames"][Frame] = true
 	end
 
@@ -135,12 +136,15 @@ function AS:CreateBackdrop(Frame, Template, UseTexture, TextureFile)
 	Frame.Backdrop = Backdrop
 end
 
-function AS:StripTextures(Object, Kill)
+function AS:StripTextures(Object, Kill, Alpha)
 	for i = 1, Object:GetNumRegions() do
 		local Region = select(i, Object:GetRegions())
-		if Region:GetObjectType() == "Texture" then
+		if Region and Region:GetObjectType() == "Texture" then
 			if Kill then
 				Region:Kill()
+				--Region:SetParent(AS.Hider)
+			elseif Alpha then
+				Region:SetAlpha(0)
 			else
 				Region:SetTexture(nil)
 			end
@@ -183,6 +187,10 @@ function AS:SkinButton(Button, Strip)
 	if Button.SetDisabledTexture then Button:SetDisabledTexture("") end
 
 	AS:SkinFrame(Button, nil, not Strip)
+
+	if AS:CheckAddOn('ElvUI') and AS:CheckOption('ElvUISkinModule') then
+		AS:SetTemplate(Button, 'Default', true)
+	end
 
 	Button:HookScript("OnEnter", function(self)
 		if AS.ValueColor then
@@ -286,7 +294,7 @@ function AS:SkinCloseButton(CloseButton, Reposition)
 
 	CloseButton:HookScript("OnEnter", function(self)
 		self.Text:SetTextColor(1, .2, .2)
-		if AS:CheckOption('ElvUISkinModule') then
+		if AS:CheckAddOn('ElvUI') and AS:CheckOption('ElvUISkinModule') then
 			self.Backdrop:SetBackdropBorderColor(unpack(ElvUI[1]["media"].rgbvaluecolor))
 		else
 			self.Backdrop:SetBackdropBorderColor(1, .2, .2)
@@ -299,14 +307,14 @@ function AS:SkinCloseButton(CloseButton, Reposition)
 	end)
 
 	CloseButton.Text = CloseButton:CreateFontString(nil, "OVERLAY")
-	CloseButton.Text:SetFont([[Interface\AddOns\AddOnSkins\Media\Fonts\PTSansNarrow.TTF]], 16, AS:CheckOption('ElvUISkinModule') and 'OUTLINE' or nil)
+	CloseButton.Text:SetFont([[Interface\AddOns\AddOnSkins\Media\Fonts\PTSansNarrow.TTF]], 16, AS:CheckAddOn('ElvUI') and AS:CheckOption('ElvUISkinModule') and 'OUTLINE' or nil)
 	CloseButton.Text:SetPoint("CENTER", CloseButton, 'CENTER')
 	CloseButton.Text:SetJustifyH('CENTER')
 	CloseButton.Text:SetJustifyV('MIDDLE')
 	CloseButton.Text:SetText('x')
 
 	if Reposition then
-		f:Point("TOPRIGHT", Reposition, "TOPRIGHT", 2, 2)
+		CloseButton:Point("TOPRIGHT", Reposition, "TOPRIGHT", 2, 2)
 	end
 
 	CloseButton.isSkinned = true
@@ -332,7 +340,7 @@ function AS:SkinEditBox(EditBox, Width, Height)
 
 	AS:CreateBackdrop(EditBox)
 
-	if AS:CheckOption('ElvUISkinModule') then
+	if AS:CheckAddOn('ElvUI') and AS:CheckOption('ElvUISkinModule') then
 		AS:SetTemplate(EditBox.Backdrop, 'Default')
 	end
 
@@ -351,7 +359,7 @@ function AS:SkinCheckBox(CheckBox)
 	AS:StripTextures(CheckBox)
 	AS:CreateBackdrop(CheckBox)
 
-	if AS:CheckOption('ElvUISkinModule') then
+	if AS:CheckAddOn('ElvUI') and AS:CheckOption('ElvUISkinModule') then
 		AS:SetTemplate(CheckBox.Backdrop, 'Default')
 	end
 
@@ -411,7 +419,7 @@ function AS:SkinTab(Tab, Strip)
 
 	AS:CreateBackdrop(Tab)
 
-	if AS:CheckOption('ElvUISkinModule') then
+	if AS:CheckAddOn('ElvUI') and AS:CheckOption('ElvUISkinModule') then
 		AS:SetTemplate(Tab.Backdrop, 'Default')
 	end
 
@@ -632,7 +640,7 @@ function AS:SkinDropDownBox(Frame, Width)
 
 		AS:CreateBackdrop(Frame)
 
-		if AS:CheckOption('ElvUISkinModule') then
+		if AS:CheckAddOn('ElvUI') and AS:CheckOption('ElvUISkinModule') then
 			AS:SetTemplate(Frame.Backdrop, 'Default')
 		end
 
@@ -646,7 +654,7 @@ function AS:SkinSlideBar(Frame, Height, MoveText)
 	AS:CreateBackdrop(Frame)
 	Frame.Backdrop:SetAllPoints()
 
-	if AS:CheckOption('ElvUISkinModule') then
+	if AS:CheckAddOn('ElvUI') and AS:CheckOption('ElvUISkinModule') then
 		AS:SetTemplate(Frame.Backdrop, 'Default')
 	end
 
@@ -739,7 +747,7 @@ function AS:SkinStatusBar(frame, ClassColor)
 		local color = RAID_CLASS_COLORS[AS.MyClass]
 		frame:SetStatusBarColor(color.r, color.g, color.b)
 	end
-	if IsAddOnLoaded('ElvUI') then
+	if AS:CheckAddOn('ElvUI') then
 		ElvUI[1]:RegisterStatusBar(Frame)
 	end
 end
@@ -787,4 +795,35 @@ function AS:AdjustForPixelPerfect(number)
 	end
 
 	return number
+end
+
+local function EnumObjectsHelper(enumFuncs, yieldFunc, iobj)
+	local depth = #enumFuncs
+	local i = 1
+	local obj
+	repeat
+		if (iobj) then
+			obj = enumFuncs[1](iobj, i)
+		else
+			obj = enumFuncs[1](i)
+		end
+		if (obj) then
+			if (depth == 1) then
+				yieldFunc(obj)
+			else
+				local innerEnumFuncs = CopyTable(enumFuncs);
+				tremove(innerEnumFuncs, 1);
+				EnumObjectsHelper(innerEnumFuncs, yieldFunc, obj);
+			end
+		end
+		i = i + 1
+	until not obj
+end
+
+function AS:EnumObjects(enumFuncs, yieldFunc)
+	if (type(enumFuncs) == "function") then
+		enumFuncs = {enumFuncs}
+	end
+
+	EnumObjectsHelper(enumFuncs, yieldFunc)
 end

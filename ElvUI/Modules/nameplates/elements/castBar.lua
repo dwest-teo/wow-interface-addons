@@ -142,7 +142,7 @@ function mod:UpdateElement_Cast(frame, event, ...)
 			frame.CastBar.casting = nil;
 			frame.CastBar.channeling = nil;
 			frame.CastBar.canInterrupt = nil
-			frame.CastBar.holdTime = 2 --How long the castbar should stay visible after being interrupted, in seconds
+			frame.CastBar.holdTime = self.db.units[frame.UnitType].castbar.timeToHold --How long the castbar should stay visible after being interrupted, in seconds
 		end
 	elseif ( event == "UNIT_SPELLCAST_DELAYED" ) then
 		if ( frame:IsShown() ) then
@@ -229,7 +229,7 @@ function mod:ConfigureElement_CastBar(frame)
 
 	--Position
 	castBar:ClearAllPoints()
-	if(self.db.units[frame.UnitType].powerbar.enable) then
+	if(self.db.units[frame.UnitType].powerbar.enable and frame.PowerBar:IsShown()) then
 		castBar:SetPoint("TOPLEFT", frame.PowerBar, "BOTTOMLEFT", 0, -E.Border - E.Spacing*3)
 		castBar:SetPoint("TOPRIGHT", frame.PowerBar, "BOTTOMRIGHT", 0, -E.Border - E.Spacing*3)
 	else
