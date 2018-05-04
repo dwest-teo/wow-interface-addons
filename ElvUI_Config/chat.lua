@@ -1,6 +1,11 @@
 local E, L, V, P, G = unpack(ElvUI); --Inport: Engine, Locales, PrivateDB, ProfileDB, GlobalDB
 local CH = E:GetModule('Chat')
 
+local _G = _G
+local gsub = string.gsub
+local strlower = string.lower
+local GameTooltip = _G['GameTooltip']
+
 E.Options.args.chat = {
 	type = "group",
 	name = L["Chat"],
@@ -130,12 +135,6 @@ E.Options.args.chat = {
 						CH:UpdateSettings()
 					end,
 				},
-				classColorMentionsChat = {
-					order = 11,
-					type = "toggle",
-					name = L["Class Color Mentions"],
-					desc = L["Use class color for the names of players when they are mentioned."],
-				},
 				autoClosePetBattleLog = {
 					order = 12,
 					type = "toggle",
@@ -216,7 +215,6 @@ E.Options.args.chat = {
 						return t.r, t.g, t.b, t.a, d.r, d.g, d.b
 					end,
 					set = function(info, r, g, b)
-						E.db.chat.customTimeColor = {}
 						local t = E.db.chat.customTimeColor
 						t.r, t.g, t.b = r, g, b
 					end,
@@ -435,7 +433,7 @@ E.Options.args.chat = {
 					desc = L["Set the font outline."],
 					type = "select",
 					values = {
-						['NONE'] = L["None"],
+						['NONE'] = NONE,
 						['OUTLINE'] = 'OUTLINE',
 						['MONOCHROMEOUTLINE'] = 'MONOCHROMEOUTLINE',
 						['THICKOUTLINE'] = 'THICKOUTLINE',
@@ -459,12 +457,64 @@ E.Options.args.chat = {
 					desc = L["Set the font outline."],
 					type = "select",
 					values = {
-						['NONE'] = L["None"],
+						['NONE'] = NONE,
 						['OUTLINE'] = 'OUTLINE',
 
 						['MONOCHROMEOUTLINE'] = 'MONOCROMEOUTLINE',
 						['THICKOUTLINE'] = 'THICKOUTLINE',
 					},
+				},
+			},
+		},
+		classColorMentionGroup = {
+			order = 130,
+			type = "group",
+			name = L["Class Color Mentions"],
+			args = {
+				header = {
+					order = 0,
+					type = "header",
+					name = L["Class Color Mentions"],
+				},
+				classColorMentionsChat = {
+					order = 1,
+					type = "toggle",
+					name = L["Chat"],
+					desc = L["Use class color for the names of players when they are mentioned."],
+					get = function(info) return E.db.chat.classColorMentionsChat end,
+					set = function(info, value) E.db.chat.classColorMentionsChat = value end,
+					disabled = function() return not E.private.chat.enable end,
+				},
+				classColorMentionsSpeech = {
+					order = 2,
+					type = "toggle",
+					name = L["Chat Bubbles"],
+					desc = L["Use class color for the names of players when they are mentioned."],
+					get = function(info) return E.private.general.classColorMentionsSpeech end,
+					set = function(info, value) E.private.general.classColorMentionsSpeech = value; E:StaticPopup_Show("PRIVATE_RL") end,
+					disabled = function() return (E.private.general.chatBubbles == "disabled" or not E.private.chat.enable) end,
+				},
+				classColorMentionExcludeName = {
+					order = 21,
+					name = L["Exclude Name"],
+					desc = L["Excluded names will not be class colored."],
+					type = 'input',
+					get = function(info) return "" end,
+					set = function(info, value)
+						if value == "" or gsub(value, "%s+", "") == "" then return; end --Don't allow empty entries
+						E.global.chat.classColorMentionExcludedNames[strlower(value)] = value
+					end,
+				},
+				classColorMentionExcludedNames = {
+					order = 22,
+					type = "multiselect",
+					name = L["Excluded Names"],
+					values = function() return E.global.chat.classColorMentionExcludedNames end,
+					get = function(info, value)	return E.global.chat.classColorMentionExcludedNames[value] end,
+					set = function(info, value)
+						E.global.chat.classColorMentionExcludedNames[value] = nil
+						GameTooltip:Hide()--Make sure tooltip is properly hidden
+					end,
 				},
 			},
 		},

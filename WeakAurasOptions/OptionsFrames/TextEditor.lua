@@ -17,44 +17,106 @@ local textEditor
 local valueFromPath = WeakAuras.ValueFromPath;
 local valueToPath = WeakAuras.ValueToPath;
 
-local tableColor = "|c00ff3333"
-local arithmeticColor = "|c00ff3333"
-local relationColor = "|c00ff3333"
-local logicColor = "|c004444ff"
-
-local colorScheme = {
-  [IndentationLib.tokens.TOKEN_SPECIAL] = "|c00ff3333",
-  [IndentationLib.tokens.TOKEN_KEYWORD] = "|c004444ff",
-  [IndentationLib.tokens.TOKEN_COMMENT_SHORT] = "|c0000aa00",
-  [IndentationLib.tokens.TOKEN_COMMENT_LONG] = "|c0000aa00",
-  [IndentationLib.tokens.TOKEN_NUMBER] = "|c00ff9900",
-  [IndentationLib.tokens.TOKEN_STRING] = "|c00999999",
-  -- ellipsis, curly braces, table acces
-  ["..."] = tableColor,
-  ["{"] = tableColor,
-  ["}"] = tableColor,
-  ["["] = tableColor,
-  ["]"] = tableColor,
-  -- arithmetic operators
-  ["+"] = arithmeticColor,
-  ["-"] = arithmeticColor,
-  ["/"] = arithmeticColor,
-  ["*"] = arithmeticColor,
-  [".."] = arithmeticColor,
-  -- relational operators
-  ["=="] = relationColor,
-  ["<"] = relationColor,
-  ["<="] = relationColor,
-  [">"] = relationColor,
-  [">="] = relationColor,
-  ["~="] = relationColor,
-  -- logical operators
-  ["and"] = logicColor,
-  ["or"] = logicColor,
-  ["not"] = logicColor,
-  -- misc
-  [0] = "|r",
+local editor_themes = {
+  ["Standard"] = {
+    ["Table"] = "|c00ff3333",
+    ["Arithmetic"] = "|c00ff3333",
+    ["Relational"] = "|c00ff3333",
+    ["Logical"] = "|c004444ff",
+    ["Special"] = "|c00ff3333",
+    ["Keyword"] =  "|c004444ff",
+    ["Comment"] = "|c0000aa00",
+    ["Number"] = "|c00ff9900",
+    ["String"] = "|c00999999"
+  },
+  ["Monokai"] = {
+    ["Table"] = "|c00ffffff",
+    ["Arithmetic"] = "|c00f92672",
+    ["Relational"] = "|c00ff3333",
+    ["Logical"] = "|c00f92672",
+    ["Special"] = "|c0066d9ef",
+    ["Keyword"] =  "|c00f92672",
+    ["Comment"] = "|c0075715e",
+    ["Number"] = "|c00ae81ff",
+    ["String"] = "|c00e6db74"
+  },
+  ["Obsidian"] = {
+    ["Table"] = "|c00AFC0E5",
+    ["Arithmetic"] = "|c00E0E2E4",
+    ["Relational"] = "|c00B3B689",
+    ["Logical"] = "|c0093C763",
+    ["Special"] = "|c00AFC0E5",
+    ["Keyword"] =  "|c0093C763",
+    ["Comment"] = "|c0066747B",
+    ["Number"] = "|c00FFCD22",
+    ["String"] = "|c00EC7600"
+  },
 }
+
+local color_scheme = { [0] = "|r" }
+local function set_scheme()
+  if not WeakAurasSaved.editor_theme then
+    WeakAurasSaved.editor_theme = "Monokai"
+  end
+  local theme = editor_themes[WeakAurasSaved.editor_theme]
+  color_scheme[IndentationLib.tokens.TOKEN_SPECIAL] = theme["Special"]
+  color_scheme[IndentationLib.tokens.TOKEN_KEYWORD] = theme["Keyword"]
+  color_scheme[IndentationLib.tokens.TOKEN_COMMENT_SHORT] = theme["Comment"]
+  color_scheme[IndentationLib.tokens.TOKEN_COMMENT_LONG] = theme["Comment"]
+  color_scheme[IndentationLib.tokens.TOKEN_NUMBER] = theme["Number"]
+  color_scheme[IndentationLib.tokens.TOKEN_STRING] = theme["String"]
+
+  color_scheme["..."] = theme["Table"]
+  color_scheme["{"] = theme["Table"]
+  color_scheme["}"] = theme["Table"]
+  color_scheme["["] = theme["Table"]
+  color_scheme["]"] = theme["Table"]
+
+  color_scheme["+"] = theme["Arithmetic"]
+  color_scheme["-"] = theme["Arithmetic"]
+  color_scheme["/"] = theme["Arithmetic"]
+  color_scheme["*"] = theme["Arithmetic"]
+  color_scheme[".."] = theme["Arithmetic"]
+
+  color_scheme["=="] = theme["Relational"]
+  color_scheme["<"] = theme["Relational"]
+  color_scheme["<="] = theme["Relational"]
+  color_scheme[">"] = theme["Relational"]
+  color_scheme[">="] = theme["Relational"]
+  color_scheme["~="] = theme["Relational"]
+
+  color_scheme["and"] = theme["Logical"]
+  color_scheme["or"] = theme["Logical"]
+  color_scheme["not"] = theme["Logical"]
+end
+
+local function settings_dropdown_initialize(frame, level, menu)
+  for k, v in pairs(editor_themes) do
+    local item = {
+      text = k,
+      isNotRadio = false,
+      checked = function()
+        return WeakAurasSaved.editor_theme == k
+      end,
+      func = function()
+        WeakAurasSaved.editor_theme = k
+        set_scheme()
+        WeakAuras.editor.editBox:SetText(WeakAuras.editor.editBox:GetText())
+      end
+    }
+    UIDropDownMenu_AddButton(item)
+  end
+  UIDropDownMenu_AddButton({
+    text = L["Bracket Matching"],
+    isNotRadio = true,
+    checked = function()
+      return WeakAurasSaved.editor_bracket_matching
+    end,
+    func = function()
+      WeakAurasSaved.editor_bracket_matching = not WeakAurasSaved.editor_bracket_matching
+    end
+  })
+end
 
 local function ConstructTextEditor(frame)
   local group = AceGUI:Create("InlineGroup");
@@ -69,19 +131,24 @@ local function ConstructTextEditor(frame)
   editor.button:Hide();
   local fontPath = SharedMedia:Fetch("font", "Fira Mono Medium");
   if(fontPath) then
-    editor.editBox:SetFont(fontPath, 12);
+    -- Manually scale our font size
+    editor.editBox:SetFont(fontPath, 12 * editor.editBox:GetEffectiveScale());
   end
+  -- WORKAROUND And ignore our parent scale, to work around a bug in WoW 7.3
+  editor.editBox:SetIgnoreParentScale(true);
   group:AddChild(editor);
   editor.frame:SetClipsChildren(true);
 
   -- The indention lib overrides GetText, but for the line number
   -- display we ned the original, so save it here.
   local originalGetText = editor.editBox.GetText;
-  IndentationLib.enable(editor.editBox, colorScheme, 4);
+  set_scheme()
+  IndentationLib.enable(editor.editBox, color_scheme, 4)
 
   local cancel = CreateFrame("Button", nil, group.frame, "UIPanelButtonTemplate");
   cancel:SetScript("OnClick", function() group:CancelClose() end);
   cancel:SetPoint("BOTTOMRIGHT", -27, 13);
+  cancel:SetFrameLevel(cancel:GetFrameLevel() + 1)
   cancel:SetHeight(20);
   cancel:SetWidth(100);
   cancel:SetText(L["Cancel"]);
@@ -89,9 +156,50 @@ local function ConstructTextEditor(frame)
   local close = CreateFrame("Button", nil, group.frame, "UIPanelButtonTemplate");
   close:SetScript("OnClick", function() group:Close() end);
   close:SetPoint("RIGHT", cancel, "LEFT", -10, 0)
+  close:SetFrameLevel(close:GetFrameLevel() + 1)
   close:SetHeight(20);
   close:SetWidth(100);
   close:SetText(L["Done"]);
+
+  local settings_frame = CreateFrame("Button", "WASettingsButton", close, "UIPanelButtonTemplate")
+  settings_frame:SetPoint("RIGHT", close, "LEFT", -10, 0)
+  settings_frame:SetHeight(20)
+  settings_frame:SetWidth(100)
+  settings_frame:SetText(L["Settings"])
+  settings_frame:RegisterForClicks("LeftButtonUp")
+
+  local dropdown = CreateFrame("Frame", "SettingsMenuFrame", settings_frame, "UIDropDownMenuTemplate")
+  UIDropDownMenu_Initialize(dropdown, settings_dropdown_initialize, "MENU")
+
+  settings_frame:SetScript("OnClick", function(self, button, down)
+    ToggleDropDownMenu(1, nil, dropdown, settings_frame, 0, 0)
+  end)
+
+  -- CTRL + S saves and closes, ESC cancels and closes
+  editor.editBox:HookScript("OnKeyDown", function(_, key)
+    if IsControlKeyDown() and key == "S" then
+      group:Close()
+    end
+    if key == "ESCAPE" then
+      group:CancelClose()
+    end
+  end)
+
+  -- bracket matching
+  editor.editBox:HookScript("OnChar", function(_, char)
+    if not IsControlKeyDown() and WeakAurasSaved.editor_bracket_matching then
+      if char == "(" then
+        editor.editBox:Insert(")")
+        editor.editBox:SetCursorPosition(editor.editBox:GetCursorPosition() - 1)
+      elseif char == "{" then
+        editor.editBox:Insert("}")
+        editor.editBox:SetCursorPosition(editor.editBox:GetCursorPosition() - 1)
+      elseif char == "[" then
+        editor.editBox:Insert("]")
+        editor.editBox:SetCursorPosition(editor.editBox:GetCursorPosition() - 1)
+      end
+    end
+  end)
 
   local editorError = group.frame:CreateFontString(nil, "OVERLAY");
   editorError:SetFont("Fonts\\FRIZQT__.TTF", 10)
@@ -138,10 +246,10 @@ local function ConstructTextEditor(frame)
     end
   end);
 
-  function group.Open(self, data, path, enclose, addReturn)
+  function group.Open(self, data, path, enclose, multipath)
     self.data = data;
     self.path = path;
-    self.addReturn = addReturn;
+    self.multipath = multipath;
     if(frame.window == "texture") then
       frame.texturePicker:CancelClose();
     elseif(frame.window == "icon") then
@@ -152,11 +260,13 @@ local function ConstructTextEditor(frame)
     self.frame:Show();
     frame.window = "texteditor";
     local title = (type(data.id) == "string" and data.id or L["Temporary Group"]).." -";
-    for index, field in pairs(path) do
-      if(type(field) == "number") then
-        field = "Trigger "..field+1
+    if (not multipath) then
+      for index, field in pairs(path) do
+        if(type(field) == "number") then
+          field = "Trigger "..field+1
+        end
+        title = title.." "..field:sub(1, 1):upper()..field:sub(2);
       end
-      title = title.." "..field:sub(1, 1):upper()..field:sub(2);
     end
     editor:SetLabel(title);
     editor.editBox:SetScript("OnEscapePressed", function() group:CancelClose(); end);
@@ -182,10 +292,7 @@ local function ConstructTextEditor(frame)
       local combinedText = "";
       for index, childId in pairs(data.controlledChildren) do
         local childData = WeakAuras.GetData(childId);
-        local text = valueFromPath(childData, path);
-        if(addReturn and text and #text > 8) then
-          text = text:sub(8);
-        end
+        local text = valueFromPath(childData, multipath and path[childId] or path);
         if not(singleText) then
           singleText = text;
         else
@@ -208,12 +315,7 @@ local function ConstructTextEditor(frame)
         editor.combinedText = true;
       end
     else
-      if(addReturn) then
-        local value = valueFromPath(data, path);
-        editor:SetText(value and #value > 8 and value:sub(8) or "");
-      else
-        editor:SetText(valueFromPath(data, path) or "");
-      end
+      editor:SetText(valueFromPath(data, path) or "");
     end
     editor:SetFocus();
   end
@@ -265,21 +367,14 @@ local function ConstructTextEditor(frame)
       for index, childId in pairs(self.data.controlledChildren) do
         local text = editor.combinedText and (textById[childId] or "") or editor:GetText();
         local childData = WeakAuras.GetData(childId);
-        if(self.addReturn) then
-          valueToPath(childData, self.path, "return "..text);
-        else
-          valueToPath(childData, self.path, text);
-        end
+        valueToPath(childData, self.multipath and self.path[childId] or self.path, text);
         WeakAuras.Add(childData);
       end
     else
-      if(self.addReturn) then
-        valueToPath(self.data, self.path, "return "..editor:GetText());
-      else
-        valueToPath(self.data, self.path, editor:GetText());
-      end
+      valueToPath(self.data, self.path, editor:GetText());
       WeakAuras.Add(self.data);
     end
+    WeakAuras.ReloadTriggerOptions(self.data);
 
     editor.editBox:SetScript("OnTextChanged", self.oldOnTextChanged);
     editor:ClearFocus();
@@ -290,6 +385,7 @@ local function ConstructTextEditor(frame)
 
     frame:RefreshPick();
   end
+  WeakAuras.editor = editor
 
   return group
 end

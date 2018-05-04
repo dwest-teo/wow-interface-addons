@@ -76,8 +76,6 @@ local function LoadSkin()
 		"RP",
 		"Weekdays",
 		"Weekends",
-		"LevelAny",
-		"LevelMax",
 	}
 
 	for _, frame in pairs(checkbuttons) do
@@ -87,6 +85,8 @@ local function LoadSkin()
 	S:HandleCheckBox(GuildRecruitmentTankButton:GetChildren())
 	S:HandleCheckBox(GuildRecruitmentHealerButton:GetChildren())
 	S:HandleCheckBox(GuildRecruitmentDamagerButton:GetChildren())
+	S:HandleButton(GuildRecruitmentLevelAnyButton)
+	S:HandleButton(GuildRecruitmentLevelMaxButton)
 
 	for i=1,5 do
 		S:HandleTab(_G["GuildFrameTab"..i])
@@ -123,9 +123,18 @@ local function LoadSkin()
 	GuildMemberOfficerNoteBackground:SetTemplate("Transparent")
 	GuildMemberRankDropdown:SetFrameLevel(GuildMemberRankDropdown:GetFrameLevel() + 5)
 	S:HandleDropDownBox(GuildMemberRankDropdown, 175)
+
 	--Increase height of GuildMemberDetailFrame by changing global variables
-	GUILD_DETAIL_NORM_HEIGHT = 225; --Default 175
-	GUILD_DETAIL_OFFICER_HEIGHT = 278; --Default 228
+	local GUILD_DETAIL_OFFICER_HEIGHT = GUILD_DETAIL_OFFICER_HEIGHT
+	local GUILD_DETAIL_NORM_HEIGHT = GUILD_DETAIL_NORM_HEIGHT
+	hooksecurefunc(GuildMemberDetailFrame, "SetHeight", function(self, _, breakLoop)
+		if breakLoop then return; end
+		if CanViewOfficerNote() then
+			GuildMemberDetailFrame:SetHeight(GUILD_DETAIL_OFFICER_HEIGHT + 50 + GuildMemberDetailName:GetHeight() + GuildMemberDetailRankLabel:GetHeight(), true)
+		else
+			GuildMemberDetailFrame:SetHeight(GUILD_DETAIL_NORM_HEIGHT + 50 + GuildMemberDetailName:GetHeight() + GuildMemberDetailRankLabel:GetHeight(), true)
+		end
+	end)
 
 	--News
 	GuildNewsFrame:StripTextures()

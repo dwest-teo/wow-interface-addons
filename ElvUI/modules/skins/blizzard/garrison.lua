@@ -47,7 +47,7 @@ local function LoadSkin()
 			end
 		end)
 
-		hooksecurefunc("GarrisonMissionPage_SetReward", function(frame, reward)
+		hooksecurefunc("GarrisonMissionPage_SetReward", function(frame, reward, missionComplete)
 			frame.BG:SetTexture()
 			if not frame.backdrop then
 				S:HandleIcon(frame.Icon)
@@ -83,6 +83,16 @@ local function LoadSkin()
 	GarrisonBuildingFrame.BuildingLevelTooltip:StripTextures()
 	GarrisonBuildingFrame.BuildingLevelTooltip:SetTemplate('Transparent')
 
+	-- Follower List
+	local FollowerList = GarrisonBuildingFrame.FollowerList
+	S:HandleScrollBar(FollowerList.listScroll.scrollBar)
+
+	FollowerList:ClearAllPoints()
+	FollowerList:SetPoint("BOTTOMLEFT", 24, 34)
+
+	local scrollFrame = FollowerList.listScroll
+	S:HandleScrollBar(scrollFrame.scrollBar)
+
 	-- Capacitive display frame
 	GarrisonCapacitiveDisplayFrame:StripTextures(true)
 	GarrisonCapacitiveDisplayFrame:CreateBackdrop("Transparent")
@@ -98,7 +108,6 @@ local function LoadSkin()
 	local CapacitiveDisplay = GarrisonCapacitiveDisplayFrame.CapacitiveDisplay
 	CapacitiveDisplay.IconBG:SetTexture()
 	CapacitiveDisplay.ShipmentIconFrame.Icon:SetTexCoord(unpack(E.TexCoords))
-	CapacitiveDisplay.ShipmentIconFrame:SetTemplate("Default", true)
 	CapacitiveDisplay.ShipmentIconFrame.Icon:SetInside()
 	--Fix unitframes appearing above work orders
 	GarrisonCapacitiveDisplayFrame:SetFrameStrata("MEDIUM")

@@ -563,7 +563,7 @@ function BFM:Initialize()
 	
 	self.FlightMode.bottom.map:SetScript('OnClick', function()
 		PlaySound("igMainMenuOptionCheckBoxOff");
-		ToggleFrame(WorldMapFrame)
+		ToggleWorldMap()
 	end)
 	
 	-- Toggle bags button
@@ -635,4 +635,8 @@ function BFM:Initialize()
 	self:Toggle()
 end
 
-E:RegisterModule(BFM:GetName())
+local function InitializeCallback()
+	BFM:Initialize()
+end
+
+E:RegisterModule(BFM:GetName(), InitializeCallback)

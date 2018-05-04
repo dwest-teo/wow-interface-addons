@@ -1,7 +1,7 @@
 --- AceConfigCmd-3.0 handles access to an options table through the "command line" interface via the ChatFrames.
 -- @class file
 -- @name AceConfigCmd-3.0
--- @release $Id: AceConfigCmd-3.0.lua 1045 2011-12-09 17:58:40Z nevcairiel $
+-- @release $Id: AceConfigCmd-3.0.lua 1161 2017-08-12 14:30:16Z funkydude $
 
 --[[
 AceConfigCmd-3.0
@@ -14,8 +14,9 @@ REQUIRES: AceConsole-3.0 for command registration (loaded on demand)
 
 -- TODO: plugin args
 
+local cfgreg = LibStub("AceConfigRegistry-3.0")
 
-local MAJOR, MINOR = "AceConfigCmd-3.0", 13
+local MAJOR, MINOR = "AceConfigCmd-3.0", 14
 local AceConfigCmd = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not AceConfigCmd then return end
@@ -23,7 +24,6 @@ if not AceConfigCmd then return end
 AceConfigCmd.commands = AceConfigCmd.commands or {}
 local commands = AceConfigCmd.commands
 
-local cfgreg = LibStub("AceConfigRegistry-3.0")
 local AceConsole -- LoD
 local AceConsoleName = "AceConsole-3.0"
 
@@ -83,7 +83,7 @@ end
 -- usererr() - produce chatframe message regarding bad slash syntax etc
 
 local function usererr(info,inputpos,msg )
-	local cmdstr=strsub(info.input, 1, inputpos-1);
+	local cmdstr=strsub(info.input, 1, inputpos-1)
 	print("/" ..info[0] .. " "..cmdstr ..": "..(msg or "malformed options table"))
 end
 
@@ -208,7 +208,7 @@ local function showhelp(info, inputpos, tab, depth, noHead)
 	end
 	
 	local sortTbl = {}	-- [1..n]=name
-	local refTbl = {}   -- [name]=tableref
+	local refTbl = {}	-- [name]=tableref
 	
 	for k,v in iterateargs(tab) do
 		if not refTbl[k] then	-- a plugin overriding something in .args
@@ -237,7 +237,7 @@ local function showhelp(info, inputpos, tab, depth, noHead)
 		if o1<0 and o2<0 then return o1<o2 end
 		if o2<0 then return true end
 		if o1<0 then return false end
-		if o1==o2 then return tostring(one)<tostring(two) end   -- compare names
+		if o1==o2 then return tostring(one)<tostring(two) end	-- compare names
 		return o1<o2
 	end)
 	
@@ -401,7 +401,7 @@ local function handle(info, inputpos, tab, depth, retfalse)
 		return
 	end
 	
-	local str = strsub(info.input,inputpos);
+	local str = strsub(info.input,inputpos)
 	
 	if tab.type=="execute" then
 		------------ execute --------------------------------------------
@@ -740,12 +740,12 @@ end
 -- 
 -- -- Show the GUI if no input is supplied, otherwise handle the chat input.
 -- function MyAddon:ChatCommand(input)
---   -- Assuming "MyOptions" is the appName of a valid options table
---   if not input or input:trim() == "" then
---     LibStub("AceConfigDialog-3.0"):Open("MyOptions")
---   else
---     LibStub("AceConfigCmd-3.0").HandleCommand(MyAddon, "mychat", "MyOptions", input)
---   end
+--	-- Assuming "MyOptions" is the appName of a valid options table
+--	if not input or input:trim() == "" then
+--	 LibStub("AceConfigDialog-3.0"):Open("MyOptions")
+--	else
+--	 LibStub("AceConfigCmd-3.0").HandleCommand(MyAddon, "mychat", "MyOptions", input)
+--	end
 -- end
 function AceConfigCmd:HandleCommand(slashcmd, appName, input)
 
@@ -755,7 +755,7 @@ function AceConfigCmd:HandleCommand(slashcmd, appName, input)
 	end
 	local options = assert( optgetter("cmd", MAJOR) )
 	
-	local info = {   -- Don't try to recycle this, it gets handed off to callbacks and whatnot
+	local info = {	-- Don't try to recycle this, it gets handed off to callbacks and whatnot
 		[0] = slashcmd,
 		appName = appName,
 		options = options,

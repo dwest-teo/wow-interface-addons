@@ -46,6 +46,15 @@ local function LoadSkin()
 	InstanceSelect.LootJournalTab:ClearAllPoints()
 	InstanceSelect.LootJournalTab:Point("BOTTOMLEFT", InstanceSelect.raidsTab, "BOTTOMRIGHT", 0, 0)
 
+	--Skin the tab text
+	for i = 1, #InstanceSelect.Tabs do
+		local tab = InstanceSelect.Tabs[i]
+		local text = tab:GetFontString()
+
+		text:FontTemplate()
+		text:SetPoint("CENTER")
+	end
+
 	--Encounter Info Frame
 	local EncounterInfo = EJ.encounter.info
 	EncounterJournalEncounterFrameInfoBG:Kill()
@@ -160,6 +169,7 @@ local function LoadSkin()
 	S:HandleScrollBar(EncounterJournalScrollBar)
 	S:HandleButton(EncounterJournal.LootJournal.LegendariesFrame.ClassButton, true)
 	S:HandleButton(EncounterJournal.LootJournal.LegendariesFrame.SlotButton, true)
+	S:HandleButton(EncounterJournal.LootJournal.ItemSetsFrame.ClassButton, true)
 	S:HandleDropDownBox(LootJournalViewDropDown)
 	LootJournalViewDropDownText:ClearAllPoints()
 	LootJournalViewDropDownText:Point("CENTER", LootJournalViewDropDown, "CENTER", 0, 3)
@@ -221,6 +231,8 @@ local function LoadSkin()
 			bossButton = _G["EncounterJournalBossButton"..bossIndex];
 			if bossButton and not bossButton.isSkinned then
 				S:HandleButton(bossButton)
+				bossButton.creature:ClearAllPoints()
+				bossButton.creature:Point("TOPLEFT", 1, -4)
 				bossButton.isSkinned = true
 			end
 

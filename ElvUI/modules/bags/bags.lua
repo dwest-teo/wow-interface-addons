@@ -37,7 +37,6 @@ local GetItemQualityColor = GetItemQualityColor
 local GetMoney = GetMoney
 local GetNumBankSlots = GetNumBankSlots
 local GetScreenWidth, GetScreenHeight = GetScreenWidth, GetScreenHeight
-local HandleModifiedItemClick = HandleModifiedItemClick
 local IsBagOpen, IsOptionFrameOpen = IsBagOpen, IsOptionFrameOpen
 local IsModifiedClick = IsModifiedClick
 local IsReagentBankUnlocked = IsReagentBankUnlocked
@@ -59,6 +58,12 @@ local CONTAINER_OFFSET_X, CONTAINER_OFFSET_Y = CONTAINER_OFFSET_X, CONTAINER_OFF
 local CONTAINER_SCALE = CONTAINER_SCALE
 local CONTAINER_SPACING, VISIBLE_CONTAINER_SPACING = CONTAINER_SPACING, VISIBLE_CONTAINER_SPACING
 local CONTAINER_WIDTH = CONTAINER_WIDTH
+local IG_CHARACTER_INFO_TAB
+local IG_MAINMENU_OPTION
+if SOUNDKIT then
+	IG_CHARACTER_INFO_TAB = SOUNDKIT.IG_CHARACTER_INFO_TAB
+	IG_MAINMENU_OPTION = SOUNDKIT.IG_MAINMENU_OPTION
+end
 local LE_ITEM_QUALITY_POOR = LE_ITEM_QUALITY_POOR
 local MAX_CONTAINER_ITEMS = MAX_CONTAINER_ITEMS
 local MAX_WATCHED_TOKENS = MAX_WATCHED_TOKENS
@@ -68,13 +73,15 @@ local REAGENTBANK_CONTAINER = REAGENTBANK_CONTAINER
 local REAGENTBANK_PURCHASE_TEXT = REAGENTBANK_PURCHASE_TEXT
 local SEARCH = SEARCH
 local TEXTURE_ITEM_QUEST_BANG = TEXTURE_ITEM_QUEST_BANG
+local PlaySoundKitID = PlaySoundKitID
 
 --Global variables that we don't cache, list them here for mikk's FindGlobals script
 -- GLOBALS: GameTooltip, BankFrame, ElvUIReagentBankFrameItem1, GuildBankFrame, ElvUIBags
 -- GLOBALS: ContainerFrame1, RightChatToggleButton, GuildItemSearchBox, StackSplitFrame
 -- GLOBALS: LeftChatToggleButton, MAX_GUILDBANK_SLOTS_PER_TAB, UISpecialFrames
 -- GLOBALS: ElvUIReagentBankFrame, MerchantFrame, BagItemAutoSortButton, SetInsertItemsLeftToRight
--- GLOBALS: ElvUIBankMover, ElvUIBagMover, RightChatPanel, LeftChatPanel
+-- GLOBALS: ElvUIBankMover, ElvUIBagMover, RightChatPanel, LeftChatPanel, IsContainerItemAnUpgrade
+-- GLOBALS: HandleModifiedItemClick
 
 local SEARCH_STRING = ""
 
@@ -194,7 +201,7 @@ function B:SetSearch(query)
 	local method = Search.Matches
 	local allowPartialMatch
 	if Search.Filters.tipPhrases.keywords[query] then
-		if itemsearchquery == "rel" or itemsearchquery == "reli" or itemsearchquery == "relic" then
+		if query == "rel" or query == "reli" or query == "relic" then
 			allowPartialMatch = true
 		end
 		method = Search.TooltipPhrase
@@ -239,7 +246,7 @@ function B:SetGuildBankSearch(query)
 	local method = Search.Matches
 	local allowPartialMatch
 	if Search.Filters.tipPhrases.keywords[query] then
-		if itemsearchquery == "rel" or itemsearchquery == "reli" or itemsearchquery == "relic" then
+		if query == "rel" or query == "reli" or query == "relic" then
 			allowPartialMatch = true
 		end
 		method = Search.TooltipPhrase
@@ -865,7 +872,9 @@ function B:UpdateReagentSlot(slotID)
 		-- color slot according to item quality
 		if questId and not isActiveQuest then
 			slot:SetBackdropBorderColor(1.0, 0.3, 0.3);
-			slot.questIcon:Show();
+			if (slot.questIcon) then
+				slot.questIcon:Show();
+			end
 		elseif questId or isQuestItem then
 			slot:SetBackdropBorderColor(1.0, 0.3, 0.3);
 		elseif slot.rarity and slot.rarity > 1 then
@@ -1170,7 +1179,7 @@ function B:ContructContainerFrame(name, isBank)
 		f.reagentFrame.cover.purchaseButton.text:SetJustifyH('CENTER')
 		f.reagentFrame.cover.purchaseButton.text:SetText(L["Purchase"])
 		f.reagentFrame.cover.purchaseButton:SetScript("OnClick", function()
-			PlaySound("igMainMenuOption");
+			PlaySound(PlaySoundKitID and "igMainMenuOption" or IG_MAINMENU_OPTION);
 			StaticPopup_Show("CONFIRM_BUY_REAGENTBANK_TAB");
 		end)
 
@@ -1201,7 +1210,7 @@ function B:ContructContainerFrame(name, isBank)
 		f.reagentToggle:SetScript("OnEnter", self.Tooltip_Show)
 		f.reagentToggle:SetScript("OnLeave", self.Tooltip_Hide)
 		f.reagentToggle:SetScript("OnClick", function()
-			PlaySound("igCharacterInfoTab");
+			PlaySound(PlaySoundKitID and "igCharacterInfoTab" or IG_CHARACTER_INFO_TAB);
 			if f.holderFrame:IsShown() then
 				BankFrame.selectedTab = 2
 				f.holderFrame:Hide()
@@ -1266,7 +1275,7 @@ function B:ContructContainerFrame(name, isBank)
 		f.depositButton:SetScript("OnEnter", self.Tooltip_Show)
 		f.depositButton:SetScript("OnLeave", self.Tooltip_Hide)
 		f.depositButton:SetScript('OnClick', function()
-			PlaySound("igMainMenuOption");
+			PlaySound(PlaySoundKitID and "igMainMenuOption" or IG_MAINMENU_OPTION);
 			DepositReagentBank()
 		end)
 
@@ -1288,7 +1297,7 @@ function B:ContructContainerFrame(name, isBank)
 		f.bagsButton:SetScript("OnLeave", self.Tooltip_Hide)
 		f.bagsButton:SetScript('OnClick', function()
 			local numSlots = GetNumBankSlots()
-			PlaySound("igMainMenuOption");
+			PlaySound(PlaySoundKitID and "igMainMenuOption" or IG_MAINMENU_OPTION);
 			if numSlots >= 1 then
 				ToggleFrame(f.ContainerHolder)
 			else
@@ -1545,10 +1554,13 @@ function B:OpenBank()
 		self.BankFrame = self:ContructContainerFrame('ElvUI_BankContainerFrame', true);
 	end
 
+	--Call :Layout first so all elements are created before we update
+	self:Layout(true)
+
 	BankFrame:Show()
 	self.BankFrame:Show();
 	self.BankFrame:UpdateAllSlots();
-	self.BagFrame:Show();
+	self:OpenBags()
 	self:UpdateTokens()
 
 	--Allow opening reagent tab directly by holding Shift
@@ -1559,8 +1571,6 @@ function B:OpenBank()
 		self.BankFrame.editBox:Point('RIGHT', self.BankFrame.depositButton, 'LEFT', -5, 0);
 		self.BankFrame.bagText:SetText(L["Reagent Bank"])
 	end
-
-	self:Layout(true)
 end
 
 function B:PLAYERBANKBAGSLOTS_CHANGED()
@@ -1785,4 +1795,8 @@ function B:Initialize()
 	SetInsertItemsLeftToRight(E.db.bags.reverseLoot)
 end
 
-E:RegisterModule(B:GetName())
+local function InitializeCallback()
+	B:Initialize()
+end
+
+E:RegisterModule(B:GetName(), InitializeCallback)

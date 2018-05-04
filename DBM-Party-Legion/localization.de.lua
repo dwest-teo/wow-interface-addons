@@ -544,6 +544,10 @@ L= DBM:GetModLocalization(1905)
 -----------------------
 L= DBM:GetModLocalization(1906)
 
+L:SetMiscLocalization({
+	bookCase	=	"hinter Bücherregal"
+})
+
 -----------------------
 -- Domatrax --
 -----------------------
@@ -561,5 +565,37 @@ L = DBM:GetModLocalization("CoENTrash")
 
 L:SetGeneralLocalization({
 	name =	"Trash der Kathedr. d. ew. Nacht"
+})
+
+-----------------------
+-- <<<Seat of Triumvirate >>> --
+-----------------------
+-----------------------
+-- Zuraal --
+-----------------------
+L= DBM:GetModLocalization(1979)
+
+-----------------------
+-- Saprish  --
+-----------------------
+L= DBM:GetModLocalization(1980)
+
+-----------------------
+-- Viceroy Nezhar --
+-----------------------
+L= DBM:GetModLocalization(1981)
+
+-----------------------
+-- L'ura  --
+-----------------------
+L= DBM:GetModLocalization(1982)
+
+-----------------------
+--Seat of Triumvirate Trash
+-----------------------
+L = DBM:GetModLocalization("SoTTrash")
+
+L:SetGeneralLocalization({
+	name =	"Trash des Sitzes des Triumvirats"
 })
 

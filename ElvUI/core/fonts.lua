@@ -18,9 +18,9 @@ local SetCVar = SetCVar
 -- GLOBALS: PVPInfoTextString, PVPArenaTextString, CombatTextFont, FriendsFont_Normal
 -- GLOBALS: FriendsFont_Small, FriendsFont_Large, FriendsFont_UserText, GameFontHighlightMedium
 
-local function SetFont(obj, font, size, style, r, g, b, sr, sg, sb, sox, soy)
+local function SetFont(obj, font, size, style, sr, sg, sb, sa, sox, soy, r, g, b)
 	obj:SetFont(font, size, style)
-	if sr and sg and sb then obj:SetShadowColor(sr, sg, sb) end
+	if sr and sg and sb then obj:SetShadowColor(sr, sg, sb, sa) end
 	if sox and soy then obj:SetShadowOffset(sox, soy) end
 	if r and g and b then obj:SetTextColor(r, g, b)
 	elseif r then obj:SetAlpha(r) end
@@ -30,7 +30,8 @@ function E:UpdateBlizzardFonts()
 	local NORMAL     = self["media"].normFont
 	local COMBAT     = LSM:Fetch('font', self.private.general.dmgfont)
 	local NUMBER     = self["media"].normFont
-	local NAMEFONT		 = LSM:Fetch('font', self.private.general.namefont)
+	local NAMEFONT   = LSM:Fetch('font', self.private.general.namefont)
+	local BUBBLE     = LSM:Fetch('font', self.private.general.chatBubbleFont)
 	local MONOCHROME = ''
 
 	CHAT_FONT_HEIGHTS = {6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
@@ -57,6 +58,7 @@ function E:UpdateBlizzardFonts()
 	if self.private.general.replaceBlizzFonts then
 		-- Base fonts
 		--SetFont(NumberFontNormal,					LSM:Fetch('font', 'Homespun'), 10, 'MONOCHROMEOUTLINE', 1, 1, 1, 0, 0, 0)
+		SetFont(ChatBubbleFont,						BUBBLE, self.private.general.chatBubbleFontSize, self.private.general.chatBubbleFontOutline)
 		SetFont(GameTooltipHeader,                  NORMAL, self.db.general.fontSize)
 		SetFont(NumberFont_OutlineThick_Mono_Small, NUMBER, self.db.general.fontSize, "OUTLINE")
 		SetFont(SystemFont_Shadow_Large_Outline,	NUMBER, 20, "OUTLINE")
@@ -93,5 +95,41 @@ function E:UpdateBlizzardFonts()
 		SetFont(FriendsFont_Small, NORMAL, self.db.general.fontSize)
 		SetFont(FriendsFont_Large, NORMAL, self.db.general.fontSize)
 		SetFont(FriendsFont_UserText, NORMAL, self.db.general.fontSize)
+
+		SetFont(QuestFont_Shadow_Huge, 				NORMAL, 15, nil, SHADOWCOLOR, NORMALOFFSET); -- Quest Title
+		SetFont(QuestFont_Shadow_Small, 			NORMAL, 14, nil, SHADOWCOLOR, NORMALOFFSET);
+		SetFont(SystemFont_Outline, 				NORMAL, 13, MONOCHROME.."OUTLINE");			 -- Pet level on World map
+		SetFont(SystemFont_OutlineThick_WTF,		NORMAL, 32, MONOCHROME.."OUTLINE");			 -- World Map
+		SetFont(SubZoneTextFont,					NORMAL, 24, MONOCHROME.."OUTLINE");			 -- World Map(SubZone)
+		SetFont(QuestFont_Super_Huge,				NORMAL, 22, nil, SHADOWCOLOR, BIGOFFSET);
+		SetFont(QuestFont_Huge,						NORMAL, 15, nil, SHADOWCOLOR, BIGOFFSET);	 -- Quest rewards title(Rewards)
+		SetFont(CoreAbilityFont,					NORMAL, 26);								 -- Core abilities(title)
+		SetFont(MailFont_Large,						NORMAL, 14);								 -- mail
+		SetFont(InvoiceFont_Med,					NORMAL, 12);								 -- mail
+		SetFont(InvoiceFont_Small,					NORMAL, self.db.general.fontSize);			 -- mail
+		SetFont(AchievementFont_Small,				NORMAL, self.db.general.fontSize);			 -- Achiev dates
+		SetFont(ReputationDetailFont,				NORMAL, self.db.general.fontSize);			 -- Rep Desc when clicking a rep
+		SetFont(GameFontNormalMed2,					NORMAL, self.db.general.fontSize*1.1);		 -- Quest tracker
+		SetFont(BossEmoteNormalHuge,				NORMAL, 24);								 -- Talent Title
+		SetFont(GameFontHighlightMedium,			NORMAL, 15);								 -- Fix QuestLog Title mouseover
+		SetFont(GameFontNormalLarge2,				NORMAL, 15); 								 -- Garrison Follower Names
+		SetFont(QuestFont_Enormous, 				NORMAL, 24, nil, SHADOWCOLOR, NORMALOFFSET); -- Garrison Titles
+		SetFont(DestinyFontHuge,					NORMAL, 20, nil, SHADOWCOLOR, BIGOFFSET);	 -- Garrison Mission Report
+		SetFont(Game24Font, 						NORMAL, 24);								 -- Garrison Mission level (in detail frame)
+		SetFont(SystemFont_Huge1, 					NORMAL, 20);								 -- Garrison Mission XP
+		SetFont(SystemFont_Huge1_Outline, 			NORMAL, 18, MONOCHROME.."OUTLINE");			 -- Garrison Mission Chance
+		SetFont(Fancy22Font,						NORMAL, 20)									 -- Talking frame Title font
+		SetFont(Fancy24Font,						NORMAL, 20)									 -- Artifact frame - weapon name
+		SetFont(Game30Font,							NORMAL, 28)									 -- Mission Level
+		SetFont(SystemFont_Shadow_Med2,				NORMAL, 13 * 1.1)							 -- Shows Order resourses on OrderHallTalentFrame
+		SetFont(SystemFont_Shadow_Med3,				NORMAL, 13 * 1.1)
+		SetFont(GameFontHighlightSmall2,			NORMAL, self.db.general.fontSize);			 -- Skill or Recipe description on TradeSkill frame
+		SetFont(Game18Font,							NORMAL, 18)									 -- MissionUI Bonus Chance
+		SetFont(GameFontNormalSmall2,				NORMAL, 12)			 					 	 -- MissionUI Followers names
+		SetFont(GameFontNormalHuge2,				NORMAL, 24)			 					 	 -- Mythic weekly best dungeon name
+		SetFont(Game15Font_o1,						NORMAL, 15)									 -- CharacterStatsPane (ItemLevelFrame)
+		SetFont(Game13FontShadow,					NORMAL, 14)									 -- InspectPvpFrame
+		SetFont(NumberFontNormalSmall,				NORMAL, 11, "OUTLINE")						 -- Calendar, EncounterJournal
+		SetFont(GameFont_Gigantic,				NORMAL, 32, nil, SHADOWCOLOR, BIGOFFSET);		 -- Used at the install steps
 	end
 end

@@ -67,14 +67,14 @@ L:SetOptionLocalization({
 	warnStarLow				= "為電漿球血量變低時(25%)顯示特別警告"
 })
 
-L:SetMiscLocalization({
-	RadarMessage			= "使用雷達找到無減益的夥伴加上HUD去閃避減益。未來希望能加強此功能並提供更多選項。"
-})
-
 ------------------
 -- Star Augur Etraeus --
 ------------------
 L= DBM:GetModLocalization(1732)
+
+L:SetOptionLocalization({
+	ConjunctionYellFilter	= "在$spell:205408當中，停用其他所有說話訊息而不停重複的說著星之記號直到大連線結束"
+})
 
 ------------------
 -- Grand Magistrix Elisande --

@@ -76,6 +76,12 @@ WeakAuras.sound_channel_types = {
   Dialog = L["Dialog"]
 };
 
+WeakAuras.sound_condition_types = {
+  Play = L["Play"],
+  Loop = L["Loop"],
+  Stop = L["Stop"]
+}
+
 WeakAuras.trigger_require_types = {
   any = L["Any Triggers"],
   all = L["All Triggers"],
@@ -139,6 +145,8 @@ WeakAuras.actual_unit_types = {
 
 WeakAuras.threat_unit_types = {
   target = L["Target"],
+  focus = L["Focus"],
+  member = L["Specific Unit"],
   none = L["At Least One Enemy"]
 };
 
@@ -155,8 +163,8 @@ WeakAuras.class_color_types = {}
 local C_S_O, R_C_C, L_C_N_M, F_C_C_C =  _G.CLASS_SORT_ORDER, _G.RAID_CLASS_COLORS, _G.LOCALIZED_CLASS_NAMES_MALE, _G.FONT_COLOR_CODE_CLOSE
 do
   for i,eClass in ipairs(C_S_O) do
-  WeakAuras.class_color_types[eClass] = "|c"..R_C_C[eClass].colorStr
-  WeakAuras.class_types[eClass] = WeakAuras.class_color_types[eClass]..L_C_N_M[eClass]..F_C_C_C
+    WeakAuras.class_color_types[eClass] = "|c"..R_C_C[eClass].colorStr
+    WeakAuras.class_types[eClass] = WeakAuras.class_color_types[eClass]..L_C_N_M[eClass]..F_C_C_C
   end
 end
 
@@ -239,14 +247,14 @@ WeakAuras.inverse_point_types = {
 
 WeakAuras.anchor_frame_types = {
   SCREEN = L["Screen/Parent Group"],
-  PRD = L["Personal Ressource Display"],
+  PRD = L["Personal Resource Display"],
   MOUSE = L["Mouse Cursor"],
   SELECTFRAME = L["Select Frame"]
 }
 
 WeakAuras.spark_rotation_types = {
-    AUTO = L["Automatic Rotation"],
-    MANUAL = L["Manual Rotation"]
+  AUTO = L["Automatic Rotation"],
+  MANUAL = L["Manual Rotation"]
 }
 
 WeakAuras.spark_hide_types = {
@@ -389,14 +397,30 @@ WeakAuras.miss_types = {
 };
 
 WeakAuras.environmental_types = {
-  DROWNING = L["Drowning"],
-  FALLING = L["Falling"],
-  FATIGUE = L["Fatigue"],
-  FIRE = L["Fire"],
-  LAVA = L["Lava"],
-  SLIME = L["Slime"]
+  Drowning = L["Drowning"],
+  Falling = L["Falling"],
+  Fatigue = L["Fatigue"],
+  Fire = L["Fire"],
+  Lava = L["Lava"],
+  Slime = L["Slime"]
 };
 
+WeakAuras.combatlog_flags_check_type = {
+  InGroup = L["In Group"],
+  NotInGroup = L["Not in Group"]
+}
+WeakAuras.combatlog_raid_mark_check_type = {
+  [0] = L["None"],
+  "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_1:0|t " .. L["Star"],
+  "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_2:0|t " .. L["Circle"],
+  "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_3:0|t " .. L["Diamond"],
+  "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_4:0|t " .. L["Triangle"],
+  "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_5:0|t " .. L["Moon"],
+  "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_6:0|t " .. L["Square"],
+  "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_7:0|t " .. L["Cross"],
+  "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_8:0|t " .. L["Skull"],
+  L["Any"],
+}
 WeakAuras.orientation_types = {
   HORIZONTAL_INVERSE = L["Left to Right"],
   HORIZONTAL = L["Right to Left"],
@@ -823,11 +847,11 @@ if(WeakAuras.PowerAurasPath ~= "") then
     [WeakAuras.PowerAurasPath.."Aura27"] = "Alert",
     [WeakAuras.PowerAurasPath.."Aura29"] = "Paw",
     [WeakAuras.PowerAurasPath.."Aura30"] = "Bull",
---   [WeakAuras.PowerAurasPath.."Aura31"] = "Heiroglyphics Horizontal",
+    --   [WeakAuras.PowerAurasPath.."Aura31"] = "Heiroglyphics Horizontal",
     [WeakAuras.PowerAurasPath.."Aura32"] = "Heiroglyphics",
     [WeakAuras.PowerAurasPath.."Aura34"] = "Circled Arrow",
     [WeakAuras.PowerAurasPath.."Aura35"] = "Short Sword",
---   [WeakAuras.PowerAurasPath.."Aura36"] = "Short Sword Horizontal",
+    --   [WeakAuras.PowerAurasPath.."Aura36"] = "Short Sword Horizontal",
     [WeakAuras.PowerAurasPath.."Aura45"] = "Circular Glow",
     [WeakAuras.PowerAurasPath.."Aura48"] = "Totem",
     [WeakAuras.PowerAurasPath.."Aura49"] = "Dragon Blade",
@@ -849,8 +873,8 @@ if(WeakAuras.PowerAurasPath ~= "") then
     [WeakAuras.PowerAurasPath.."Aura78"] = "Check",
     [WeakAuras.PowerAurasPath.."Aura79"] = "Ghostly Face",
     [WeakAuras.PowerAurasPath.."Aura84"] = "Overlapping Boxes",
---   [WeakAuras.PowerAurasPath.."Aura85"] = "Overlapping Boxes 45°",
---   [WeakAuras.PowerAurasPath.."Aura86"] = "Overlapping Boxes 270°",
+    --   [WeakAuras.PowerAurasPath.."Aura85"] = "Overlapping Boxes 45°",
+    --   [WeakAuras.PowerAurasPath.."Aura86"] = "Overlapping Boxes 270°",
     [WeakAuras.PowerAurasPath.."Aura87"] = "Fairy",
     [WeakAuras.PowerAurasPath.."Aura88"] = "Comet",
     [WeakAuras.PowerAurasPath.."Aura95"] = "Dual Spiral",
@@ -863,7 +887,7 @@ if(WeakAuras.PowerAurasPath ~= "") then
     [WeakAuras.PowerAurasPath.."Aura102"] = "Zig-Zag",
     [WeakAuras.PowerAurasPath.."Aura103"] = "Thorny Ring",
     [WeakAuras.PowerAurasPath.."Aura110"] = "Hunter's Mark",
---   [WeakAuras.PowerAurasPath.."Aura111"] = "Hunter's Mark Horizontal",
+    --   [WeakAuras.PowerAurasPath.."Aura111"] = "Hunter's Mark Horizontal",
     [WeakAuras.PowerAurasPath.."Aura112"] = "Kaleidoscope",
     [WeakAuras.PowerAurasPath.."Aura113"] = "Jesus Face",
     [WeakAuras.PowerAurasPath.."Aura114"] = "Green Mushrrom",
@@ -884,8 +908,8 @@ if(WeakAuras.PowerAurasPath ~= "") then
     [WeakAuras.PowerAurasPath.."Aura143"] = "Ghostly Skull"
   };
   WeakAuras.texture_types["PowerAuras Separated"] = {
-  [WeakAuras.PowerAurasPath.."Aura46"] = "8-Part Ring 1",
-  [WeakAuras.PowerAurasPath.."Aura47"] = "8-Part Ring 2",
+    [WeakAuras.PowerAurasPath.."Aura46"] = "8-Part Ring 1",
+    [WeakAuras.PowerAurasPath.."Aura47"] = "8-Part Ring 2",
     [WeakAuras.PowerAurasPath.."Aura55"] = "Skull on Gear 1",
     [WeakAuras.PowerAurasPath.."Aura56"] = "Skull on Gear 2",
     [WeakAuras.PowerAurasPath.."Aura57"] = "Skull on Gear 3",
@@ -955,6 +979,12 @@ WeakAuras.operator_types = {
   [">="] = L[">="],
   ["<="] = L["<="]
 };
+
+WeakAuras.equality_operator_types = {
+  ["=="] = L["="],
+  ["~="] = L["!="],
+};
+
 
 WeakAuras.string_operator_types = {
   ["=="] = L["Is Exactly"],
@@ -1087,7 +1117,7 @@ WeakAuras.anim_color_types = {
   custom = L["Custom Function"]
 };
 
-WeakAuras.group_types = {
+WeakAuras.instance_types = {
   none = L["No Instance"],
   scenario = L["Scenario"],
   party = L["5 Man Dungeon"],
@@ -1099,6 +1129,12 @@ WeakAuras.group_types = {
   pvp = L["Battleground"],
   arena = L["Arena"]
 };
+
+WeakAuras.group_types = {
+  solo = L["Not in Group"],
+  group = L["In Group"],
+  raid = L["In Raid"]
+}
 
 WeakAuras.difficulty_types = {
   none = L["None"],
@@ -1213,88 +1249,97 @@ WeakAuras.cast_types = {
   channel = L["Channel (Spell)"]
 };
 
-WeakAuras.sound_types = {
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\BatmanPunch.ogg"] = "Batman Punch",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\BikeHorn.ogg"] = "Bike Horn",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\BoxingArenaSound.ogg"] = "Boxing Arena Gong",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\Bleat.ogg"] = "Bleat",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\CartoonHop.ogg"] = "Cartoon Hop",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\CatMeow2.ogg"] = "Cat Meow",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\KittenMeow.ogg"] = "Kitten Meow",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\RobotBlip.ogg"] = "Robot Blip",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\SharpPunch.ogg"] = "Sharp Punch",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\WaterDrop.ogg"] = "Water Drop",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\AirHorn.ogg"] = "Air Horn",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\Applause.ogg"] = "Applause",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\BananaPeelSlip.ogg"] = "Banana Peel Slip",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\Blast.ogg"] = "Blast",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\CartoonVoiceBaritone.ogg"] = "Cartoon Voice Baritone",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\CartoonWalking.ogg"] = "Cartoon Walking",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\CowMooing.ogg"] = "Cow Mooing",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\RingingPhone.ogg"] = "Ringing Phone",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\RoaringLion.ogg"] = "Roaring Lion",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\Shotgun.ogg"] = "Shotgun",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\SquishFart.ogg"] = "Squish Fart",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\TempleBellHuge.ogg"] = "Temple Bell",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\Torch.ogg"] = "Torch",
-  ["Interface\\AddOns\\WeakAuras\\Media\\Sounds\\WarningSiren.ogg"] = "Warning Siren",
-  ["Sound\\Creature\\LichKing\\IC_Lich King_Special01.ogg"] = "Lich King Apocalypse",
-  [" custom"] = " " .. L["Custom"],
-  [" KitID"] = " " .. L["Sound by Kit ID"],
-};
+-- register sounds
+LSM:Register("sound", "Batman Punch", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\BatmanPunch.ogg")
+LSM:Register("sound", "Bike Horn", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\BikeHorn.ogg")
+LSM:Register("sound", "Boxing Arena Gong", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\BoxingArenaSound.ogg")
+LSM:Register("sound", "Bleat", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\Bleat.ogg")
+LSM:Register("sound", "Cartoon Hop", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\CartoonHop.ogg")
+LSM:Register("sound", "Cat Meow", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\CatMeow2.ogg")
+LSM:Register("sound", "Kitten Meow", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\KittenMeow.ogg")
+LSM:Register("sound", "Robot Blip", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\RobotBlip.ogg")
+LSM:Register("sound", "Sharp Punch", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\SharpPunch.ogg")
+LSM:Register("sound", "Water Drop", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\WaterDrop.ogg")
+LSM:Register("sound", "Air Horn", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\AirHorn.ogg")
+LSM:Register("sound", "Applause", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\Applause.ogg")
+LSM:Register("sound", "Banana Peel Slip", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\BananaPeelSlip.ogg")
+LSM:Register("sound", "Blast", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\Blast.ogg")
+LSM:Register("sound", "Cartoon Voice Baritone", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\CartoonVoiceBaritone.ogg")
+LSM:Register("sound", "Cartoon Walking", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\CartoonWalking.ogg")
+LSM:Register("sound", "Cow Mooing", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\CowMooing.ogg")
+LSM:Register("sound", "Ringing Phone", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\RingingPhone.ogg")
+LSM:Register("sound", "Roaring Lion", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\RoaringLion.ogg")
+LSM:Register("sound", "Shotgun", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\Shotgun.ogg")
+LSM:Register("sound", "Squish Fart", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\SquishFart.ogg")
+LSM:Register("sound", "Temple Bell", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\TempleBellHuge.ogg")
+LSM:Register("sound", "Torch", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\Torch.ogg")
+LSM:Register("sound", "Warning Siren", "Interface\\AddOns\\WeakAuras\\Media\\Sounds\\WarningSiren.ogg")
+LSM:Register("sound", "Lich King Apocalypse", "Sound\\Creature\\LichKing\\IC_Lich King_Special01.ogg")
 
 if(WeakAuras.PowerAurasSoundPath ~= "") then
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."aggro.ogg"] = "Aggro";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."Arrow_swoosh.ogg"] = "Arrow Swoosh";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."bam.ogg"] = "Bam";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."bear_polar.ogg"] = "Polar Bear";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."bigkiss.ogg"] = "Big Kiss";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."BITE.ogg"] = "Bite";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."burp4.ogg"] = "Burp";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."cat2.ogg"] = "Cat";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."chant2.ogg"] = "Chant Major 2nd";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."chant4.ogg"] = "Chant Minor 3rd";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."chimes.ogg"] = "Chimes";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."cookie.ogg"] = "Cookie Monster";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."ESPARK1.ogg"] = "Electrical Spark";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."Fireball.ogg"] = "Fireball";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."Gasp.ogg"] = "Gasp";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."heartbeat.ogg"] = "Heartbeat";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."hic3.ogg"] = "Hiccup";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."huh_1.ogg"] = "Huh?";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."hurricane.ogg"] = "Hurricane";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."hyena.ogg"] = "Hyena";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."kaching.ogg"] = "Kaching";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."moan.ogg"] = "Moan";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."panther1.ogg"] = "Panther";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."phone.ogg"] = "Phone";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."PUNCH.ogg"] = "Punch";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."rainroof.ogg"] = "Rain";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."rocket.ogg"] = "Rocket";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."shipswhistle.ogg"] = "Ship's Whistle";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."shot.ogg"] = "Gunshot";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."snakeatt.ogg"] = "Snake Attack";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."sneeze.ogg"] = "Sneeze";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."sonar.ogg"] = "Sonar";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."splash.ogg"] = "Splash";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."Squeakypig.ogg"] = "Squeaky Toy";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."swordecho.ogg"] = "Sword Ring";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."throwknife.ogg"] = "Throwing Knife";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."thunder.ogg"] = "Thunder";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."wickedmalelaugh1.ogg"] = "Wicked Male Laugh";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."wilhelm.ogg"] = "Wilhelm Scream";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."wlaugh.ogg"] = "Wicked Female Laugh";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."wolf5.ogg"] = "Wolf Howl";
-  WeakAuras.sound_types[WeakAuras.PowerAurasSoundPath.."yeehaw.ogg"] = "Yeehaw";
+  LSM:Register("sound", "Aggro", WeakAuras.PowerAurasSoundPath.."aggro.ogg")
+  LSM:Register("sound", "Arrow Swoosh", WeakAuras.PowerAurasSoundPath.."Arrow_swoosh.ogg")
+  LSM:Register("sound", "Bam", WeakAuras.PowerAurasSoundPath.."bam.ogg")
+  LSM:Register("sound", "Polar Bear", WeakAuras.PowerAurasSoundPath.."bear_polar.ogg")
+  LSM:Register("sound", "Big Kiss", WeakAuras.PowerAurasSoundPath.."bigkiss.ogg")
+  LSM:Register("sound", "Bite", WeakAuras.PowerAurasSoundPath.."BITE.ogg")
+  LSM:Register("sound", "Burp", WeakAuras.PowerAurasSoundPath.."burp4.ogg")
+  LSM:Register("sound", "Cat", WeakAuras.PowerAurasSoundPath.."cat2.ogg")
+  LSM:Register("sound", "Chant Major 2nd", WeakAuras.PowerAurasSoundPath.."chant2.ogg")
+  LSM:Register("sound", "Chant Minor 3rd", WeakAuras.PowerAurasSoundPath.."chant4.ogg")
+  LSM:Register("sound", "Chimes", WeakAuras.PowerAurasSoundPath.."chimes.ogg")
+  LSM:Register("sound", "Cookie Monster", WeakAuras.PowerAurasSoundPath.."cookie.ogg")
+  LSM:Register("sound", "Electrical Spark", WeakAuras.PowerAurasSoundPath.."ESPARK1.ogg")
+  LSM:Register("sound", "Fireball", WeakAuras.PowerAurasSoundPath.."Fireball.ogg")
+  LSM:Register("sound", "Gasp", WeakAuras.PowerAurasSoundPath.."Gasp.ogg")
+  LSM:Register("sound", "Heartbeat", WeakAuras.PowerAurasSoundPath.."heartbeat.ogg")
+  LSM:Register("sound", "Hiccup", WeakAuras.PowerAurasSoundPath.."hic3.ogg")
+  LSM:Register("sound", "Huh?", WeakAuras.PowerAurasSoundPath.."huh_1.ogg")
+  LSM:Register("sound", "Hurricane", WeakAuras.PowerAurasSoundPath.."hurricane.ogg")
+  LSM:Register("sound", "Hyena", WeakAuras.PowerAurasSoundPath.."hyena.ogg")
+  LSM:Register("sound", "Kaching", WeakAuras.PowerAurasSoundPath.."kaching.ogg")
+  LSM:Register("sound", "Moan", WeakAuras.PowerAurasSoundPath.."moan.ogg")
+  LSM:Register("sound", "Panther", WeakAuras.PowerAurasSoundPath.."panther1.ogg")
+  LSM:Register("sound", "Phone", WeakAuras.PowerAurasSoundPath.."phone.ogg")
+  LSM:Register("sound", "Punch", WeakAuras.PowerAurasSoundPath.."PUNCH.ogg")
+  LSM:Register("sound", "Rain", WeakAuras.PowerAurasSoundPath.."rainroof.ogg")
+  LSM:Register("sound", "Rocket", WeakAuras.PowerAurasSoundPath.."rocket.ogg")
+  LSM:Register("sound", "Ship's Whistle", WeakAuras.PowerAurasSoundPath.."shipswhistle.ogg")
+  LSM:Register("sound", "Gunshot", WeakAuras.PowerAurasSoundPath.."shot.ogg")
+  LSM:Register("sound", "Snake Attack", WeakAuras.PowerAurasSoundPath.."snakeatt.ogg")
+  LSM:Register("sound", "Sneeze", WeakAuras.PowerAurasSoundPath.."sneeze.ogg")
+  LSM:Register("sound", "Sonar", WeakAuras.PowerAurasSoundPath.."sonar.ogg")
+  LSM:Register("sound", "Splash", WeakAuras.PowerAurasSoundPath.."splash.ogg")
+  LSM:Register("sound", "Squeaky Toy", WeakAuras.PowerAurasSoundPath.."Squeakypig.ogg")
+  LSM:Register("sound", "Sword Ring", WeakAuras.PowerAurasSoundPath.."swordecho.ogg")
+  LSM:Register("sound", "Throwing Knife", WeakAuras.PowerAurasSoundPath.."throwknife.ogg")
+  LSM:Register("sound", "Thunder", WeakAuras.PowerAurasSoundPath.."thunder.ogg")
+  LSM:Register("sound", "Wicked Male Laugh", WeakAuras.PowerAurasSoundPath.."wickedmalelaugh1.ogg")
+  LSM:Register("sound", "Wilhelm Scream", WeakAuras.PowerAurasSoundPath.."wilhelm.ogg")
+  LSM:Register("sound", "Wicked Female Laugh", WeakAuras.PowerAurasSoundPath.."wlaugh.ogg")
+  LSM:Register("sound", "Wolf Howl", WeakAuras.PowerAurasSoundPath.."wolf5.ogg")
+  LSM:Register("sound", "Yeehaw", WeakAuras.PowerAurasSoundPath.."yeehaw.ogg")
 end
+
+WeakAuras.sound_types = {
+  [" custom"] = " " .. L["Custom"],
+  [" KitID"] = " " .. L["Sound by Kit ID"],
+}
+for name, path in next, LSM:HashTable("sound") do
+  WeakAuras.sound_types[path] = name
+end
+
+LSM.RegisterCallback(WeakAuras, "LibSharedMedia_Registered", function(_, mediatype, key)
+  if mediatype == "sound" then
+    local path = LSM:Fetch(mediatype, key)
+    if path then
+      WeakAuras.sound_types[path] = key
+    end
+  end
+end)
 
 -- register options font
 LSM:Register("font", "Fira Mono Medium", "Interface\\Addons\\WeakAuras\\Media\\Fonts\\FiraMono-Medium.ttf")
-
-local SharedMediaSounds = LSM:HashTable("sound");
-for name, path in pairs(SharedMediaSounds) do
-  WeakAuras.sound_types[path] = name;
-end
 
 WeakAuras.duration_types = {
   seconds = L["Seconds"],
@@ -1306,10 +1351,10 @@ WeakAuras.duration_types_no_choice = {
 };
 
 WeakAuras.gtfo_types = {
-    [1] = L["High Damage"],
-    [2] = L["Low Damage"],
-    [3] = L["Fail Alert"],
-    [4] = L["Friendly Fire"]
+  [1] = L["High Damage"],
+  [2] = L["Low Damage"],
+  [3] = L["Fail Alert"],
+  [4] = L["Friendly Fire"]
 };
 
 WeakAuras.pet_behavior_types = {
@@ -1319,8 +1364,8 @@ WeakAuras.pet_behavior_types = {
 };
 
 WeakAuras.cooldown_progress_behavior_types = {
-  showOnCooldown = L["On cooldown"],
-  showOnReady    = L["Not on cooldown"],
+  showOnCooldown = L["On Cooldown"],
+  showOnReady    = L["Not on Cooldown"],
   showAlways     = L["Always"]
 };
 
@@ -1348,7 +1393,18 @@ WeakAuras.charges_change_type = {
   CHANGED = L["Changed"]
 }
 
+WeakAuras.charges_change_condition_type = {
+  GAINED = L["Gained"],
+  LOST = L["Lost"]
+}
+
 WeakAuras.combat_event_type = {
   PLAYER_REGEN_ENABLED = L["Leaving"],
   PLAYER_REGEN_DISABLED = L["Entering"]
 }
+
+WeakAuras.bool_types =
+  {
+    [0] = L["False"],
+    [1] = L["True"],
+  }

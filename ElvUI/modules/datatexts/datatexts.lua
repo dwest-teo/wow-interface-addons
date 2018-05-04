@@ -15,7 +15,7 @@ local InCombatLockdown = InCombatLockdown
 local IsInInstance = IsInInstance
 
 --Global variables that we don't cache, list them here for mikk's FindGlobals script
--- GLOBALS: GameTooltip, ElvConfigToggle
+-- GLOBALS: GameTooltip
 
 function DT:Initialize()
 	--if E.db["datatexts"].enable ~= true then return end
@@ -25,10 +25,12 @@ function DT:Initialize()
 	TT:HookScript(self.tooltip, 'OnShow', 'SetStyle')
 
 	self:RegisterLDB()
+	LDB.RegisterCallback(E, "LibDataBroker_DataObjectCreated", DT.SetupObjectLDB)
+
 	self:RegisterCustomCurrencyDT() --Register all the user created currency datatexts from the "CustomCurrency" DT.
 	self:LoadDataTexts()
 
-	self:RegisterEvent('PLAYER_ENTERING_WORLD', 'LoadDataTexts')
+	self:RegisterEvent('PLAYER_ENTERING_WORLD')
 	--self:RegisterEvent('ZONE_CHANGED_NEW_AREA', 'LoadDataTexts') -- is this needed??
 end
 
@@ -41,55 +43,75 @@ DT.PointLocation = {
 	[3] = 'right',
 }
 
+local hasEnteredWorld = false
+function DT:PLAYER_ENTERING_WORLD()
+	hasEnteredWorld = true
+	self:LoadDataTexts()
+end
+
+local function LoadDataTextsDelayed()
+	C_Timer.After(0.5, function() DT:LoadDataTexts() end)
+end
+
 local hex = '|cffFFFFFF'
-function DT:RegisterLDB()
-	for name, obj in LDB:DataObjectIterator() do
-		local OnEnter = nil;
-		local OnLeave = nil;
-		local curFrame = nil;
+function DT:SetupObjectLDB(name, obj) --self will now be the event
+	local curFrame = nil;
+
+	local function OnEnter(self)
+		DT:SetupTooltip(self)
 		if obj.OnTooltipShow then
-			function OnEnter(self)
-				DT:SetupTooltip(self)
-				obj.OnTooltipShow(DT.tooltip)
-				DT.tooltip:Show()
-			end
+			obj.OnTooltipShow(DT.tooltip)
 		end
-
 		if obj.OnEnter then
-			function OnEnter(self)
-				DT:SetupTooltip(self)
-				obj.OnEnter(self)
-				DT.tooltip:Show()
-			end
+			obj.OnEnter(self)
 		end
+		DT.tooltip:Show()
+	end
 
+	local function OnLeave(self)
 		if obj.OnLeave then
-			function OnLeave(self)
-				obj.OnLeave(self)
-				DT.tooltip:Hide()
-			end
+			obj.OnLeave(self)
 		end
+		DT.tooltip:Hide()
+	end
 
-		local function OnClick(self, button)
+	local function OnClick(self, button)
+		if obj.OnClick then
 			obj.OnClick(self, button)
 		end
+	end
 
-		local function textUpdate(_, name, _, value)
-			if value == nil or (len(value) >= 3) or value == 'n/a' or name == value then
-				curFrame.text:SetText(value ~= 'n/a' and value or name)
-			else
-				curFrame.text:SetFormattedText("%s: %s%s|r", name, hex, value)
-			end
+	local function textUpdate(_, name, _, value)
+		if value == nil or (len(value) >= 3) or value == 'n/a' or name == value then
+			curFrame.text:SetText(value ~= 'n/a' and value or name)
+		else
+			curFrame.text:SetFormattedText("%s: %s%s|r", name, hex, value)
 		end
+	end
 
-		local function OnEvent(self)
-			curFrame = self
-			LDB:RegisterCallback("LibDataBroker_AttributeChanged_"..name.."_text", textUpdate)
-			LDB:RegisterCallback("LibDataBroker_AttributeChanged_"..name.."_value", textUpdate)
-			LDB.callbacks:Fire("LibDataBroker_AttributeChanged_"..name.."_text", name, nil, obj.text, obj)
-		end
+	local function OnEvent(self)
+		curFrame = self
+		LDB:RegisterCallback("LibDataBroker_AttributeChanged_"..name.."_text", textUpdate)
+		LDB:RegisterCallback("LibDataBroker_AttributeChanged_"..name.."_value", textUpdate)
+		LDB.callbacks:Fire("LibDataBroker_AttributeChanged_"..name.."_text", name, nil, obj.text, obj)
+	end
 
-		self:RegisterDatatext(name, {'PLAYER_ENTER_WORLD'}, OnEvent, nil, OnClick, OnEnter, OnLeave)
+	DT:RegisterDatatext(name, {'PLAYER_ENTER_WORLD'}, OnEvent, nil, OnClick, OnEnter, OnLeave)
+
+	--Update config if it has been loaded
+	if DT.PanelLayoutOptions then
+		DT:PanelLayoutOptions()
+	end
+
+	--Force an update for objects that are created after we log in.
+	if hasEnteredWorld then
+		LoadDataTextsDelayed() --Has to be delayed in order to properly pick up initial text
+	end
+end
+
+function DT:RegisterLDB()
+	for name, obj in LDB:DataObjectIterator() do
+		self:SetupObjectLDB(name, obj)
 	end
 end
 
@@ -134,7 +156,9 @@ function DT:SetupTooltip(panel)
 	self.tooltip:Hide()
 	self.tooltip:SetOwner(parent, parent.anchor, parent.xOff, parent.yOff)
 	self.tooltip:ClearLines()
-	GameTooltip:Hide() -- WHY??? BECAUSE FUCK GAMETOOLTIP, THATS WHY!!
+	if not GameTooltip:IsForbidden() then
+		GameTooltip:Hide() -- WHY??? BECAUSE FUCK GAMETOOLTIP, THATS WHY!!
+	end
 end
 
 function DT:RegisterPanel(panel, numPoints, anchor, xOff, yOff)
@@ -223,9 +247,6 @@ function DT:LoadDataTexts()
 
 	local inInstance, instanceType = IsInInstance()
 	local fontTemplate = LSM:Fetch("font", self.db.font)
-	if ElvConfigToggle then
-		ElvConfigToggle.text:FontTemplate(fontTemplate, self.db.fontSize, self.db.fontOutline)
-	end
 	
 	for panelName, panel in pairs(DT.RegisteredPanels) do
 		--Restore Panels
@@ -273,7 +294,7 @@ function DT:LoadDataTexts()
 end
 
 --[[
-	DT:RegisterDatatext(name, events, eventFunc, updateFunc, clickFunc, onEnterFunc, onLeaveFunc)
+	DT:RegisterDatatext(name, events, eventFunc, updateFunc, clickFunc, onEnterFunc, onLeaveFunc, localizedName)
 
 	name - name of the datatext (required)
 	events - must be a table with string values of event names to register
@@ -282,8 +303,9 @@ end
 	click - function to fire when clicking the datatext
 	onEnterFunc - function to fire OnEnter
 	onLeaveFunc - function to fire OnLeave, if not provided one will be set for you that hides the tooltip.
+	localizedName - localized name of the datetext
 ]]
-function DT:RegisterDatatext(name, events, eventFunc, updateFunc, clickFunc, onEnterFunc, onLeaveFunc)
+function DT:RegisterDatatext(name, events, eventFunc, updateFunc, clickFunc, onEnterFunc, onLeaveFunc, localizedName)
 	if name then
 		DT.RegisteredDataTexts[name] = {}
 	else
@@ -314,6 +336,14 @@ function DT:RegisterDatatext(name, events, eventFunc, updateFunc, clickFunc, onE
 	if onLeaveFunc and type(onLeaveFunc) == 'function' then
 		DT.RegisteredDataTexts[name]['onLeave'] = onLeaveFunc
 	end
+	
+	if localizedName and type(localizedName) == "string" then
+		DT.RegisteredDataTexts[name]['localizedName'] = localizedName
+	end
 end
 
-E:RegisterModule(DT:GetName())
+local function InitializeCallback()
+	DT:Initialize()
+end
+
+E:RegisterModule(DT:GetName(), InitializeCallback)

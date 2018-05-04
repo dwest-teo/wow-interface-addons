@@ -2,6 +2,12 @@ local AS = unpack(AddOnSkins)
 
 local Color = RAID_CLASS_COLORS[AS.MyClass]
 
+local _G, CreateFrame = _G, CreateFrame
+local unpack, pairs, select, type, assert, next = unpack, pairs, select, type, assert, next
+local strlower = strlower
+local CopyTable, tremove = CopyTable, tremove
+local IsAddOnLoaded = IsAddOnLoaded
+
 function AS:SetTemplate(Frame, Template, UseTexture, TextureFile)
 	local Texture = AS.Blank
 
@@ -420,7 +426,12 @@ function AS:SkinTab(Tab, Strip)
 	AS:CreateBackdrop(Tab)
 
 	if AS:CheckAddOn('ElvUI') and AS:CheckOption('ElvUISkinModule') then
-		AS:SetTemplate(Tab.Backdrop, 'Default')
+		-- Check if ElvUI already provides the backdrop. Otherwise we have two backdrops (e.g. Auctionhouse)
+		if Tab.backdrop then
+			Tab.Backdrop:Hide()
+		else
+			AS:SetTemplate(Tab.Backdrop, 'Default')
+		end
 	end
 
 	Tab.Backdrop:Point("TOPLEFT", 10, AS.PixelPerfect and -1 or -3)
@@ -748,7 +759,7 @@ function AS:SkinStatusBar(frame, ClassColor)
 		frame:SetStatusBarColor(color.r, color.g, color.b)
 	end
 	if AS:CheckAddOn('ElvUI') then
-		ElvUI[1]:RegisterStatusBar(Frame)
+		ElvUI[1]:RegisterStatusBar(frame)
 	end
 end
 
@@ -789,6 +800,42 @@ function AS:Desaturate(frame, point)
 	end)
 end
 
+function AS:SkinMaxMinFrame(frame)
+	assert(frame, "does not exist.")
+
+	for _, name in next, {"MaximizeButton", "MinimizeButton"} do
+		if frame then AS:StripTextures(frame, true) end
+
+		local button = frame[name]
+		button:SetSize(16, 16)
+		button:ClearAllPoints()
+		button:SetPoint("CENTER")
+		AS:StripTextures(button, nil, true)
+		AS:SetTemplate(button)
+
+		button.Text = button:CreateFontString(nil, "OVERLAY")
+		button.Text:SetFont([[Interface\AddOns\AddOnSkins\Media\Fonts\Arial.TTF]], 12)
+		button.Text:SetText(name == "MaximizeButton" and "▲" or "▼")
+		button.Text:SetPoint("CENTER", 0, 0)
+
+		button:HookScript('OnShow', function(self)
+			if not self:IsEnabled() then
+				self.Text:SetTextColor(.3, .3, .3)
+			end
+		end)
+
+		button:HookScript('OnEnter', function(self)
+			self:SetBackdropBorderColor(Color.r, Color.g, Color.b)
+			self.Text:SetTextColor(Color.r, Color.g, Color.b)
+		end)
+
+		button:HookScript('OnLeave', function(self)
+			self:SetBackdropBorderColor(unpack(AS.BorderColor))
+			self.Text:SetTextColor(1, 1, 1)
+		end)
+	end
+end
+
 function AS:AdjustForPixelPerfect(number)
 	if AS.PixelPerfect then
 		number = number - 1
@@ -811,9 +858,9 @@ local function EnumObjectsHelper(enumFuncs, yieldFunc, iobj)
 			if (depth == 1) then
 				yieldFunc(obj)
 			else
-				local innerEnumFuncs = CopyTable(enumFuncs);
-				tremove(innerEnumFuncs, 1);
-				EnumObjectsHelper(innerEnumFuncs, yieldFunc, obj);
+				local innerEnumFuncs = CopyTable(enumFuncs)
+				tremove(innerEnumFuncs, 1)
+				EnumObjectsHelper(innerEnumFuncs, yieldFunc, obj)
 			end
 		end
 		i = i + 1

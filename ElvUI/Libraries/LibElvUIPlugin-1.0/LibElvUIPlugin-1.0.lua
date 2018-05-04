@@ -1,11 +1,11 @@
-local MAJOR, MINOR = "LibElvUIPlugin-1.0", 13
+local MAJOR, MINOR = "LibElvUIPlugin-1.0", 15
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
 
 --Cache global variables
 --Lua functions
 local pairs, tonumber = pairs, tonumber
-local format, strsplit = format, strsplit
+local format, strsplit, gsub = format, strsplit, gsub
 --WoW API / Variables
 local CreateFrame = CreateFrame
 local IsInInstance, IsInGroup, IsInRaid = IsInInstance, IsInGroup, IsInRaid
@@ -24,7 +24,7 @@ lib.index = 0
 lib.prefix = "ElvUIPluginVC"
 
 -- MULTI Language Support (Default Language: English)
-local MSG_OUTDATED = "Your version of %s is out of date (latest is version %s). You can download the latest version from http://www.tukui.org"
+local MSG_OUTDATED = "Your version of %s %s is out of date (latest is version %s). You can download the latest version from http://www.tukui.org"
 local HDR_CONFIG = "Plugins"
 local HDR_INFORMATION = "LibElvUIPlugin-1.0.%d - Plugins Loaded  (Green means you have current version, Red means out of date)"
 local INFO_BY = "by"
@@ -33,7 +33,7 @@ local INFO_NEW = "Newest:"
 local LIBRARY = "Library"
 
 if GetLocale() == "deDE" then -- German Translation
-	MSG_OUTDATED = "Deine Version von %s ist veraltet (akutelle Version ist %s). Du kannst die aktuelle Version von http://www.tukui.org herunterrladen."
+	MSG_OUTDATED = "Deine Version von %s %s ist veraltet (akutelle Version ist %s). Du kannst die aktuelle Version von http://www.tukui.org herunterrladen."
 	HDR_CONFIG = "Plugins"
 	HDR_INFORMATION = "LibElvUIPlugin-1.0.%d - Plugins geladen (Grün bedeutet du hast die aktuelle Version, Rot bedeutet es ist veraltet)"
 	INFO_BY = "von"
@@ -43,7 +43,7 @@ if GetLocale() == "deDE" then -- German Translation
 end
 
 if GetLocale() == "ruRU" then -- Russian Translations
-	MSG_OUTDATED = "Ваша версия %s устарела (последняя версия %s). Вы можете скачать последнюю версию на http://www.tukui.org"
+	MSG_OUTDATED = "Ваша версия %s %s устарела (последняя версия %s). Вы можете скачать последнюю версию на http://www.tukui.org"
 	HDR_CONFIG = "Плагины"
 	HDR_INFORMATION = "LibElvUIPlugin-1.0.%d - загруженные плагины (зеленый означает, что у вас последняя версия, красный - устаревшая)"
 	INFO_BY = "от"
@@ -142,7 +142,7 @@ end
 
 local function SendPluginVersionCheck(self)
 	lib:SendPluginVersionCheck(lib:GenerateVersionCheckMessage())
-	
+
 	if self["ElvUIPluginSendMSGTimer"] then
 		self:CancelTimer(self["ElvUIPluginSendMSGTimer"])
 		self["ElvUIPluginSendMSGTimer"] = nil
@@ -151,19 +151,23 @@ end
 
 function lib:VersionCheck(event, prefix, message, channel, sender)
 	local E = ElvUI[1]
-	if event == "CHAT_MSG_ADDON" then
-		if sender == E.myname or not sender or prefix ~= lib.prefix then return end
+	if (event == "CHAT_MSG_ADDON") and sender and message and (message ~= "") and (prefix == lib.prefix) then
+		local myRealm = gsub(E.myrealm,'[%s%-]','')
+		local myName = E.myname..'-'..myRealm
+		if sender == myName then return end
 		if not E["pluginRecievedOutOfDateMessage"] then
 			for _, p in pairs({strsplit(";",message)}) do
-				local name, version = p:match("([%w_]+)=([%d%p]+)")
-				if lib.plugins[name] then
-					local plugin = lib.plugins[name]
-					if plugin.version ~= 'BETA' and version ~= nil and tonumber(version) ~= nil and plugin.version ~= nil and tonumber(plugin.version) ~= nil and tonumber(version) > tonumber(plugin.version) then
-						plugin.old = true
-						plugin.newversion = tonumber(version)
-						local Pname = GetAddOnMetadata(plugin.name, "Title")
-						E:Print(format(MSG_OUTDATED,Pname,plugin.newversion))
-						E["pluginRecievedOutOfDateMessage"] = true
+				if not p:match("^%s-$") then
+					local name, version = p:match("([%w_]+)=([%d%p]+)")
+					if lib.plugins[name] then
+						local plugin = lib.plugins[name]
+						if plugin.version ~= 'BETA' and version ~= nil and tonumber(version) ~= nil and plugin.version ~= nil and tonumber(plugin.version) ~= nil and tonumber(version) > tonumber(plugin.version) then
+							plugin.old = true
+							plugin.newversion = tonumber(version)
+							local Pname = GetAddOnMetadata(plugin.name, "Title")
+							E:Print(format(MSG_OUTDATED,Pname,plugin.version,plugin.newversion))
+							E["pluginRecievedOutOfDateMessage"] = true
+						end
 					end
 				end
 			end
@@ -171,7 +175,7 @@ function lib:VersionCheck(event, prefix, message, channel, sender)
 	else
 		E.SendPluginVersionCheck = E.SendPluginVersionCheck or SendPluginVersionCheck
 		E["ElvUIPluginSendMSGTimer"] = E:ScheduleTimer("SendPluginVersionCheck", 2)
-	end 
+	end
 end
 
 function lib:GeneratePluginList()
@@ -182,7 +186,7 @@ function lib:GeneratePluginList()
 			local author = GetAddOnMetadata(plugin.name, "Author")
 			local Pname = GetAddOnMetadata(plugin.name, "Title") or plugin.name
 			local color = plugin.old and E:RGBToHex(1,0,0) or E:RGBToHex(0,1,0)
-			list = list .. Pname 
+			list = list .. Pname
 			if author then
 			  list = list .. " ".. INFO_BY .." " .. author
 			end
@@ -197,24 +201,28 @@ function lib:GeneratePluginList()
 end
 
 function lib:SendPluginVersionCheck(message)
+	if not message or (message == "") then return end
 	local plist = {strsplit(";",message)}
 	local m = ""
 	local delay = 1
 	local E = ElvUI[1]
 	for _, p in pairs(plist) do
-		if(#(m .. p .. ";") < 230) then
-			m = m .. p .. ";"
-		else
-			local _, instanceType = IsInInstance()
-			if IsInRaid() then
-				E:Delay(delay,SendAddonMessage(lib.prefix, m, (not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "RAID"))
-			elseif IsInGroup() then
-				E:Delay(delay,SendAddonMessage(lib.prefix, m, (not IsInGroup(LE_PARTY_CATEGORY_HOME) and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "PARTY"))
+		if not p:match("^%s-$") then
+			if(#(m .. p .. ";") < 230) then
+				m = m .. p .. ";"
+			else
+				local _, instanceType = IsInInstance()
+				if IsInRaid() then
+					E:Delay(delay,SendAddonMessage(lib.prefix, m, (not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "RAID"))
+				elseif IsInGroup() then
+					E:Delay(delay,SendAddonMessage(lib.prefix, m, (not IsInGroup(LE_PARTY_CATEGORY_HOME) and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "PARTY"))
+				end
+				m = p .. ";"
+				delay = delay + 1
 			end
-			m = p .. ";"
-			delay = delay + 1
 		end
 	end
+	if m == "" then return end
 	-- Send the last message
 	local _, instanceType = IsInInstance()
 	if IsInRaid() then

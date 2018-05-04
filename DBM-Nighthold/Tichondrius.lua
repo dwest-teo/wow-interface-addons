@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod(1762, "DBM-Nighthold", nil, 786)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision(("$Revision: 16089 $"):sub(12, -3))
+mod:SetRevision(("$Revision: 16780 $"):sub(12, -3))
 mod:SetCreatureID(103685)
 mod:SetEncounterID(1862)
 mod:SetZone()
@@ -24,9 +24,6 @@ mod:RegisterEventsInCombat(
 )
 
 --TODO, more review on Feast of Blood
---TODO, voices similar to 184964a/b/c but for Brand of argus instead of torment. Or better. Maybe generic with no spell name just "break first" "break second" that works for similar spell in future
---TODO, determine how often tanks swap for 216024 (Volatile Wound), if at all
---TODO, figure out ring of shadow
 --TODO, redo/update LFR/Normal timers since they probably also have phase 2 and phase 3 variations
  --(ability.id = 212997 or ability.id = 213238 or ability.id = 208230 or ability.id = 213531 or ability.id = 206365) and type = "begincast"
 local warnCarrionPlague				= mod:NewTargetAnnounce(206480, 3)
@@ -69,7 +66,7 @@ local berserkTimer					= mod:NewBerserkTimer(463)
 local countdownSeekerSwarm			= mod:NewCountdown(25, 213238)
 local countdownEchoesOfVoid			= mod:NewCountdown("Alt65", 213531)
 local countdownFeastOfBlood			= mod:NewCountdown("AltTwo25", 208230, "Tank")
-local countdownNightPhase			= mod:NewCountdown(32, 206365)
+local countdownNightPhase			= mod:NewCountdown(32, 206365, nil, nil, 10)
 local countdownCarrionNightmare 	= mod:NewCountdown("Alt4", 215988, false, 2, 3)
 
 local voiceCarrionPlague			= mod:NewVoice(206480)--scatter
@@ -219,7 +216,7 @@ function mod:SPELL_CAST_START(args)
 		specWarnCarrionNightmare:Show()
 		voiceCarrionNightmare:Play("watchstep")
 		if self.vb.carrionNightmare < 6 then
-			timerCarrionNightmare:Start()
+			timerCarrionNightmare:Start(nil, self.vb.carrionNightmare+1)
 			countdownCarrionNightmare:Start()
 		end
 	elseif spellId == 212997 then
@@ -369,6 +366,9 @@ function mod:SPELL_AURA_APPLIED(args)
 			specWarnCarrionPlague:Show()
 			voiceCarrionPlague:Play("scatter")
 		end
+		if self.Options.InfoFrame then
+			DBM.InfoFrame:Update()
+		end
 	elseif spellId == 212794 then
 		argusTargets[#argusTargets+1] = args.destName
 		self:Unschedule(breakMarks)
@@ -427,6 +427,9 @@ function mod:SPELL_AURA_REMOVED(args)
 		DBM.RangeCheck:Hide()
 	elseif spellId == 206480 then
 		self.vb.CarrionPlagueCount = self.vb.CarrionPlagueCount - 1
+		if self.Options.InfoFrame then
+			DBM.InfoFrame:Update()
+		end
 	end
 end
 
@@ -463,8 +466,16 @@ function mod:OnSync(msg, targetname)
 		self.vb.addsCount = self.vb.addsCount + 1
 		specWarnAdds:Show()
 		voiceAdds:Play("killmob")
-		if self.vb.addsCount == 1 then
-			timerAddsCD:Start(47)
+		if self.vb.phase == 2 then
+			if self.vb.addsCount == 1 then
+				timerAddsCD:Start(47)
+			end
+		else
+			if self.vb.addsCount == 1 then
+				timerAddsCD:Start(35)--ish, need relogging to confirm
+			elseif self.vb.addsCount == 2 then
+				timerAddsCD:Start(47)
+			end
 		end
 	end
 end

@@ -1,0 +1,7 @@
+changeset:   182:eb64a0a7aca5
+tag:         v4.65
+user:        elchefe
+date:        Mon Apr 03 22:37:34 2017 +0200
+summary:     packager did not work because of (very very old) bug in .pkgmeta...
+
+

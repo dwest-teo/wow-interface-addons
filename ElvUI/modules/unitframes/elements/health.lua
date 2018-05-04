@@ -44,7 +44,7 @@ function UF:Construct_HealthBar(frame, bg, text, textPos)
 
 	health.colorTapping = true
 	health.colorDisconnected = true
-	health:CreateBackdrop('Default', nil, nil, self.thinBorders)
+	health:CreateBackdrop('Default', nil, nil, self.thinBorders, true)
 
 	return health
 end
@@ -57,7 +57,7 @@ function UF:Configure_HealthBar(frame)
 	health.Smooth = self.db.smoothbars
 
 	--Text
-	if health.value then
+	if db.health and health.value then
 		local attachPoint = self:GetObjectAnchorPoint(frame, db.health.attachTextTo)
 		health.value:ClearAllPoints()
 		health.value:Point(db.health.position, attachPoint, db.health.position, db.health.xOffset, db.health.yOffset)
@@ -183,8 +183,8 @@ function UF:PostUpdateHealth(unit, min, max)
 		self:SetValue(min)
 	end
 
-	if parent.ResurrectIcon then
-		parent.ResurrectIcon:SetAlpha(min == 0 and 1 or 0)
+	if parent.ResurrectIndicator then
+		parent.ResurrectIndicator:SetAlpha(min == 0 and 1 or 0)
 	end
 
 	local r, g, b = self:GetStatusBarColor()

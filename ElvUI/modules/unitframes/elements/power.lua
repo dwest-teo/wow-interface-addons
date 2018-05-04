@@ -38,7 +38,7 @@ function UF:Construct_PowerBar(frame, bg, text, textPos)
 
 	power.colorDisconnected = false
 	power.colorTapping = false
-	power:CreateBackdrop('Default', nil, nil, self.thinBorders)
+	power:CreateBackdrop('Default', nil, nil, self.thinBorders, true)
 
 	return power
 end
@@ -200,7 +200,7 @@ function UF:Configure_Power(frame)
 end
 
 local tokens = { [0] = "MANA", "RAGE", "FOCUS", "ENERGY", "RUNIC_POWER" }
-function UF:PostUpdatePower(unit, min, max)
+function UF:PostUpdatePower(unit, cur, min, max)
 	local parent = self.origParent or self:GetParent()
 
 	if parent.isForced then

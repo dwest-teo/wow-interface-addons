@@ -99,9 +99,13 @@ function BUIB:Initialize()
 	self:AllInOneBags()
 	self:SkinBlizzBags()
 	self:UpdateCountPosition()
+	self:OpenBankBags()
 	
 	hooksecurefunc(B, 'UpdateCountDisplay', BUIB.UpdateCountPosition)
 end
 
-E:RegisterModule(BUIB:GetName())
+local function InitializeCallback()
+	BUIB:Initialize()
+end
 
+E:RegisterModule(BUIB:GetName(), InitializeCallback)

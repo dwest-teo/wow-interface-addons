@@ -1,10 +1,8 @@
-## Interface: 70100
+## Interface: 70300
 ## Title: |cff1784d1AddOnSkins|r
-## Version: 3.47
-## Author: Azilroka, Sortokk
+## Version: 3.58
+## Author: Azilroka, Infinitron
 ## SavedVariables: AddOnSkinsDB
 ## OptionalDep: ElvUI, BuyEmAll, DSM, Tukui
-## X-Tukui-ProjectID: 128
-## X-Tukui-ProjectFolders: AddOnSkins
-
+ 
 Load_AddOnSkins.xml

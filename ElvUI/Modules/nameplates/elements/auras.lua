@@ -6,17 +6,24 @@ local LSM = LibStub("LibSharedMedia-3.0")
 --Lua functions
 local select, unpack = select, unpack
 local tinsert, tremove = table.insert, table.remove
+local strlower, strsplit = string.lower, strsplit
+local next, ipairs = next, ipairs
+local match = string.match
 --WoW API / Variables
 local CreateFrame = CreateFrame
-local UnitBuff = UnitBuff
-local UnitDebuff = UnitDebuff
+local UnitAura = UnitAura
+local UnitCanAttack = UnitCanAttack
+local UnitIsFriend = UnitIsFriend
+local UnitIsUnit = UnitIsUnit
 local BUFF_STACKS_OVERFLOW = BUFF_STACKS_OVERFLOW
 
 local auraCache = {}
 
-function mod:SetAura(aura, index, name, icon, count, duration, expirationTime)
+function mod:SetAura(aura, index, name, icon, count, duration, expirationTime, spellID, buffType, isStealable, isFriend)
 	aura.icon:SetTexture(icon);
 	aura.name = name
+	aura.spellID = spellID
+	aura.expirationTime = expirationTime
 	if ( count > 1 ) then
 		local countText = count;
 		if ( count >= 10 ) then
@@ -35,6 +42,15 @@ function mod:SetAura(aura, index, name, icon, count, duration, expirationTime)
 	else
 		aura.cooldown:Hide();
 	end
+
+	if buffType == "Buffs" then
+		if isStealable and not isFriend then
+			aura.backdrop:SetBackdropBorderColor(237/255, 234/255, 142/255)
+		else
+			aura.backdrop:SetBackdropBorderColor(unpack(E["media"].bordercolor))
+		end
+	end
+
 	aura:Show();
 end
 
@@ -44,67 +60,105 @@ function mod:HideAuraIcons(auras)
 	end
 end
 
---Allow certain auras with a duration of 0
-local durationOverride = {
-	[146739] = true, --Absolute Corruption (Warlock)
-	[203981] = true, --Soul fragments (Demon Hunter)
-}
-
-function mod:UpdateElement_Auras(frame)
-	local hasBuffs = false
-	local hasDebuffs = false
-	local auraFrame
-	local name, icon, count, duration, expirationTime, unitCaster, spellId, isBossAura, _
-
-	--Debuffs
-	local index = 1;
-	local frameNum = 1;
-	local maxAuras = #frame.Debuffs.icons;
-	local showBoss = self.db.units[frame.UnitType].debuffs.filters.boss
-	local showPersonal = self.db.units[frame.UnitType].debuffs.filters.personal
-	local maxDuration = self.db.units[frame.UnitType].debuffs.filters.maxDuration
-
-	self:HideAuraIcons(frame.Debuffs)
-	if(self.db.units[frame.UnitType].debuffs.enable and (showBoss or showPersonal)) then
-		while ( frameNum <= maxAuras ) do
-			name, _, icon, count, _, duration, expirationTime, unitCaster, _, _, spellId, _, isBossAura = UnitDebuff(frame.displayedUnit, index);
-			if ( name ) then
-				if (showBoss and isBossAura) or (showPersonal and (unitCaster == mod.playerUnitToken and (duration > 0 or durationOverride[spellId]) and duration <= maxDuration)) then
-					auraFrame = frame.Debuffs.icons[frameNum];
-					mod:SetAura(auraFrame, index, name, icon, count, duration, expirationTime)
-					frameNum = frameNum + 1;
-					hasDebuffs = true
-				end
-			else
-				break;
+function mod:CheckFilter(name, caster, spellID, isFriend, isPlayer, isUnit, isBossDebuff, allowDuration, noDuration, canDispell, casterIsPlayer, ...)
+	local friendCheck, filterName, filter, filterType, spellList, spell = false, false
+	for i=1, select('#', ...) do
+		filterName = select(i, ...)
+		friendCheck = (isFriend and match(filterName, "^Friendly:([^,]*)")) or (not isFriend and match(filterName, "^Enemy:([^,]*)")) or nil
+		if friendCheck ~= false then
+			if friendCheck ~= nil and (G.unitframe.specialFilters[friendCheck] or E.global.unitframe.aurafilters[friendCheck]) then
+				filterName = friendCheck -- this is for our filters to handle Friendly and Enemy
 			end
-			index = index + 1;
+			filter = E.global.unitframe.aurafilters[filterName]
+			if filter then
+				filterType = filter.type
+				spellList = filter.spells
+				spell = spellList and (spellList[spellID] or spellList[name])
+
+				if filterType and (filterType == 'Whitelist') and (spell and spell.enable) and allowDuration then
+					return true
+				elseif filterType and (filterType == 'Blacklist') and (spell and spell.enable) then
+					return false
+				end
+			elseif filterName == 'Personal' and isPlayer and allowDuration then
+				return true
+			elseif filterName == 'nonPersonal' and (not isPlayer) and allowDuration then
+				return true
+			elseif filterName == 'Boss' and isBossDebuff and allowDuration then
+				return true
+			elseif filterName == 'CastByUnit' and (caster and isUnit) and allowDuration then
+				return true
+			elseif filterName == 'notCastByUnit' and (caster and not isUnit) and allowDuration then
+				return true
+			elseif filterName == 'Dispellable' and canDispell and allowDuration then
+				return true
+			elseif filterName == 'CastByNPC' and (not casterIsPlayer) and allowDuration then
+				return true
+			elseif filterName == 'CastByPlayers' and casterIsPlayer and allowDuration then
+				return true
+			elseif filterName == 'blockCastByPlayers' and casterIsPlayer then
+				return false
+			elseif filterName == 'blockNoDuration' and noDuration then
+				return false
+			elseif filterName == 'blockNonPersonal' and (not isPlayer) then
+				return false
+			end
 		end
 	end
+end
 
-	--Buffs
-	index = 1
-	frameNum = 1
-	maxAuras = #frame.Buffs.icons
-	showBoss = self.db.units[frame.UnitType].buffs.filters.boss
-	showPersonal = self.db.units[frame.UnitType].buffs.filters.personal
-	maxDuration = self.db.units[frame.UnitType].buffs.filters.maxDuration
+function mod:AuraFilter(frame, frameNum, index, buffType, minDuration, maxDuration, priority, name, rank, texture, count, dispelType, duration, expiration, caster, isStealable, nameplateShowSelf, spellID, canApply, isBossDebuff, casterIsPlayer, nameplateShowAll, timeMod, effect1, effect2, effect3)
+	if not name then return nil end -- checking for an aura that is not there, pass nil to break while loop
+	local filterCheck, isUnit, isFriend, isPlayer, canDispell, allowDuration, noDuration = false, false, false, false, false, false, false
 
-	self:HideAuraIcons(frame.Buffs)
-	if(self.db.units[frame.UnitType].buffs.enable and (showBoss or showPersonal)) then
-		while ( frameNum <= maxAuras ) do
-			name, _, icon, count, _, duration, expirationTime, unitCaster, _, _, spellId, _, isBossAura = UnitBuff(frame.displayedUnit, index);
-			if ( name ) then
-				if (showBoss and isBossAura) or (showPersonal and (unitCaster == mod.playerUnitToken and (duration > 0 or durationOverride[spellId]) and duration <= maxDuration)) then
-					auraFrame = frame.Buffs.icons[frameNum];
-					mod:SetAura(auraFrame, index, name, icon, count, duration, expirationTime)
+	if priority ~= '' then
+		noDuration = (not duration or duration == 0)
+		isFriend = frame.unit and UnitIsFriend('player', frame.unit) and not UnitCanAttack('player', frame.unit)
+		isPlayer = (caster == 'player' or caster == 'vehicle')
+		isUnit = frame.unit and caster and UnitIsUnit(frame.unit, caster)
+		canDispell = (buffType == 'Buffs' and isStealable) or (buffType == 'Debuffs' and dispelType and E:IsDispellableByMe(dispelType))
+		allowDuration = noDuration or (duration and (duration > 0) and (maxDuration == 0 or duration <= maxDuration) and (minDuration == 0 or duration >= minDuration))
+		filterCheck = mod:CheckFilter(name, caster, spellID, isFriend, isPlayer, isUnit, isBossDebuff, allowDuration, noDuration, canDispell, casterIsPlayer, strsplit(",", priority))
+	else
+		filterCheck = true -- Allow all auras to be shown when the filter list is empty
+	end
+
+	if filterCheck == true then
+		mod:SetAura(frame[buffType].icons[frameNum], index, name, texture, count, duration, expiration, spellID, buffType, isStealable, isFriend)
+		return true
+	end
+
+	return false
+end
+
+function mod:UpdateElement_Auras(frame)
+	local hasBuffs, hasDebuffs, showAura = false, false
+	local filterType, buffType, buffTypeLower, index, frameNum, maxAuras, minDuration, maxDuration, priority
+
+	--Auras
+	for i = 1, 2 do
+		filterType = (i == 1 and 'HELPFUL' or 'HARMFUL')
+		buffType = (i == 1 and 'Buffs' or 'Debuffs')
+		buffTypeLower = strlower(buffType)
+		index = 1;
+		frameNum = 1;
+		maxAuras = #frame[buffType].icons;
+		minDuration = self.db.units[frame.UnitType][buffTypeLower].filters.minDuration
+		maxDuration = self.db.units[frame.UnitType][buffTypeLower].filters.maxDuration
+		priority = self.db.units[frame.UnitType][buffTypeLower].filters.priority
+
+		self:HideAuraIcons(frame[buffType])
+		if(self.db.units[frame.UnitType][buffTypeLower].enable) then
+			while ( frameNum <= maxAuras ) do
+				showAura = mod:AuraFilter(frame, frameNum, index, buffType, minDuration, maxDuration, priority, UnitAura(frame.unit, index, filterType))
+				if showAura == nil then
+					break -- used to break the while loop when index is over the limit of auras we have (unitaura name will pass nil)
+				elseif showAura == true then -- has aura and passes checks
+					if i == 1 then hasBuffs = true else hasDebuffs = true end
 					frameNum = frameNum + 1;
-					hasBuffs = true
 				end
-			else
-				break;
+				index = index + 1;
 			end
-			index = index + 1;
 		end
 	end
 
@@ -142,6 +196,13 @@ function mod:UpdateElement_Auras(frame)
 	end
 end
 
+local function cooldownFontOverride(cd)
+	if cd.timer and cd.timer.text then
+		cd.timer.text:SetFont(LSM:Fetch("font", mod.db.durationFont), mod.db.durationFontSize, mod.db.durationFontOutline)
+		cd.timer.text:Point("TOPLEFT", 1, 1)
+	end
+end
+
 function mod:CreateAuraIcon(parent)
 	local aura = CreateFrame("Frame", nil, parent)
 	self:StyleFrame(aura)
@@ -154,11 +215,12 @@ function mod:CreateAuraIcon(parent)
 	aura.cooldown:SetAllPoints(aura)
 	aura.cooldown:SetReverse(true)
 	aura.cooldown.SizeOverride = 10
+	aura.cooldown.FontOverride = cooldownFontOverride
 	E:RegisterCooldown(aura.cooldown)
 
 	aura.count = aura:CreateFontString(nil, "OVERLAY")
-	aura.count:SetPoint("BOTTOMRIGHT")
-	aura.count:SetFont(LSM:Fetch("font", self.db.font), self.db.fontSize, self.db.fontOutline)
+	aura.count:SetFont(LSM:Fetch("font", self.db.stackFont), self.db.stackFontSize, self.db.stackFontOutline)
+	aura.count:Point("BOTTOMRIGHT", 1, 1)
 
 	return aura
 end

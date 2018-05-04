@@ -1,6 +1,5 @@
 local E, L, V, P, G = unpack(select(2, ...)); --Inport: Engine, Locales, PrivateDB, ProfileDB, GlobalDB
 local AB = E:NewModule('ActionBars', 'AceHook-3.0', 'AceEvent-3.0');
---/run E, C, L = unpack(ElvUI); AB = E:GetModule('ActionBars'); AB:ToggleMovers()
 
 --Cache global variables
 --Lua functions
@@ -9,37 +8,37 @@ local pairs, select, unpack = pairs, select, unpack
 local ceil = math.ceil
 local format, gsub, split, strfind = string.format, string.gsub, string.split, strfind
 --WoW API / Variables
-local hooksecurefunc = hooksecurefunc
-local CreateFrame = CreateFrame
-local UnitHealth = UnitHealth
-local UnitHealthMax = UnitHealthMax
-local UnitCastingInfo = UnitCastingInfo
-local UnitChannelInfo = UnitChannelInfo
-local UnitAffectingCombat = UnitAffectingCombat
-local UnitExists = UnitExists
-local UnitOnTaxi = UnitOnTaxi
-local VehicleExit = VehicleExit
-local PetDismiss = PetDismiss
 local CanExitVehicle = CanExitVehicle
-local TaxiRequestEarlyLanding = TaxiRequestEarlyLanding
-local MainMenuBarVehicleLeaveButton_OnEnter = MainMenuBarVehicleLeaveButton_OnEnter
-local RegisterStateDriver = RegisterStateDriver
-local UnregisterStateDriver = UnregisterStateDriver
-local GameTooltip_Hide = GameTooltip_Hide
-local InCombatLockdown = InCombatLockdown
 local ClearOverrideBindings = ClearOverrideBindings
+local CreateFrame = CreateFrame
+local C_PetBattles_IsInBattle = C_PetBattles.IsInBattle
+local GameTooltip_Hide = GameTooltip_Hide
 local GetBindingKey = GetBindingKey
-local SetOverrideBindingClick = SetOverrideBindingClick
-local SetClampedTextureRotation = SetClampedTextureRotation
-local GetVehicleBarIndex = GetVehicleBarIndex
-local GetOverrideBarIndex = GetOverrideBarIndex
-local SetModifiedClick = SetModifiedClick
-local GetNumFlyouts, GetFlyoutInfo = GetNumFlyouts, GetFlyoutInfo
 local GetFlyoutID = GetFlyoutID
 local GetMouseFocus = GetMouseFocus
+local GetNumFlyouts, GetFlyoutInfo = GetNumFlyouts, GetFlyoutInfo
+local GetOverrideBarIndex = GetOverrideBarIndex
+local GetVehicleBarIndex = GetVehicleBarIndex
 local HasOverrideActionBar, HasVehicleActionBar = HasOverrideActionBar, HasVehicleActionBar
+local hooksecurefunc = hooksecurefunc
+local InCombatLockdown = InCombatLockdown
+local MainMenuBarVehicleLeaveButton_OnEnter = MainMenuBarVehicleLeaveButton_OnEnter
+local PetDismiss = PetDismiss
+local RegisterStateDriver = RegisterStateDriver
+local SetClampedTextureRotation = SetClampedTextureRotation
 local SetCVar = SetCVar
-local C_PetBattlesIsInBattle = C_PetBattles.IsInBattle
+local SetModifiedClick = SetModifiedClick
+local SetOverrideBindingClick = SetOverrideBindingClick
+local TaxiRequestEarlyLanding = TaxiRequestEarlyLanding
+local UnitAffectingCombat = UnitAffectingCombat
+local UnitCastingInfo = UnitCastingInfo
+local UnitChannelInfo = UnitChannelInfo
+local UnitExists = UnitExists
+local UnitHealth = UnitHealth
+local UnitHealthMax = UnitHealthMax
+local UnitOnTaxi = UnitOnTaxi
+local UnregisterStateDriver = UnregisterStateDriver
+local VehicleExit = VehicleExit
 local NUM_ACTIONBAR_BUTTONS = NUM_ACTIONBAR_BUTTONS
 
 --Global variables that we don't need to cache, list them here for mikk's FindGlobals script
@@ -57,10 +56,7 @@ local NUM_ACTIONBAR_BUTTONS = NUM_ACTIONBAR_BUTTONS
 -- GLOBALS: InterfaceOptionsActionBarsPanelPickupActionKeyDropDown
 -- GLOBALS: InterfaceOptionsStatusTextPanelXP, ArtifactWatchBar, HonorWatchBar
 -- GLOBALS: PlayerTalentFrame, SpellFlyoutBackgroundEnd, UIParent
--- GLOBALS: VIEWABLE_ACTION_BAR_PAGES, SHOW_MULTI_ACTIONBAR_1, SHOW_MULTI_ACTIONBAR_2
--- GLOBALS: SHOW_MULTI_ACTIONBAR_3, SHOW_MULTI_ACTIONBAR_4
 
-local _LOCK
 local LAB = LibStub("LibActionButton-1.0-ElvUI")
 local LSM = LibStub("LibSharedMedia-3.0")
 
@@ -69,7 +65,6 @@ local MasqueGroup = Masque and Masque:Group("ElvUI", "ActionBars")
 
 AB.RegisterCooldown = E.RegisterCooldown
 
-E.ActionBars = AB
 AB["handledBars"] = {} --List of all bars
 AB["handledbuttons"] = {} --List of all buttons that have been modified.
 AB["barDefaults"] = {
@@ -133,10 +128,15 @@ function AB:PositionAndSizeBar(barName)
 	local numColumns = ceil(numButtons / buttonsPerRow);
 	local widthMult = self.db[barName].widthMult;
 	local heightMult = self.db[barName].heightMult;
-	local bar = self["handledBars"][barName]
+	local visibility = self.db[barName].visibility;
+	local bar = self["handledBars"][barName];
 
 	bar.db = self.db[barName]
 	bar.db.position = nil; --Depreciated
+
+	if visibility and visibility:match('[\n\r]') then
+		visibility = visibility:gsub('[\n\r]','')
+	end
 
 	if numButtons < buttonsPerRow then
 		buttonsPerRow = numButtons;
@@ -261,7 +261,7 @@ function AB:PositionAndSizeBar(barName)
 		end
 
 		bar:Show()
-		RegisterStateDriver(bar, "visibility", self.db[barName].visibility); -- this is ghetto
+		RegisterStateDriver(bar, "visibility", visibility); -- this is ghetto
 		RegisterStateDriver(bar, "page", page);
 		bar:SetAttribute("page", page)
 
@@ -339,13 +339,13 @@ function AB:CreateBar(id)
 	bar.vehicleFix = CreateFrame("Frame", nil, bar, "SecureHandlerStateTemplate")
 	bar:SetFrameRef("MainMenuBarArtFrame", MainMenuBarArtFrame)
 	bar.vehicleFix:SetFrameRef("MainMenuBarArtFrame", MainMenuBarArtFrame)
-	
+
 	local point, anchor, attachTo, x, y = split(',', self['barDefaults']['bar'..id].position)
 	bar:Point(point, anchor, attachTo, x, y)
 	bar.id = id
 	bar:CreateBackdrop('Default');
 	bar:SetFrameStrata("LOW")
-	
+
 	--Use this method instead of :SetAllPoints, as the size of the mover would otherwise be incorrect
 	local offset = E.Spacing
 	bar.backdrop:SetPoint("TOPLEFT", bar, "TOPLEFT", offset, -offset)
@@ -387,7 +387,7 @@ function AB:CreateBar(id)
 		if HasTempShapeshiftActionBar() and self:GetAttribute("hasTempBar") then
 			newstate = GetTempShapeshiftBarIndex() or newstate
 		end
-		
+
 		if newstate ~= 0 then
 			self:SetAttribute("state", newstate)
 			control:ChildUpdate("state", newstate)
@@ -439,10 +439,10 @@ function AB:UpdateVehicleLeave()
 	if not button then return; end
 
 	local pos = E.db.general.minimap.icons.vehicleLeave.position or "BOTTOMLEFT"
-	local size = E.db.general.minimap.icons.vehicleLeave.size or 26
+	local scale = 26 * (E.db.general.minimap.icons.vehicleLeave.scale or 1)
 	button:ClearAllPoints()
 	button:Point(pos, Minimap, pos, E.db.general.minimap.icons.vehicleLeave.xOffset or 2, E.db.general.minimap.icons.vehicleLeave.yOffset or 2)
-	button:SetSize(size, size)
+	button:SetSize(scale, scale)
 end
 
 function AB:CreateVehicleLeave()
@@ -511,9 +511,9 @@ end
 
 function AB:UpdateBar1Paging()
 	if self.db.bar6.enabled then
-		E.ActionBars.barDefaults.bar1.conditions = format("[possessbar] %d; [overridebar] %d; [shapeshift] 13; [form,noform] 0; [bar:3] 3; [bar:4] 4; [bar:5] 5; [bar:6] 6;", GetVehicleBarIndex(), GetOverrideBarIndex())
+		AB.barDefaults.bar1.conditions = format("[possessbar] %d; [overridebar] %d; [shapeshift] 13; [form,noform] 0; [bar:3] 3; [bar:4] 4; [bar:5] 5; [bar:6] 6;", GetVehicleBarIndex(), GetOverrideBarIndex())
 	else
-		E.ActionBars.barDefaults.bar1.conditions = format("[possessbar] %d; [overridebar] %d; [shapeshift] 13; [form,noform] 0; [bar:2] 2; [bar:3] 3; [bar:4] 4; [bar:5] 5; [bar:6] 6;", GetVehicleBarIndex(), GetOverrideBarIndex())
+		AB.barDefaults.bar1.conditions = format("[possessbar] %d; [overridebar] %d; [shapeshift] 13; [form,noform] 0; [bar:2] 2; [bar:3] 3; [bar:4] 4; [bar:5] 5; [bar:6] 6;", GetVehicleBarIndex(), GetOverrideBarIndex())
 	end
 
 	if (E.private.actionbar.enable ~= true or InCombatLockdown()) or not self.isInitialized then return; end
@@ -587,7 +587,12 @@ end
 function AB:GetPage(bar, defaultPage, condition)
 	local page = self.db[bar]['paging'][E.myclass]
 	if not condition then condition = '' end
-	if not page then page = '' end
+	if not page then
+		page = ''
+	elseif page:match('[\n\r]') then
+		page = page:gsub('[\n\r]','')
+	end
+
 	if page then
 		condition = condition.." "..page
 	end
@@ -740,6 +745,18 @@ function AB:FadeParent_OnEvent()
 	end
 end
 
+function AB:IconIntroTracker_Toggle()
+	if self.db.addNewSpells then
+		IconIntroTracker:RegisterEvent("SPELL_PUSHED_TO_ACTIONBAR")
+		IconIntroTracker:Show()
+		IconIntroTracker:SetParent(UIParent)
+	else
+		IconIntroTracker:UnregisterAllEvents()
+		IconIntroTracker:Hide()
+		IconIntroTracker:SetParent(UIHider)
+	end
+end
+
 function AB:DisableBlizzard()
 	-- Hidden parent frame
 	local UIHider = CreateFrame("Frame")
@@ -749,7 +766,7 @@ function AB:DisableBlizzard()
 	MultiBarBottomRight:SetParent(UIHider)
 	MultiBarLeft:SetParent(UIHider)
 	MultiBarRight:SetParent(UIHider)
-	
+
 	--Look into what this does
 	ArtifactWatchBar:SetParent(UIHider)
 	HonorWatchBar:SetParent(UIHider)
@@ -840,10 +857,8 @@ function AB:DisableBlizzard()
 	MultiCastActionBarFrame:Hide()
 	MultiCastActionBarFrame:SetParent(UIHider)
 
-	--This frame puts spells on the damn actionbar, fucking obliterate that shit
-	IconIntroTracker:UnregisterAllEvents()
-	IconIntroTracker:Hide()
-	IconIntroTracker:SetParent(UIHider)
+	--Enable/disable functionality to automatically put spells on the actionbar.
+	self:IconIntroTracker_Toggle()
 
 	InterfaceOptionsActionBarsPanelAlwaysShowActionBars:EnableMouse(false)
 	InterfaceOptionsActionBarsPanelPickupActionKeyDropDownButton:SetScale(0.0001)
@@ -1104,7 +1119,6 @@ function AB:Initialize()
 	self.fadeParent:RegisterEvent("PLAYER_FOCUS_CHANGED")
 	self.fadeParent:SetScript("OnEvent", self.FadeParent_OnEvent)
 
-
 	self:DisableBlizzard()
 
 	self:SetupExtraButton()
@@ -1128,7 +1142,7 @@ function AB:Initialize()
 	self:RegisterEvent('UPDATE_VEHICLE_ACTIONBAR', 'VehicleFix')
 	self:RegisterEvent('UPDATE_OVERRIDE_ACTIONBAR', 'VehicleFix')
 
-	if C_PetBattlesIsInBattle() then
+	if C_PetBattles_IsInBattle() then
 		self:RemoveBindings()
 	else
 		self:ReassignBindings()
@@ -1141,4 +1155,8 @@ function AB:Initialize()
 	SpellFlyout:HookScript("OnShow", SetupFlyoutButton)
 end
 
-E:RegisterModule(AB:GetName())
+local function InitializeCallback()
+	AB:Initialize()
+end
+
+E:RegisterModule(AB:GetName(), InitializeCallback)

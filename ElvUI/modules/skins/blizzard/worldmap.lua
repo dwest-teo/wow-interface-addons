@@ -45,23 +45,27 @@ local function LoadSkin()
 	QuestMapFrame.DetailsFrame.CompleteQuestFrame:StripTextures()
 
 	S:HandleCloseButton(WorldMapFrameCloseButton)
-	S:HandleButton(WorldMapFrameSizeDownButton, true)
-	WorldMapFrameSizeDownButton:SetSize(16, 16)
-	WorldMapFrameSizeDownButton:Point("RIGHT", WorldMapFrameCloseButton, "LEFT", 4, 0)
-	WorldMapFrameSizeDownButton:SetNormalTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
-	WorldMapFrameSizeDownButton:SetPushedTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
-	WorldMapFrameSizeDownButton:SetHighlightTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
 
-	S:HandleButton(WorldMapFrameSizeUpButton, true)
-	WorldMapFrameSizeUpButton:SetSize(16, 16)
-	WorldMapFrameSizeUpButton:Point("RIGHT", WorldMapFrameCloseButton, "LEFT", 4, 0)
-	WorldMapFrameSizeUpButton:SetNormalTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
-	WorldMapFrameSizeUpButton:SetPushedTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
-	WorldMapFrameSizeUpButton:SetHighlightTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
-	WorldMapFrameSizeUpButton:GetNormalTexture():SetTexCoord(1, 1, 1, -1.2246467991474e-016, 1.1102230246252e-016, 1, 0, -1.144237745222e-017)
-	WorldMapFrameSizeUpButton:GetPushedTexture():SetTexCoord(1, 1, 1, -1.2246467991474e-016, 1.1102230246252e-016, 1, 0, -1.144237745222e-017)
-	WorldMapFrameSizeUpButton:GetHighlightTexture():SetTexCoord(1, 1, 1, -1.2246467991474e-016, 1.1102230246252e-016, 1, 0, -1.144237745222e-017)
+	if E.wowbuild >= 24904 then
+		S:HandleMaxMinFrame(WorldMapFrame.BorderFrame.MaximizeMinimizeFrame)
+	else
+		S:HandleButton(WorldMapFrameSizeDownButton, true)
+		WorldMapFrameSizeDownButton:SetSize(16, 16)
+		WorldMapFrameSizeDownButton:Point("RIGHT", WorldMapFrameCloseButton, "LEFT", 4, 0)
+		WorldMapFrameSizeDownButton:SetNormalTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
+		WorldMapFrameSizeDownButton:SetPushedTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
+		WorldMapFrameSizeDownButton:SetHighlightTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
 
+		S:HandleButton(WorldMapFrameSizeUpButton, true)
+		WorldMapFrameSizeUpButton:SetSize(16, 16)
+		WorldMapFrameSizeUpButton:Point("RIGHT", WorldMapFrameCloseButton, "LEFT", 4, 0)
+		WorldMapFrameSizeUpButton:SetNormalTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
+		WorldMapFrameSizeUpButton:SetPushedTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
+		WorldMapFrameSizeUpButton:SetHighlightTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
+		WorldMapFrameSizeUpButton:GetNormalTexture():SetTexCoord(1, 1, 1, -1.2246467991474e-016, 1.1102230246252e-016, 1, 0, -1.144237745222e-017)
+		WorldMapFrameSizeUpButton:GetPushedTexture():SetTexCoord(1, 1, 1, -1.2246467991474e-016, 1.1102230246252e-016, 1, 0, -1.144237745222e-017)
+		WorldMapFrameSizeUpButton:GetHighlightTexture():SetTexCoord(1, 1, 1, -1.2246467991474e-016, 1.1102230246252e-016, 1, 0, -1.144237745222e-017)
+	end
 
 	local rewardFrames = {
 		['MoneyFrame'] = true,
@@ -91,10 +95,12 @@ local function LoadSkin()
 		HandleReward(MapQuestInfoRewardsFrame[frame])
 	end
 
+	-- The Icon Border should be in QualityColor
 	hooksecurefunc('QuestInfo_GetRewardButton', function(rewardsFrame, index)
 		local button = MapQuestInfoRewardsFrame.RewardButtons[index]
 		if(button) then
 			HandleReward(button)
+			button.IconBorder:SetAlpha(0)
 		end
 	end)
 
@@ -102,23 +108,7 @@ local function LoadSkin()
 	S:HandleNextPrevButton(WorldMapFrame.UIElementsFrame.CloseQuestPanelButton)
 	SquareButton_SetIcon(WorldMapFrame.UIElementsFrame.CloseQuestPanelButton, 'LEFT')
 
-	-- WorldMapFrame Tooltip Statusbar
-	local function HandleTooltipStatusBar()
-		local bar = _G["WorldMapTaskTooltipStatusBar"].Bar
-		local label = bar.Label
-
-		if bar then
-			bar:StripTextures()
-			bar:SetStatusBarTexture(E["media"].normTex)
-			bar:SetTemplate("Transparent")
-			E:RegisterStatusBar(bar)
-
-			label:ClearAllPoints()
-			label:Point("CENTER", bar, 0, 0)
-			label:SetDrawLayer("OVERLAY")
-		end
-	end
-	hooksecurefunc("TaskPOI_OnEnter", HandleTooltipStatusBar)
+	WorldMapFrame.UIElementsFrame.BountyBoard.BountyName:FontTemplate(nil, 14, "OUTLINE")
 end
 
-S:AddCallback("WorldMap", LoadSkin)
+S:AddCallback("SkinWorldMap", LoadSkin)

@@ -1,21 +1,23 @@
 local mod	= DBM:NewMod(1737, "DBM-Nighthold", nil, 786)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision(("$Revision: 16092 $"):sub(12, -3))
-mod:SetCreatureID(104154)--104537 (Fel Lord Kuraz'mal)
+mod:SetRevision(("$Revision: 16780 $"):sub(12, -3))
+mod:SetCreatureID(104154)--The Demon Within (111022)
 mod:SetEncounterID(1866)
 mod:SetZone()
 mod:SetUsedIcons(1, 2, 3, 4, 5, 6)
-mod:SetHotfixNoticeRev(16028)
+mod:SetHotfixNoticeRev(16172)
+mod.respawnTime = 29
 
 mod:RegisterCombat("combat")
+mod:SetWipeTime(30)
 
 mod:RegisterEventsInCombat(
 	"SPELL_CAST_START 206219 206220 206514 206675 206840 207938 104534 208545 209270 211152 208672 206744 206883 206221 206222 221783 211439 220957 227008 221408 221486",
 	"SPELL_CAST_SUCCESS 206222 206221 221783 212258 227008 221336 221486",
-	"SPELL_AURA_APPLIED 206219 206220 209011 206354 206384 209086 208903 211162 221891 208802 221606 221603 221785 221784 212686 227427 206516 206847 206983 206458 227009",
+	"SPELL_AURA_APPLIED 206219 206220 209011 206354 206384 209086 208903 211162 221891 208802 221606 221603 221785 221784 212686 227427 206516 206847 206983 206458 227009 206310",
 	"SPELL_AURA_APPLIED_DOSE 211162 208802",
-	"SPELL_AURA_REMOVED 209011 206354 206384 209086 221603 221785 221784 212686 221606 206847 206458",
+	"SPELL_AURA_REMOVED 209011 206354 206384 209086 221603 221785 221784 212686 221606 206847 206458 206310",
 --	"SPELL_DAMAGE",
 --	"SPELL_MISSED",
 	"UNIT_DIED",
@@ -26,11 +28,6 @@ mod:RegisterEvents(
 	"CHAT_MSG_MONSTER_YELL"
 )
 
---TODO, if anquished spirits is important, add a timer. if not, remove warning.
---TODO, Do a bunch of stuff with well of souls? infoframe to track stacks/who should soak next?
---TODO, infoframe for TimeStop (206310) used correctly/well?
---TODO, maybe add a 'watch orb" warning to chaos seed?
---TODO, new voice "Get Stop Time" (getstoptime)
 --[[
 (ability.id = 206219 or ability.id = 206220 or ability.id = 206514 or ability.id = 206675 or ability.id = 206840 or ability.id = 207938 or ability.id = 206883 or ability.id = 208545 or ability.id = 209270 or ability.id = 211152 or ability.id = 208672 or ability.id = 167819 or ability.id = 206939 or ability.id = 206744) and type = "begincast"
 or (ability.id = 206222 or ability.id = 206221 or ability.id = 221783 or ability.id = 212258) and type = "cast"
@@ -56,6 +53,7 @@ local warnPhase2					= mod:NewPhaseAnnounce(2, 2)
 local warnBondsofFel				= mod:NewTargetAnnounce(206222, 3)
 local warnEmpBondsofFel				= mod:NewTargetAnnounce(209086, 4)
 --Stage Three: The Master's Power
+local warnPhase3Soon				= mod:NewPrePhaseAnnounce(3, 2)
 local warnPhase3					= mod:NewPhaseAnnounce(3, 2)
 local warnSoulSiphon				= mod:NewTargetAnnounce(221891, 3, nil, "Healer")
 local warnFlamesofSargeras			= mod:NewTargetAnnounce(221606, 4)
@@ -72,7 +70,7 @@ local specWarnFelEfflux				= mod:NewSpecialWarningDodge(206514, nil, nil, nil, 1
 local specWarnShatterEssence		= mod:NewSpecialWarningDefensive(206675, nil, nil, nil, 3, 2)
 local specWarnFelObelisk			= mod:NewSpecialWarningDodge(229945, nil, nil, nil, 1, 2)
 ----D'zorykx the Trapper
-local specWarnSoulVortex			= mod:NewSpecialWarningMoveAway(206883, nil, nil, nil, 1, 2)
+local specWarnSoulVortex			= mod:NewSpecialWarningSpell(206883, nil, nil, nil, 2, 2)
 local yellSoulVortex				= mod:NewYell(206883)
 --Stage Two: The Ritual of Aman'thul
 local specWarnBondsofFel			= mod:NewSpecialWarningYou(206222, nil, nil, nil, 1, 2)
@@ -83,22 +81,22 @@ local specWarnEyeofGuldan			= mod:NewSpecialWarningSwitchCount(209270, "Dps", ni
 local specWarnCarrionWave			= mod:NewSpecialWarningInterrupt(208672, "HasInterrupt", nil, nil, 1, 2)
 --Stage Three: The Master's Power
 local specWarnStormOfDestroyer		= mod:NewSpecialWarningDodge(161121, nil, nil, nil, 2, 2)
-local specWarnSoulCorrosion			= mod:NewSpecialWarningStack(208802, nil, 3, nil, nil, 1, 6)--stack guessed
+local specWarnSoulCorrosion			= mod:NewSpecialWarningStack(208802, nil, 5, nil, nil, 1, 6)--stack guessed
 local specWarnBlackHarvest			= mod:NewSpecialWarningCount(206744, nil, nil, nil, 2, 2)
 local specWarnFlamesOfSargeras		= mod:NewSpecialWarningMoveAway(221606, nil, nil, nil, 3, 2)
-local yellFlamesofSargeras			= mod:NewPosYell(221606)
+local yellFlamesofSargeras			= mod:NewPosYell(221606, 15643)
 local specWarnFlamesOfSargerasTank	= mod:NewSpecialWarningTaunt(221606, nil, nil, nil, 1, 2)
 --Mythic Only
 local specWarnWilloftheDemonWithin	= mod:NewSpecialWarningSpell(211439, nil, nil, nil, 1, 2)
 local specWarnParasiticWound		= mod:NewSpecialWarningMoveAway(206847, nil, nil, nil, 3, 2)
-local yellParasiticWound			= mod:NewYell(206847)
-local yellParasiticWoundFades		= mod:NewFadesYell(206847)
-local specWarnShearedSoul			= mod:NewSpecialWarningYou(206458, nil, nil, nil, 1, 2)
+local yellParasiticWound			= mod:NewYell(206847, 36469)
+local yellParasiticWoundFades		= mod:NewFadesYell(206847, 36469)
+--local specWarnShearedSoul			= mod:NewSpecialWarningYou(206458, nil, nil, nil, 1)
 local specWarnSoulsever				= mod:NewSpecialWarningCount(220957, nil, nil, nil, 3)--Needs voice, but what?
 local specWarnVisionsofDarkTitan	= mod:NewSpecialWarningMoveTo(227008, nil, nil, nil, 3, 7)
 local specWarnSummonNightorb		= mod:NewSpecialWarningSwitchCount(227283, "-Healer", nil, nil, 1, 2)
 --Shard
-local specWarnManifestAzzinoth		= mod:NewSpecialWarningSwitch(221149, "-Healer", nil, nil, 1, 2)
+local specWarnManifestAzzinoth		= mod:NewSpecialWarningSwitchCount(221149, "-Healer", nil, nil, 1, 2)
 local specWarnBulwarkofAzzinoth		= mod:NewSpecialWarningSpell(221408, nil, nil, nil, 1)--Needs voice, but what?
 local specWarnPurifiedEssence		= mod:NewSpecialWarningMoveTo(221486, nil, nil, nil, 3, 7)
 
@@ -129,15 +127,14 @@ local timerBondsofFelCD				= mod:NewNextCountTimer(50, 206222, nil, nil, nil, 3)
 local timerEyeofGuldanCD			= mod:NewNextCountTimer(60, 209270, nil, nil, nil, 1)
 --Stage Three: The Master's Power
 mod:AddTimerLine(SCENARIO_STAGE:format(3))
-local timerFlamesofSargerasCD		= mod:NewNextCountTimer("d58.5", 221783, nil, nil, nil, 3)
-local timerStormOfDestroyerCD		= mod:NewNextCountTimer(16, 161121, nil, nil, nil, 3)
+local timerFlamesofSargerasCD		= mod:NewNextCountTimer("d58.5", 221783, 15643, nil, nil, 3)
+local timerStormOfDestroyerCD		= mod:NewNextCountTimer(16, 161121, 196871, nil, nil, 3)
 local timerWellOfSouls				= mod:NewCastTimer(16, 206939, nil, nil, nil, 5)
 local timerBlackHarvestCD			= mod:NewNextCountTimer(83, 206744, nil, nil, nil, 2)
 --Mythic Only
 mod:AddTimerLine(ENCOUNTER_JOURNAL_SECTION_FLAG12)
 local timerWindsCD					= mod:NewCDCountTimer(39, 199446, nil, nil, nil, 2)
-local timerWilloftheDemonWithinCD	= mod:NewCDTimer(39, 211439, nil, nil, nil, 2)
-local timerWilloftheDemonWithin		= mod:NewCastTimer(4, 211439, nil, nil, nil, 2)
+local timerWilloftheDemonWithin		= mod:NewCastTimer(43, 211439, nil, nil, nil, 2)
 local timerParasiticWoundCD			= mod:NewCDTimer(36, 206847, nil, nil, nil, 3)
 local timerWounded					= mod:NewBuffActiveTimer(36, 227009, nil, nil, nil, 6)
 local timerSoulSeverCD				= mod:NewCDCountTimer(36, 220957, nil, nil, nil, 5, nil, DBM_CORE_TANK_ICON)
@@ -147,7 +144,7 @@ local timerFlameCrashCD				= mod:NewCDCountTimer(20, 227071, nil, nil, nil, 3)
 local timerSummonNightorbCD			= mod:NewCDCountTimer(10.9, 227283, nil, nil, nil, 1, 225133)
 --Shard
 mod:AddTimerLine(GetSpellInfo(221149))
-local timerManifestAzzinothCD		= mod:NewCDTimer(10.9, 221149, nil, nil, nil, 1, 236237)
+local timerManifestAzzinothCD		= mod:NewCDCountTimer(10.9, 221149, nil, nil, nil, 1, 236237)
 local timerChaosSeedCD				= mod:NewCDTimer(10.9, 221336, nil, nil, nil, 3)
 local timerBulwarkofAzzinothCD		= mod:NewCDTimer(10.9, 221408, nil, nil, nil, 6)
 local timerPurifiedEssence			= mod:NewCastTimer(4, 221486, nil, nil, nil, 2)
@@ -159,10 +156,13 @@ local countdownHandofGuldan			= mod:NewCountdown("Alt50", 212258, "Tank")
 local countdownLiquidHellfire		= mod:NewCountdown("AltTwo50", 206219, "Ranged")
 local countdownBlackHarvest			= mod:NewCountdown("AltTwo50", 206744)
 --mythic
---TODO, what needs countdowns the most?
+local countdownVisions				= mod:NewCountdown(50, 227008, nil, nil, 6)
+local countdownSoulSever			= mod:NewCountdown("Alt36", 220957, "Tank", nil, 6)
+local countdownFlameCrash			= mod:NewCountdown("AltTwo36", 227071, "Tank", nil, 6)
 
 --Stage One: The Council of Elders
 ----Gul'dan
+local voicePhaseChange				= mod:NewVoice(nil, nil, DBM_CORE_AUTO_VOICE2_OPTION_TEXT)
 local voiceLiquidHellfire			= mod:NewVoice(206219)--watchstep
 local voiceFelEfflux				= mod:NewVoice(206514)--159202 (flame jet)
 ----Fel Lord Kuraz'mal
@@ -183,13 +183,13 @@ local voiceFlamesOfSargeras			= mod:NewVoice(221606)--runout
 --Mythic Only
 local voiceWilloftheDemonWithin		= mod:NewVoice(211439)--carefly
 local voiceParasiticWound			= mod:NewVoice(206847)--scatter
-local voiceShearedSoul				= mod:NewVoice(206458)--targetyou (don't know what to do for most of this stuff yet so generic voices)
---local voiceSoulSever				= mod:NewVoice(220957)--??? (temp, no idea what you're supposed to for spell_
-local voiceVisionsOfDarkTitan		= mod:NewVoice(227008)--getstoptime
+--local voiceShearedSoul				= mod:NewVoice(206458)--???
+local voiceSoulSever				= mod:NewVoice(220957)--defensive
+local voiceVisionsOfDarkTitan		= mod:NewVoice(227008)--movetimebubble
 local voiceSummonNightorb			= mod:NewVoice(227283, "-Healer")--killmob
 --Shard
 local voiceManifestAzzinoth			= mod:NewVoice(221149, "-Healer")--bigmob
-local voicePurifiedEssence			= mod:NewVoice(221486)--getstoptime
+local voicePurifiedEssence			= mod:NewVoice(221486)--movetimebubble
 
 mod:AddRangeFrameOption(8, 221606)
 mod:AddSetIconOption("SetIconOnBondsOfFlames", 221783, true)
@@ -213,6 +213,7 @@ mod.vb.severCastCount = 0
 mod.vb.crashCastCount = 0
 mod.vb.orbCastCount = 0
 mod.vb.visionCastCount = 0
+mod.vb.azzCount = 0
 --Mythic only Phase end
 local felEffluxTimers = {11.0, 14.0, 18.5, 12.0, 12.2, 12.0}
 local felEffluxTimersEasy = {11.0, 14.0, 19.9, 15.6, 16.8, 15.9, 15.8}
@@ -233,6 +234,29 @@ local bondsIcons = {}
 local flamesIcons = {}
 local timeStopBuff = GetSpellInfo(206310)
 
+local function upValueCapsAreStupid(self)
+	self.vb.phase = 3
+	timerWindsCD:Stop()
+	self:SetBossHPInfoToHighest()
+	specWarnWilloftheDemonWithin:Show()
+	voiceWilloftheDemonWithin:Play("carefly")
+	timerWilloftheDemonWithin:Update(39, 43)
+	self.vb.severCastCount = 0
+	self.vb.crashCastCount = 0
+	self.vb.orbCastCount = 0
+	self.vb.visionCastCount = 0
+	self.vb.azzCount = 0
+	timerParasiticWoundCD:Start(8.3)
+	timerSoulSeverCD:Start(19.3, 1)	
+	countdownSoulSever:Start(19.3)
+	timerManifestAzzinothCD:Start(26.3, 1)
+	timerFlameCrashCD:Start(29.3, 1)
+	countdownFlameCrash:Start(29.3)
+	timerSummonNightorbCD:Start(39.3, 1)
+	timerVisionsofDarkTitanCD:Start(95.1, 1)
+	countdownVisions:Start(95.1)
+end
+
 function mod:OnCombatStart(delay)
 	self.vb.phase = 1
 	self.vb.addsDied = 0
@@ -249,17 +273,17 @@ function mod:OnCombatStart(delay)
 	table.wipe(bondsIcons)
 	table.wipe(flamesIcons)
 	if self:IsMythic() then
-		DBM:AddMsg("This mod still needs mythic refactoring to properly support new phase 3")
-		timerBondsofFelCD:Start(8.4-delay, 1)
-		countdownBondsOfFel:Start(8.4)
+		self:SetCreatureID(104154, 111022)
+		timerBondsofFelCD:Start(self:IsTank() and 6.4 or 8.4, 1)
+		countdownBondsOfFel:Start(self:IsTank() and 6.4 or 8.4)
 		timerDzorykxCD:Start(17-delay)
 		countdownHandofGuldan:Start(17)
-		timerEyeofGuldanCD:Start(26.4-delay, 1)
-		countdownEyeofGuldan:Start(26.4)
+		timerEyeofGuldanCD:Start(26.1-delay, 1)
+		countdownEyeofGuldan:Start(26.1)
 		timerLiquidHellfireCD:Start(36-delay, 1)
 		countdownLiquidHellfire:Start(36)
-		self:SetCreatureID(104154, 999999)--Placeholder until I know id of mythic enemy
 	else
+		self:SetCreatureID(104154)
 		timerLiquidHellfireCD:Start(2-delay, 1)
 		timerFelEffluxCD:Start(11-delay, 1)
 		timerFelLordKurazCD:Start(11-delay)
@@ -273,6 +297,9 @@ end
 function mod:OnCombatEnd()
 	if self.Options.RangeFrame then
 		DBM.RangeCheck:Hide()
+	end
+	if self.Options.InfoFrame then
+		DBM.InfoFrame:Hide()
 	end
 end
 
@@ -375,9 +402,6 @@ function mod:SPELL_CAST_START(args)
 				timerEyeofGuldanCD:Start(timer, self.vb.eyeCast+1)
 				countdownEyeofGuldan:Start(timer)
 			end
-			if self.vb.eyeCast == 4 and self:IsMythic() then
-				timerWindsCD:Start(97, 3)
-			end
 		else
 			local longTimer, shortTimer
 			if self:IsMythic() then
@@ -411,19 +435,27 @@ function mod:SPELL_CAST_START(args)
 			timerBlackHarvestCD:Start(timer, self.vb.blackHarvestCast+1)
 			countdownBlackHarvest:Start(timer)
 		end
-		if self:IsMythic() and self.vb.blackHarvestCast == 4 then
-			timerWindsCD:Start(75, 4)
+		if self:IsMythic() then
+			if self.vb.blackHarvestCast == 2 then
+				timerWindsCD:Start(67, 3)
+			elseif self.vb.blackHarvestCast == 3 then
+				timerWindsCD:Start(75, 4)
+			end
 		end
 	elseif spellId == 206222 or spellId == 206221 then
 		table.wipe(bondsIcons)
 		local tanking, status = UnitDetailedThreatSituation("player", "boss1")
 		if tanking or (status == 3) then
-			--Not a thing!
+			if spellId == 206221 then
+				voiceBondsofFel:Play("carefly")
+			end
 		else
 			local targetName = UnitName("boss1target") or DBM_CORE_UNKNOWN
 			if not UnitIsUnit("player", "boss1target") then--the very first bonds of fel, threat is broken and not available yet, so we need an additional filter
-				specWarnBondsofFelTank:Show(targetName)
-				voiceBondsofFel:Play("tauntboss")
+				if self:AntiSpam(5, targetName) then
+					specWarnBondsofFelTank:Show(targetName)
+					voiceBondsofFel:Play("tauntboss")
+				end
 			end
 		end
 	elseif spellId == 221783 then
@@ -431,45 +463,32 @@ function mod:SPELL_CAST_START(args)
 		self.vb.flamesTargets = 0
 	--Begin Mythic Only Stuff
 	elseif spellId == 211439 then--Will of the Demon Within
-		if self.vb.phase ~= 3 then -- For unlocalized clients
-			self.vb.phase = 3
-			timerWindsCD:Stop()
-		end
-		specWarnWilloftheDemonWithin:Show()
-		voiceWilloftheDemonWithin:Play("carefly")
-		timerWilloftheDemonWithin:Start()
-
-		self.vb.severCastCount = 0
-		self.vb.crashCastCount = 0
-		self.vb.orbCastCount = 0
-		self.vb.visionCastCount = 0
-		timerParasiticWoundCD:Start(8.6)
-		timerSoulSeverCD:Start(19.6, 1)	
- 		timerManifestAzzinothCD:Start(26.6)
- 		timerFlameCrashCD:Start(29.6, 1)
- 		timerSummonNightorbCD:Start(39.6, 1)
- 		timerVisionsofDarkTitanCD:Start(96.2, 1)
+		upValueCapsAreStupid(self)
 	elseif spellId == 220957 then
 		self.vb.severCastCount = self.vb.severCastCount + 1
 		if self:IsTank() then
 			specWarnSoulsever:Show(self.vb.severCastCount)
-			--voiceSoulSever:Play("stilldanger")
+			voiceSoulSever:Play("defensive")
 		end
 		if self.vb.severCastCount == 4 or self.vb.severCastCount == 7 then
 			timerSoulSeverCD:Start(50, self.vb.severCastCount+1)
+			countdownSoulSever:Start(50)
 		else
 			timerSoulSeverCD:Start(20, self.vb.severCastCount+1)
+			countdownSoulSever:Start(20)
 		end
 	elseif spellId == 227008 then
 		self.vb.visionCastCount = self.vb.visionCastCount+1
 		specWarnVisionsofDarkTitan:Show(timeStopBuff)
-		voiceVisionsOfDarkTitan:Play("getstoptime")
+		voiceVisionsOfDarkTitan:Play("movetimebubble")
 		timerVisionsofDarkTitan:Start()
 		if self.vb.visionCastCount ~= 3 then
 			if self.vb.visionCastCount == 2 then
 				timerVisionsofDarkTitanCD:Start(150)
+				countdownVisions:Start(150)
 			else
 				timerVisionsofDarkTitanCD:Start(90)
+				countdownVisions:Start(90)
 			end
 		end
 		if self.Options.InfoFrame then
@@ -478,9 +497,9 @@ function mod:SPELL_CAST_START(args)
 		end
 	elseif spellId == 221408 then
 		specWarnBulwarkofAzzinoth:Show()
-	elseif spellId == 221486 then
+	elseif spellId == 221486 and self:AntiSpam(5, 4) then
 		specWarnPurifiedEssence:Show(timeStopBuff)
-		voicePurifiedEssence:Play("getstoptime")
+		voicePurifiedEssence:Play("movetimebubble")
 		timerPurifiedEssence:Start()
 		if self.Options.InfoFrame then
 			DBM.InfoFrame:SetHeader(DBM_NO_DEBUFF:format(timeStopBuff))
@@ -494,36 +513,40 @@ function mod:SPELL_CAST_SUCCESS(args)
 	if spellId == 206222 or spellId == 206221 then
 		self.vb.bondsofFelCast = self.vb.bondsofFelCast + 1
 		if self:IsMythic() then
-			timerBondsofFelCD:Start(40, self.vb.bondsofFelCast+1)
-			countdownBondsOfFel:Start(40)
+			local timer = self:IsTank() and 38 or 40
+			timerBondsofFelCD:Start(timer, self.vb.bondsofFelCast+1)
+			countdownBondsOfFel:Start(timer)
 		elseif self:IsHeroic() then
-			timerBondsofFelCD:Start(44.4, self.vb.bondsofFelCast+1)
-			countdownBondsOfFel:Start(44.4)
+			local timer = self:IsTank() and 42.4 or 44.4
+			timerBondsofFelCD:Start(timer, self.vb.bondsofFelCast+1)
+			countdownBondsOfFel:Start(timer)
 		elseif self:IsNormal() then
-			timerBondsofFelCD:Start(50, self.vb.bondsofFelCast+1)
-			countdownBondsOfFel:Start(50)
+			local timer = self:IsTank() and 48 or 50
+			timerBondsofFelCD:Start(timer, self.vb.bondsofFelCast+1)
+			countdownBondsOfFel:Start(timer)
 		else
-			timerBondsofFelCD:Start(53, self.vb.bondsofFelCast+1)
-			countdownBondsOfFel:Start(53)
+			local timer = self:IsTank() and 51 or 53
+			timerBondsofFelCD:Start(timer, self.vb.bondsofFelCast+1)
+			countdownBondsOfFel:Start(timer)
 		end
 	elseif spellId == 221783 and self:AntiSpam(35, 1) then
 		self.vb.flamesSargCast = self.vb.flamesSargCast + 1
 		if self:IsMythic() then
 			timerFlamesofSargerasCD:Start(6.3, (self.vb.flamesSargCast).."-"..2)
-			timerFlamesofSargerasCD:Start(7.3, (self.vb.flamesSargCast).."-"..3)
+			timerFlamesofSargerasCD:Start(13.6, (self.vb.flamesSargCast).."-"..3)
 			timerFlamesofSargerasCD:Start(45, (self.vb.flamesSargCast+1).."-"..1)
 			if self.vb.flamesSargCast == 2 then
 				timerWindsCD:Start(31, 2)
 			end
 		elseif self:IsHeroic() then
 			timerFlamesofSargerasCD:Start(7.7, (self.vb.flamesSargCast).."-"..2)
-			timerFlamesofSargerasCD:Start(8.7, (self.vb.flamesSargCast).."-"..3)
+			timerFlamesofSargerasCD:Start(16.4, (self.vb.flamesSargCast).."-"..3)
 			timerFlamesofSargerasCD:Start(50, (self.vb.flamesSargCast+1).."-"..1)--5-6 is 50, 1-5 is 51. For time being using a simple 50 timer
 		else--Normal, LFR?
 			timerFlamesofSargerasCD:Start(18.9, (self.vb.flamesSargCast).."-"..2)
 			timerFlamesofSargerasCD:Start(58.5, (self.vb.flamesSargCast+1).."-"..1)
 		end
-	elseif spellId == 212258 and self.vb.phase > 1.5 then--Ignore phase 1 adds with this cast
+	elseif spellId == 212258 and (self:IsMythic() or self.vb.phase > 1.5) then--Ignore phase 1 adds with this cast
 		self.vb.handofGuldanCast = self.vb.handofGuldanCast + 1
 		specWarnHandofGuldan:Show()
 		voiceHandofGuldan:Play("bigmob")
@@ -548,7 +571,7 @@ function mod:SPELL_CAST_SUCCESS(args)
 			DBM.InfoFrame:Hide()
 		end
 	elseif spellId == 221336 then
-		timerChaosSeedCD:Start(10.9)
+		timerChaosSeedCD:Start(10.5, args.sourceGUID)
 	end
 end
 
@@ -573,9 +596,11 @@ function mod:SPELL_AURA_APPLIED(args)
 		else
 			local uId = DBM:GetRaidUnitId(name)
 			if self:IsTanking(uId, "boss1") and not UnitDetailedThreatSituation("player", "boss1") then
-				--secondary warning, in case you spaced out the first taunt warning
-				specWarnBondsofFelTank:Show(name)
-				voiceBondsofFel:Play("tauntboss")
+				--secondary warning, in case first one didn't go through
+				if self:AntiSpam(5, name) then
+					specWarnBondsofFelTank:Show(name)
+					voiceBondsofFel:Play("tauntboss")
+				end
 			end
 		end
 		if self.Options.SetIconOnBondsOfFel then
@@ -585,7 +610,7 @@ function mod:SPELL_AURA_APPLIED(args)
 		warnSoulSiphon:CombinedShow(0.3, args.destName)
 	elseif spellId == 208802 then
 		local amount = args.amount or 1
-		if args:IsPlayer() and amount >= 3 then
+		if args:IsPlayer() and amount >= 5 then
 			specWarnSoulCorrosion:Show(amount)
 			voiceSoulCorrosion:Play("stackhigh")
 		end
@@ -597,7 +622,7 @@ function mod:SPELL_AURA_APPLIED(args)
 				timerFlamesofSargerasCD:Start(13.6, (self.vb.flamesSargCast).."-"..3)
 				timerFlamesofSargerasCD:Start(45, (self.vb.flamesSargCast+1).."-"..1)
 				if self.vb.flamesSargCast == 2 then
-					timerWindsCD:Start(31, 2)--FIXME later and start at correct flames cast
+					timerWindsCD:Start(31, 2)
 				end
 			elseif self:IsHeroic() then
 				timerFlamesofSargerasCD:Start(7.7, (self.vb.flamesSargCast).."-"..2)
@@ -652,21 +677,25 @@ function mod:SPELL_AURA_APPLIED(args)
 		countdownEyeofGuldan:Cancel()
 		timerHandofGuldanCD:Stop()
 		countdownHandofGuldan:Cancel()
+		timerWindsCD:Start(12, 1)
 		timerWellOfSouls:Start(15)
 		self.vb.eyeCast = 0
 		if self:IsMythic() then
 			self.vb.phase = 2
 			warnPhase2:Show()
+			voicePhaseChange:Play("ptwo")
+			timerDzorykxCD:Stop()
+			timerFelLordKurazCD:Stop()
 			timerFlamesofSargerasCD:Start(24.5, "1-1")
-			timerEyeofGuldanCD:Start(35.1, 1)
-			countdownEyeofGuldan:Start(35)
+			timerEyeofGuldanCD:Start(34.3, 1)
+			countdownEyeofGuldan:Start(34.3)
 			timerBlackHarvestCD:Start(55.7, 1)
 			countdownBlackHarvest:Start(55.7)
-			timerWindsCD:Start(68, 1)
 			timerStormOfDestroyerCD:Start(72.6, 1)
 		else
 			self.vb.phase = 3
 			warnPhase3:Show()
+			voicePhaseChange:Play("pthree")
 			timerBlackHarvestCD:Start(self:IsLFR() and 73 or 63, 1)
 			countdownBlackHarvest:Start(self:IsLFR() and 73 or 63)
 			if self:IsEasy() then
@@ -689,21 +718,21 @@ function mod:SPELL_AURA_APPLIED(args)
 			specWarnParasiticWound:Show()
 			voiceParasiticWound:Play("scatter")
 			yellParasiticWound:Yell()
-			yellParasiticWoundFades:Schedule(remaining-1, 1)
-			yellParasiticWoundFades:Schedule(remaining-2, 2)
-			yellParasiticWoundFades:Schedule(remaining-3, 3)
+			yellParasiticWoundFades:Countdown(remaining)
 		end
 	elseif spellId == 206983 and self:AntiSpam(2, args.destName) then
 		warnShadowyGaze:CombinedShow(0.3, args.destName)
 	elseif spellId == 206458 then
 		if args:IsPlayer() then
-			specWarnShearedSoul:Show()
-			voiceShearedSoul:Play("targetyou")
+			--specWarnShearedSoul:Show()
+			--voiceShearedSoul:Play("defensive")
 		end
 	elseif spellId == 227009 then
 		warnWounded:Show()
 		timerWounded:Start()
 		timerVisionsofDarkTitan:Stop()
+	elseif spellId == 206310 and args:IsPlayer() then
+		yellParasiticWoundFades:Cancel()
 	end
 end
 mod.SPELL_AURA_APPLIED_DOSE = mod.SPELL_AURA_APPLIED
@@ -736,6 +765,13 @@ function mod:SPELL_AURA_REMOVED(args)
 		if args:IsPlayer() then
 			yellParasiticWoundFades:Cancel()
 		end
+	elseif spellId == 206310 and args:IsPlayer() then
+		local parasiteName = GetSpellInfo(206847)
+		if UnitDebuff("player", parasiteName) then
+			local _, _, _, _, _, _, expires = UnitDebuff("player", parasiteName)
+			local remaining = expires-GetTime()
+			yellParasiticWoundFades:Countdown(remaining)
+		end
 	end
 end
 
@@ -752,8 +788,9 @@ mod.SPELL_PERIODIC_MISSED = mod.SPELL_PERIODIC_DAMAGE
 function mod:UNIT_DIED(args)
 	local cid = self:GetCIDFromGUID(args.destGUID)
 	if cid == 111070 then--Azzinoth
-		timerChaosSeedCD:Stop()
+		timerChaosSeedCD:Stop(args.destGUID)
 	elseif cid == 104154 and self:IsMythic() then--Gul'dan
+		self.vb.bossLeft = self.vb.bossLeft - 1
 		timerFlamesofSargerasCD:Stop()
 		timerEyeofGuldanCD:Stop()
 		countdownEyeofGuldan:Cancel()
@@ -835,12 +872,14 @@ function mod:UNIT_SPELLCAST_SUCCEEDED(uId, _, _, spellGUID)
 				self.vb.phase = 2
 				self.vb.liquidHellfireCast = 0
 				warnPhase2:Show()
+				voicePhaseChange:Play("ptwo")
 				timerLiquidHellfireCD:Stop()
 				countdownLiquidHellfire:Cancel()
 				timerFelEffluxCD:Stop()
 				timerTransition:Start(19)
-				timerBondsofFelCD:Start(27.6, 1)
-				countdownBondsOfFel:Start(27.6)
+				local timer = 
+				timerBondsofFelCD:Start(self:IsTank() and 25.5 or 27.6, 1)
+				countdownBondsOfFel:Start(self:IsTank() and 25.5 or 27.6)
 				if self:IsLFR() then
 					timerEyeofGuldanCD:Start(54, 1)
 					countdownEyeofGuldan:Start(54)
@@ -864,16 +903,21 @@ function mod:UNIT_SPELLCAST_SUCCEEDED(uId, _, _, spellGUID)
 	elseif spellId == 227035 then -- Parasitic Wound
 		timerParasiticWoundCD:Start()
 	elseif spellId == 221149 or spellId == 227277 then -- Manifest Azzinoth
-		specWarnManifestAzzinoth:show()
+		self.vb.azzCount = self.vb.azzCount + 1
+		local count = self.vb.azzCount
+		specWarnManifestAzzinoth:Show(count)
 		voiceManifestAzzinoth:Play("bigmob")
+		voiceManifestAzzinoth:Schedule(1.2, nil, "Interface\\AddOns\\DBM-VP"..DBM.Options.ChosenVoicePack.."\\count\\"..count..".ogg")
 		timerBulwarkofAzzinothCD:Start(15)
-		timerManifestAzzinothCD:Start(41)
+		timerManifestAzzinothCD:Start(40, count+1)
 	elseif spellId == 227071 then -- Flame Crash
 		self.vb.crashCastCount  = self.vb.crashCastCount  + 1
 		if self.vb.crashCastCount == 4 or self.vb.crashCastCount == 7 then
 			timerFlameCrashCD:Start(50, self.vb.crashCastCount+1)
+			countdownFlameCrash:Start(50)
 		else
 			timerFlameCrashCD:Start(20, self.vb.crashCastCount+1)
+			countdownFlameCrash:Start(20)
 		end
 	elseif spellId == 227283 then -- Nightorb
 		self.vb.orbCastCount = self.vb.orbCastCount + 1
@@ -897,8 +941,7 @@ function mod:OnSync(msg)
 	end
 	if not self:IsInCombat() then return end
 	if msg == "mythicPhase3" and self:IsMythic() then
-		self.vb.phase = 3
-		warnPhase3:Show()
-		timerWilloftheDemonWithinCD:Start(39)
+		warnPhase3Soon:Show()
+		timerWilloftheDemonWithin:Start(43)
 	end
 end

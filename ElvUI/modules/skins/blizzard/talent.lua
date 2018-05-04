@@ -116,6 +116,7 @@ local function LoadSkin()
 			bu:SetFrameLevel(bu:GetFrameLevel() + 5)
 			bu:CreateBackdrop("Default")
 			bu.backdrop:SetOutside(ic)
+			bu.knownSelection:SetAlpha(0)
 			ic:SetDrawLayer("OVERLAY")
 			ic:SetTexCoord(0.1, 0.9, 0.1, 0.9)
 
@@ -289,7 +290,7 @@ local function LoadSkin()
 			child:DisableDrawLayer("OVERLAY")
 		end
 	end
-	
+
 	-- PVP Talents
 	PlayerTalentFramePVPTalents.XPBar:StripTextures()
 	PlayerTalentFramePVPTalents.XPBar.PrestigeReward.Accept:ClearAllPoints()
@@ -298,18 +299,22 @@ local function LoadSkin()
 
 	--Honor progress bar
 	PlayerTalentFramePVPTalents.XPBar.Bar:CreateBackdrop("Default")
+	PlayerTalentFramePVPTalents.XPBar.Bar.Spark:SetAlpha(0)
 
 	PlayerTalentFramePVPTalents.XPBar.NextAvailable:StripTextures()
 	PlayerTalentFramePVPTalents.XPBar.NextAvailable:CreateBackdrop("Default")
-	PlayerTalentFramePVPTalents.XPBar.NextAvailable.backdrop:SetPoint("TOPLEFT", PlayerTalentFramePVPTalents.XPBar.NextAvailable.Icon, -2, 2)
-	PlayerTalentFramePVPTalents.XPBar.NextAvailable.backdrop:SetPoint("BOTTOMRIGHT", PlayerTalentFramePVPTalents.XPBar.NextAvailable.Icon, 2, -2)
+	PlayerTalentFramePVPTalents.XPBar.NextAvailable.backdrop:SetOutside(PlayerTalentFramePVPTalents.XPBar.NextAvailable.Icon)
 	PlayerTalentFramePVPTalents.XPBar.NextAvailable:ClearAllPoints()
 	PlayerTalentFramePVPTalents.XPBar.NextAvailable:SetPoint("LEFT", PlayerTalentFramePVPTalents.XPBar.Bar, "RIGHT", 3, -2)
 
 	--Next Available Icon
-	PlayerTalentFramePVPTalents.XPBar.NextAvailable.Icon:SetDrawLayer("ARTWORK")
-	PlayerTalentFramePVPTalents.XPBar.NextAvailable.Icon:SetTexCoord(unpack(E.TexCoords))
-	PlayerTalentFramePVPTalents.XPBar.NextAvailable.Icon.SetTexCoord = E.noop
+	hooksecurefunc(PlayerTalentFramePVPTalents.XPBar.NextAvailable.Icon, "SetTexCoord", function(self, x1)
+		if x1 == 0 then
+			self:SetTexCoord(unpack(E.TexCoords))
+		end
+	end);
+	-- This seems to break some icons at higher prestige level. ElvUI/issue#1853
+	-- PlayerTalentFramePVPTalents.XPBar.NextAvailable.Icon.SetTexCoord = E.noop
 
 	--Skin talent rows and buttons
 	for i = 1, MAX_PVP_TALENT_TIERS do

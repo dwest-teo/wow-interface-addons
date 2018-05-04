@@ -1,12 +1,13 @@
 local E, L, V, P, G = unpack(select(2, ...)); --Inport: Engine, Locales, PrivateDB, ProfileDB, GlobalDB
 local mod = E:GetModule('DataBars');
 local LSM = LibStub("LibSharedMedia-3.0")
+local LAP = LibStub("LibArtifactPower-1.0-ElvUI")
 
 --Cache global variables
 --Lua functions
 local _G = _G
 local tonumber, select, pcall = tonumber, select, pcall
-local format, gsub, strmatch, strfind = string.format, string.gsub, string.match, string.find
+local format, gsub, strmatch, strfind, split = string.format, string.gsub, string.match, string.find, string.split
 --WoW API / Variables
 local C_ArtifactUI_GetEquippedArtifactInfo = C_ArtifactUI.GetEquippedArtifactInfo
 local GetContainerItemInfo = GetContainerItemInfo
@@ -20,30 +21,12 @@ local InCombatLockdown = InCombatLockdown
 local MainMenuBar_GetNumArtifactTraitsPurchasableFromXP = MainMenuBar_GetNumArtifactTraitsPurchasableFromXP
 local ShowUIPanel = ShowUIPanel
 local SocketInventoryItem = SocketInventoryItem
+local AP_NAME = format("%s|r", ARTIFACT_POWER)
 local ARTIFACT_POWER = ARTIFACT_POWER
 local ARTIFACT_POWER_TOOLTIP_BODY = ARTIFACT_POWER_TOOLTIP_BODY
 
 --Global variables that we don't cache, list them here for mikk's FindGlobals script
 -- GLOBALS: GameTooltip, CreateFrame, ArtifactFrame, UIParent
-
---Credit: Artifact Power (https://mods.curse.com/addons/wow/artifact-power)
-local empoweringSpellName
-local EMPOWERING_SPELL_ID = 227907
-local apString = {
-	["enUS"] = "Grants(%d+)ArtifactPowertoyourcurrentlyequippedArtifact",
-	["enGB"] = "Grants(%d+)ArtifactPowertoyourcurrentlyequippedArtifact",
-	["ptBR"] = "Concede(%d+)dePoderdoArtefatoaoartefatoequipado",
-	["esMX"] = "Otorga(%d+)pdePoderdeartefactoparaelartefactoquellevasequipado",
-	["deDE"] = "GewährtEuremderzeitausgerüstetenArtefakt(%d+)Artefaktmacht",
-	["esES"] = "Otorga(%d+)pdepoderdeartefactoalartefactoquellevesequipado",
-	["frFR"] = "Confère(%d+) pointsdepuissanceàl’armeprodigieusequevousmaniez",
-	["itIT"] = "Fornisce(%d+)PotereArtefattoall'Artefattoattualmenteequipaggiato",
-	["ruRU"] = "Добавляетиспользуемомувданныймоментартефакту(%d+)едсилыартефакта",
-	["koKR"] = "현재장착한유물에(%d+)의유물력을부여합니다",
-	["zhTW"] = "賦予你目前裝備的神兵武器(%d+)點神兵之力。",
-	["zhCN"] = "将(%d+)点神器能量注入到你当前装备的神器之中。"
-}
-local apStringLocal = apString[GetLocale()]
 
 function mod:UpdateArtifact(event, unit)
 	if not mod.db.artifact.enable then return end
@@ -71,12 +54,13 @@ function mod:UpdateArtifact(event, unit)
 
 		local text = ''
 		local _, _, _, _, totalXP, pointsSpent, _, _, _, _, _, _, artifactTier = C_ArtifactUI_GetEquippedArtifactInfo();
-		local _, xp, xpForNextPoint
-		if E.wowbuild >= 23623 then --7.2
-			_, xp, xpForNextPoint = MainMenuBar_GetNumArtifactTraitsPurchasableFromXP(pointsSpent, totalXP, artifactTier);
-		else
-			_, xp, xpForNextPoint = MainMenuBar_GetNumArtifactTraitsPurchasableFromXP(pointsSpent, totalXP);
+		local _, xp, xpForNextPoint = MainMenuBar_GetNumArtifactTraitsPurchasableFromXP(pointsSpent, totalXP, artifactTier);
+
+		--Damn fishing artifacts and its inconsistent returns
+		if xpForNextPoint <= 0 then
+			xpForNextPoint = xp
 		end
+
 		bar.statusBar:SetMinMaxValues(0, xpForNextPoint)
 		bar.statusBar:SetValue(xp)
 
@@ -117,24 +101,27 @@ function mod:ArtifactBar_OnEnter()
 	GameTooltip:ClearLines()
 	GameTooltip:SetOwner(self, 'ANCHOR_CURSOR', 0, -4)
 
-	GameTooltip:AddLine(ARTIFACT_POWER)
+	local _, _, artifactName, _, totalXP, pointsSpent, _, _, _, _, _, _, artifactTier = C_ArtifactUI_GetEquippedArtifactInfo();
+	local numPointsAvailableToSpend, xp, xpForNextPoint = MainMenuBar_GetNumArtifactTraitsPurchasableFromXP(pointsSpent, totalXP, artifactTier);
+	
+	GameTooltip:AddDoubleLine(ARTIFACT_POWER, artifactName, nil, nil, nil, 0.90, 0.80,	0.50)
 	GameTooltip:AddLine(' ')
 
-	local _, _, _, _, totalXP, pointsSpent, _, _, _, _, _, _, artifactTier = C_ArtifactUI_GetEquippedArtifactInfo();
-	local numPointsAvailableToSpend, xp, xpForNextPoint
-	if E.wowbuild >= 23623 then --7.2
-		numPointsAvailableToSpend, xp, xpForNextPoint = MainMenuBar_GetNumArtifactTraitsPurchasableFromXP(pointsSpent, totalXP, artifactTier);
-	else
-		numPointsAvailableToSpend, xp, xpForNextPoint = MainMenuBar_GetNumArtifactTraitsPurchasableFromXP(pointsSpent, totalXP);
+	--Damn fishing artifacts and its inconsistent returns
+	if xpForNextPoint <= 0 then
+		xpForNextPoint = xp
 	end
+
 	local remaining = xpForNextPoint - xp
 	local apInBags = self.BagArtifactPower
 
-	GameTooltip:AddDoubleLine(L["XP:"], format(' %d / %d (%d%%)', xp, xpForNextPoint, xp/xpForNextPoint * 100), 1, 1, 1)
-	GameTooltip:AddDoubleLine(L["Remaining:"], format(' %d (%d%% - %d %s)', xpForNextPoint - xp, remaining / xpForNextPoint * 100, 20 * remaining / xpForNextPoint, L["Bars"]), 1, 1, 1)
-	GameTooltip:AddDoubleLine(L["In Bags:"], format(' %d (%d%% - %d %s)', apInBags, apInBags / xpForNextPoint * 100, 20 * apInBags / xpForNextPoint, L["Bars"]), 1, 1, 1)
-	GameTooltip:AddLine(" ")
-	GameTooltip:AddLine(format(ARTIFACT_POWER_TOOLTIP_BODY, numPointsAvailableToSpend), nil, nil, nil, true)
+	GameTooltip:AddDoubleLine(L["XP:"], format(' %s / %s (%d%%)', E:ShortValue(xp), E:ShortValue(xpForNextPoint), xp/xpForNextPoint * 100), 1, 1, 1)
+	GameTooltip:AddDoubleLine(L["Remaining:"], format(' %s (%d%% - %d %s)', E:ShortValue(xpForNextPoint - xp), remaining / xpForNextPoint * 100, 20 * remaining / xpForNextPoint, L["Bars"]), 1, 1, 1)
+	GameTooltip:AddDoubleLine(L["In Bags:"], format(' %s (%d%% - %d %s)', E:ShortValue(apInBags), apInBags / xpForNextPoint * 100, 20 * apInBags / xpForNextPoint, L["Bars"]), 1, 1, 1)
+	if (numPointsAvailableToSpend > 0) then
+		GameTooltip:AddLine(' ')
+		GameTooltip:AddLine(format(ARTIFACT_POWER_TOOLTIP_BODY, numPointsAvailableToSpend), nil, nil, nil, true)
+	end
 
 	GameTooltip:Show()
 end
@@ -181,100 +168,53 @@ function mod:EnableDisable_ArtifactBar()
 	end
 end
 
---AP item caches
-local apValueCache = {}
-local apItemCache = {}
+function mod:GetKnowledgeLevelFromItemLink(itemLink)
+	local upgradeID = select(15, split(":", itemLink))
+	local knowledgeLevel = tonumber(upgradeID) - 1 --Don't ask why, that's just how it is.
 
---This function scans the tooltip of an item to determine whether or not it grants AP.
---If it is found to grant AP, then the value is extracted and returned.
-local apLineIndex
-local function GetAPFromTooltip(itemLink)
-	local apValue = 0
-
-	local itemSpell = GetItemSpell(itemLink)
-	if itemSpell and itemSpell == empoweringSpellName then
-		--Clear tooltip from previous item
-		mod.artifactBar.tooltip:SetOwner(UIParent, "ANCHOR_NONE")
-		--We need to use SetHyperlink, as SetItemByID doesn't work for items you looted before
-		-- gaining Artifact Knowledge level. For those items it would display a value higher
-		-- than what you would actually get.
-		mod.artifactBar.tooltip:SetHyperlink(itemLink)
-
-		local apFound
-		for i = #mod.artifactBar.tooltipLines, 1, -1 do
-			local tooltipText = mod.artifactBar.tooltipLines[i]:GetText()
-
-			if (tooltipText) then
-				tooltipText = tooltipText:gsub("[,%.%s]", "")
-				local ap = tooltipText:match(apStringLocal) or ""
-				if (ap ~= "") then
-					apValue = tonumber(ap)
-					apFound = true
-					break
-				end
-			end
-		end
-
-		if (not apFound) then
-			apItemCache[itemLink] = false --Cache item as not granting AP
-		end
-	else
-		apItemCache[itemLink] = false --Cache item as not granting AP
-	end
-
-	return apValue
+	return knowledgeLevel
 end
 
---This function is responsible for retrieving the AP value from an itemLink.
---It will cache the itemLink and respective AP value for future requests, thus saving CPU resources.
-local function GetAPForItem(itemLink)
-	if (apItemCache[itemLink] == false) then
-		--Get out early if item has already been determined to not grant AP
-		return 0
+local apItemCache = {}
+
+function mod:GetAPForItem(itemLink)
+
+	--Return cached item if possible
+	if (apItemCache[itemLink] ~= nil) then
+		return apItemCache[itemLink]
 	end
 
-	--Check if item is cached and return value
-	if apValueCache[itemLink] then
-		return apValueCache[itemLink]
-	else
-		--Not cached, do a tooltip scan and cache the value
-		local apValue = GetAPFromTooltip(itemLink)
-		if apValue > 0 then
-			apValueCache[itemLink] = apValue
-		end
+	if (LAP:DoesItemGrantArtifactPower(itemLink)) then
+		local knowledgeLevel = self:GetKnowledgeLevelFromItemLink(itemLink)
+		local apValue = LAP:GetArtifactPowerGrantedByItem(itemLink, knowledgeLevel)
+
+		--Cache item
+		apItemCache[itemLink] = apValue
+
 		return apValue
 	end
+
+	return 0
 end
 
 function mod:GetArtifactPowerInBags()
-	if InCombatLockdown() then
-		return self.artifactBar.LastKnownAP
-	end
-
 	self.artifactBar.BagArtifactPower = 0
-	local ID, link, AP
+	local itemLink, AP
 	for bag = 0, 4 do
 		for slot = 1, GetContainerNumSlots(bag) do
-			ID = select(10, GetContainerItemInfo(bag, slot))
-			link = GetContainerItemLink(bag, slot)
+			itemLink = select(7, GetContainerItemInfo(bag, slot))
 
-			if (ID and link) then
-				AP = GetAPForItem(link)
+			if (itemLink) then
+				AP = self:GetAPForItem(itemLink)
 				self.artifactBar.BagArtifactPower = self.artifactBar.BagArtifactPower + AP
 			end
 		end
-	end
-
-	if(not self.artifactBar.LastKnownAP) or (self.artifactBar.LastKnownAP ~= self.artifactBar.BagArtifactPower) then
-		self.artifactBar.LastKnownAP = self.artifactBar.BagArtifactPower
 	end
 
 	return self.artifactBar.BagArtifactPower
 end
 
 function mod:LoadArtifactBar()
-	empoweringSpellName = GetSpellInfo(EMPOWERING_SPELL_ID)
-
 	self.artifactBar = self:CreateBar('ElvUI_ArtifactBar', self.ArtifactBar_OnEnter, self.ArtifactBar_OnClick, 'RIGHT', self.honorBar, 'LEFT', E.Border - E.Spacing*3, 0)
 	self.artifactBar.statusBar:SetStatusBarColor(.901, .8, .601)
 	self.artifactBar.statusBar:SetMinMaxValues(0, 325)

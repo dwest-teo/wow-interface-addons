@@ -173,10 +173,10 @@ function WeakAuras.CreateFrame()
 
   importbutton:SetScript("PostClick", function(self)
     if self:GetChecked() then
-      PlaySound("igMainMenuOptionCheckBoxOn")
+      PlaySound(856)
       db.import_disabled = true
     else
-      PlaySound("igMainMenuOptionCheckBoxOff")
+      PlaySound(857)
       db.import_disabled = nil
     end
   end)
@@ -266,7 +266,7 @@ function WeakAuras.CreateFrame()
         frame.texteditor.frame:Show();
       elseif(frame.window == "codereview") then
         frame.codereview.frame:Show();
-      elseif(frame.window == "newview") then
+      elseif(frame.window == "newView") then
         frame.newView.frame:Show();
       end
       minimizebutton:SetNormalTexture("Interface\\BUTTONS\\UI-Panel-CollapseButton-Up.blp");

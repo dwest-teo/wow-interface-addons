@@ -8,7 +8,8 @@ local unpack = unpack
 local ceil = math.ceil
 --WoW API / Variables
 local UnitIsUnit = UnitIsUnit
-local UIDROPDOWNMENU_MAXLEVELS = UIDROPDOWNMENU_MAXLEVELS
+--Global variables that we don't cache, list them here for mikk's FindGlobals script
+-- GLOBALS: UIDROPDOWNMENU_MAXLEVELS, L_UIDROPDOWNMENU_MAXLEVELS
 
 local function LoadSkin()
 	if E.private.skins.blizzard.enable ~= true or E.private.skins.blizzard.misc ~= true then return end
@@ -18,29 +19,26 @@ local function LoadSkin()
 		"StaticPopup2",
 		"StaticPopup3",
 		"StaticPopup4",
+		"CinematicFrameCloseDialog",
 		"InterfaceOptionsFrame",
 		"VideoOptionsFrame",
 		"AudioOptionsFrame",
-		"BNToastFrame",
-		"TicketStatusFrameButton",
-		"DropDownList1MenuBackdrop",
-		"DropDownList2MenuBackdrop",
-		"DropDownList1Backdrop",
-		"DropDownList2Backdrop",
 		"AutoCompleteBox",
 		"ReadyCheckFrame",
 		"StackSplitFrame",
 		"QueueStatusFrame",
 		"LFDReadyCheckPopup",
+		"DropDownList1Backdrop",
+		"DropDownList1MenuBackdrop",
 
 		--DropDownMenu library support
-		"Lib_DropDownList1MenuBackdrop",
-		"Lib_DropDownList2MenuBackdrop",
-		"Lib_DropDownList1Backdrop",
-		"Lib_DropDownList2Backdrop",
+		"L_DropDownList1Backdrop",
+		"L_DropDownList1MenuBackdrop"
 	}
 
 	QueueStatusFrame:StripTextures()
+	S:HandleButton(CinematicFrameCloseDialogConfirmButton)
+	S:HandleButton(CinematicFrameCloseDialogResumeButton)
 
 	for i = 1, getn(skins) do
 		_G[skins[i]]:SetTemplate("Transparent")
@@ -56,12 +54,12 @@ local function LoadSkin()
 		"LanguageMenu",
 		"VoiceMacroMenu",
 	}
-	--
+
 	for i = 1, getn(ChatMenus) do
 		if _G[ChatMenus[i]] == _G["ChatMenu"] then
-			_G[ChatMenus[i]]:HookScript("OnShow", function(self) self:SetTemplate("Default", true) self:SetBackdropColor(unpack(E['media'].backdropfadecolor)) self:ClearAllPoints() self:Point("BOTTOMLEFT", ChatFrame1, "TOPLEFT", 0, 30) end)
+			_G[ChatMenus[i]]:HookScript("OnShow", function(self) self:SetTemplate("Transparent", true) self:SetBackdropColor(unpack(E['media'].backdropfadecolor)) self:ClearAllPoints() self:Point("BOTTOMLEFT", ChatFrame1, "TOPLEFT", 0, 30) end)
 		else
-			_G[ChatMenus[i]]:HookScript("OnShow", function(self) self:SetTemplate("Default", true) self:SetBackdropColor(unpack(E['media'].backdropfadecolor)) end)
+			_G[ChatMenus[i]]:HookScript("OnShow", function(self) self:SetTemplate("Transparent", true) self:SetBackdropColor(unpack(E['media'].backdropfadecolor)) end)
 		end
 	end
 
@@ -86,19 +84,35 @@ local function LoadSkin()
 	for i = 1, 4 do
 		for j = 1, 3 do
 			S:HandleButton(_G["StaticPopup"..i.."Button"..j])
-			S:HandleEditBox(_G["StaticPopup"..i.."EditBox"])
-			S:HandleEditBox(_G["StaticPopup"..i.."MoneyInputFrameGold"])
-			S:HandleEditBox(_G["StaticPopup"..i.."MoneyInputFrameSilver"])
-			S:HandleEditBox(_G["StaticPopup"..i.."MoneyInputFrameCopper"])
-			_G["StaticPopup"..i.."EditBox"].backdrop:Point("TOPLEFT", -2, -4)
-			_G["StaticPopup"..i.."EditBox"].backdrop:Point("BOTTOMRIGHT", 2, 4)
-			_G["StaticPopup"..i.."ItemFrameNameFrame"]:Kill()
-			_G["StaticPopup"..i.."ItemFrame"]:GetNormalTexture():Kill()
-			_G["StaticPopup"..i.."ItemFrame"]:SetTemplate("Default")
-			_G["StaticPopup"..i.."ItemFrame"]:StyleButton()
-			_G["StaticPopup"..i.."ItemFrameIconTexture"]:SetTexCoord(unpack(E.TexCoords))
-			_G["StaticPopup"..i.."ItemFrameIconTexture"]:SetInside()
 		end
+		S:HandleEditBox(_G["StaticPopup"..i.."EditBox"])
+		S:HandleEditBox(_G["StaticPopup"..i.."MoneyInputFrameGold"])
+		S:HandleEditBox(_G["StaticPopup"..i.."MoneyInputFrameSilver"])
+		S:HandleEditBox(_G["StaticPopup"..i.."MoneyInputFrameCopper"])
+		_G["StaticPopup"..i.."EditBox"].backdrop:Point("TOPLEFT", -2, -4)
+		_G["StaticPopup"..i.."EditBox"].backdrop:Point("BOTTOMRIGHT", 2, 4)
+		_G["StaticPopup"..i.."ItemFrameNameFrame"]:Kill()
+		_G["StaticPopup"..i.."ItemFrame"]:SetTemplate("Default")
+		_G["StaticPopup"..i.."ItemFrame"]:StyleButton()
+		_G["StaticPopup"..i.."ItemFrame"].IconBorder:SetAlpha(0)
+		_G["StaticPopup"..i.."ItemFrameIconTexture"]:SetTexCoord(unpack(E.TexCoords))
+		_G["StaticPopup"..i.."ItemFrameIconTexture"]:SetInside()
+		local normTex = _G["StaticPopup"..i.."ItemFrame"]:GetNormalTexture()
+		if normTex then
+			normTex:SetTexture(nil)
+			hooksecurefunc(normTex, "SetTexture", function(self, tex)
+				if tex ~= nil then self:SetTexture(nil) end
+			end)
+		end
+
+		-- Quality IconBorder
+		hooksecurefunc(_G["StaticPopup"..i.."ItemFrame"].IconBorder, 'SetVertexColor', function(self, r, g, b)
+ 			self:GetParent():SetBackdropBorderColor(r, g, b)
+ 			self:SetTexture("")
+ 		end)
+ 		hooksecurefunc(_G["StaticPopup"..i.."ItemFrame"].IconBorder, 'Hide', function(self)
+ 			self:GetParent():SetBackdropBorderColor(unpack(E.media.bordercolor))
+		end)
 	end
 
 	if not IsAddOnLoaded("ConsolePort") then
@@ -255,13 +269,12 @@ local function LoadSkin()
 	InterfaceOptionsFrame:RegisterForDrag("LeftButton", "RightButton")
 	InterfaceOptionsFrame:SetScript("OnDragStart", function(self)
 		if InCombatLockdown() then return end
-
-		if IsShiftKeyDown() then
-			self:StartMoving()
-		end
+		self:StartMoving()
+		self.isMoving = true
 	end)
 	InterfaceOptionsFrame:SetScript("OnDragStop", function(self)
 		self:StopMovingOrSizing()
+		self.isMoving = false
 	end)
 
 	-- mac menu/option panel, made by affli.
@@ -541,7 +554,7 @@ local function LoadSkin()
 		end
 	end)
 
--- >> Combat >> Tabs
+	-- >> Combat >> Tabs
 	for i = 1,#COMBAT_CONFIG_TABS do
 		local cctab = _G["CombatConfigTab"..i]
 		if cctab then
@@ -554,7 +567,7 @@ local function LoadSkin()
 	CombatConfigTab1:ClearAllPoints()
 	CombatConfigTab1:Point("BOTTOMLEFT",ChatConfigBackgroundFrame,"TOPLEFT",6,-2)
 
-   local cccheckbox = {
+	local cccheckbox = {
 		"CombatConfigColorsHighlightingLine",
 		"CombatConfigColorsHighlightingAbility",
 		"CombatConfigColorsHighlightingDamage",
@@ -593,11 +606,19 @@ local function LoadSkin()
 	ChatConfigFrameHeader:ClearAllPoints()
 	ChatConfigFrameHeader:Point("TOP", ChatConfigFrame, 0, -5)
 
-	--DROPDOWN MENU
-	hooksecurefunc("UIDropDownMenu_InitializeHelper", function(frame)
-		for i = 1, UIDROPDOWNMENU_MAXLEVELS do
-			_G["DropDownList"..i.."Backdrop"]:SetTemplate("Transparent")
-			_G["DropDownList"..i.."MenuBackdrop"]:SetTemplate("Transparent")
+	--DropDownMenu
+	hooksecurefunc("UIDropDownMenu_CreateFrames", function(level, index)
+		if not _G["DropDownList"..UIDROPDOWNMENU_MAXLEVELS.."Backdrop"].template then
+			_G["DropDownList"..UIDROPDOWNMENU_MAXLEVELS.."Backdrop"]:SetTemplate("Transparent")
+			_G["DropDownList"..UIDROPDOWNMENU_MAXLEVELS.."MenuBackdrop"]:SetTemplate("Transparent")
+		end
+	end)
+
+	--LibUIDropDownMenu
+	hooksecurefunc("L_UIDropDownMenu_CreateFrames", function(level, index)
+		if not _G["L_DropDownList"..L_UIDROPDOWNMENU_MAXLEVELS.."Backdrop"].template then
+			_G["L_DropDownList"..L_UIDROPDOWNMENU_MAXLEVELS.."Backdrop"]:SetTemplate("Transparent")
+			_G["L_DropDownList"..L_UIDROPDOWNMENU_MAXLEVELS.."MenuBackdrop"]:SetTemplate("Transparent")
 		end
 	end)
 
@@ -724,6 +745,7 @@ local function LoadSkin()
 		"SocialPanelProfanityFilter",
 		"SocialPanelSpamFilter",
 		"SocialPanelEnableTwitter",
+		"SocialPanelAutoAcceptQuickJoinRequests",
 		-- ActionBars
 		"ActionBarsPanelLockActionBars",
 		"ActionBarsPanelAlwaysShowActionBars",
@@ -739,6 +761,10 @@ local function LoadSkin()
 		"NamesPanelFriendlyMinions",
 		"NamesPanelEnemyPlayerNames",
 		"NamesPanelEnemyMinions",
+		-- Nameplates
+		"NamesPanelUnitNameplatesMakeLarger",
+		"NamesPanelUnitNameplatesEnemies",
+		"NamesPanelUnitNameplatesFriends",
 		-- Camera
 		"CameraPanelWaterCollision",
 		-- Mouse
@@ -750,9 +776,6 @@ local function LoadSkin()
 		"AccessibilityPanelCinematicSubtitles",
 		"AccessibilityPanelColorblindMode",
 	}
-	if E.wowbuild >= 23623 then --7.2
-		table.insert(interfacecheckbox, "SocialPanelAutoAcceptQuickJoinRequests")
-	end
 
 	for i = 1, getn(interfacecheckbox) do
 		local icheckbox = _G["InterfaceOptions"..interfacecheckbox[i]]
@@ -797,7 +820,6 @@ local function LoadSkin()
 		local idropdown = _G["InterfaceOptions"..interfacedropdown[i]]
 		if idropdown then
 			S:HandleDropDownBox(idropdown)
-			DropDownList1:SetTemplate("Transparent")
 		else
 			print(interfacedropdown[i])
 		end
@@ -906,7 +928,6 @@ local function LoadSkin()
 		local odropdown = _G[optiondropdown[i]]
 		if odropdown then
 			S:HandleDropDownBox(odropdown,165)
-			DropDownList1:SetTemplate("Transparent")
 		else
 			print(optiondropdown[i])
 		end
@@ -945,6 +966,7 @@ local function LoadSkin()
 	RaidButton:StripTextures()
 	local raidcheckbox = {
 		"KeepGroupsTogether",
+		"HorizontalGroups",
 		"DisplayIncomingHeals",
 		"DisplayPowerBar",
 		"DisplayAggroHighlight",
@@ -963,6 +985,8 @@ local function LoadSkin()
 		"AutoActivate40Players",
 		"AutoActivateSpec1",
 		"AutoActivateSpec2",
+		"AutoActivateSpec3",
+		"AutoActivateSpec4",
 		"AutoActivatePvP",
 		"AutoActivatePvE",
 	}
@@ -1047,20 +1071,6 @@ local function LoadSkin()
 	MacOptionsFrameCancel:Point("LEFT", MacOptionsFrameOkay, "RIGHT", 2, 0)
 	MacOptionsFrameCancel:Width(MacOptionsFrameCancel:GetWidth() - 6)]]
 
-	ReportCheatingDialog:StripTextures()
-	ReportCheatingDialogCommentFrame:StripTextures()
-	S:HandleButton(ReportCheatingDialogReportButton)
-	S:HandleButton(ReportCheatingDialogCancelButton)
-	ReportCheatingDialog:SetTemplate("Transparent")
-	S:HandleEditBox(ReportCheatingDialogCommentFrameEditBox)
-
-	ReportPlayerNameDialog:StripTextures()
-	ReportPlayerNameDialogCommentFrame:StripTextures()
-	S:HandleEditBox(ReportPlayerNameDialogCommentFrameEditBox)
-	ReportPlayerNameDialog:SetTemplate("Transparent")
-	S:HandleButton(ReportPlayerNameDialogReportButton)
-	S:HandleButton(ReportPlayerNameDialogCancelButton)
-
 	S:HandleCloseButton(SideDressUpModelCloseButton)
 	SideDressUpFrame:StripTextures()
 	SideDressUpFrame.BGTopLeft:Hide()
@@ -1089,6 +1099,94 @@ local function LoadSkin()
 		end
 	end
 	hooksecurefunc("NavBar_AddButton", SkinNavBarButtons)
+
+	--New Table Attribute Display (/fstack -> then Ctrl)
+	local function dynamicScrollButtonVisibility(button, frame)
+		if not button.dynamicVisibility then
+			button:HookScript("OnShow", function(self) frame:Show() end)
+			button:HookScript("OnHide", function(self) frame:Hide() end)
+			button.dynamicVisibility = true
+		end
+	end
+
+	local function SkinTableAttributeDisplay(frame)
+		frame:StripTextures()
+		frame:SetTemplate("Transparent")
+		frame.ScrollFrameArt:StripTextures()
+		frame.ScrollFrameArt:SetTemplate("Transparent")
+		S:HandleCloseButton(frame.CloseButton)
+		frame.OpenParentButton:ClearAllPoints()
+		frame.OpenParentButton:SetPoint("TOPLEFT", frame, "TOPLEFT", 2, -2)
+		S:HandleNextPrevButton(frame.OpenParentButton, true)
+		frame.OpenParentButton:Size(17)
+		frame.DuplicateButton:ClearAllPoints()
+		frame.DuplicateButton:SetPoint("LEFT", frame.NavigateForwardButton, "RIGHT")
+		S:HandleCheckBox(frame.VisibilityButton)
+		S:HandleCheckBox(frame.HighlightButton)
+		S:HandleCheckBox(frame.DynamicUpdateButton)
+		frame.NavigateBackwardButton:ClearAllPoints()
+		frame.NavigateBackwardButton:SetPoint("LEFT", frame.OpenParentButton, "RIGHT", 2, 0)
+		frame.NavigateForwardButton:ClearAllPoints()
+		frame.NavigateForwardButton:SetPoint("LEFT", frame.NavigateBackwardButton, "RIGHT", 2, 0)
+		frame.DuplicateButton:ClearAllPoints()
+		frame.DuplicateButton:SetPoint("LEFT", frame.NavigateForwardButton, "RIGHT", 2, 0)
+		S:HandleNextPrevButton(frame.DuplicateButton, true, true)
+		frame.DuplicateButton:Size(17)
+		S:HandleNextPrevButton(frame.NavigateBackwardButton, nil, true)
+		S:HandleNextPrevButton(frame.NavigateForwardButton)
+		S:HandleEditBox(frame.FilterBox)
+
+		-- reason: UIParentScrollBar .. ???
+		if frame.LinesScrollFrame and frame.LinesScrollFrame.ScrollBar then
+			local s = frame.LinesScrollFrame.ScrollBar
+			s.ScrollUpButton:StripTextures()
+			if not s.ScrollUpButton.icon then
+				S:HandleNextPrevButton(s.ScrollUpButton)
+				SquareButton_SetIcon(s.ScrollUpButton, 'UP')
+				s.ScrollUpButton:Size(s.ScrollUpButton:GetWidth() + 7, s.ScrollUpButton:GetHeight() + 7)
+			end
+
+			s.ScrollDownButton:StripTextures()
+			if not s.ScrollDownButton.icon then
+				S:HandleNextPrevButton(s.ScrollDownButton)
+				SquareButton_SetIcon(s.ScrollDownButton, 'DOWN')
+				s.ScrollDownButton:Size(s.ScrollDownButton:GetWidth() + 7, s.ScrollDownButton:GetHeight() + 7)
+			end
+
+			if not s.trackbg then
+				s.trackbg = CreateFrame("Frame", "$parentTrackBG", frame.LinesScrollFrame)
+				s.trackbg:Point("TOPLEFT", s.ScrollUpButton, "BOTTOMLEFT", 0, -1)
+				s.trackbg:Point("TOPRIGHT", s.ScrollUpButton, "BOTTOMRIGHT", 0, -1)
+				s.trackbg:Point("BOTTOMLEFT", s.ScrollDownButton, "TOPLEFT", 0, 1)
+				s.trackbg:SetTemplate("Transparent")
+				dynamicScrollButtonVisibility(s.ScrollUpButton, s.trackbg) -- UpButton handles the TrackBG visibility
+			end
+
+			local t = frame.LinesScrollFrame.ScrollBar:GetThumbTexture()
+			if t then
+				t:SetTexture(nil)
+				if not s.thumbbg then
+					s.thumbbg = CreateFrame("Frame", "$parentThumbBG", frame.LinesScrollFrame)
+					s.thumbbg:Point("TOPLEFT", t, "TOPLEFT", 2, -3)
+					s.thumbbg:Point("BOTTOMRIGHT", t, "BOTTOMRIGHT", -2, 3)
+					s.thumbbg:SetTemplate("Default", true, true)
+					s.thumbbg.backdropTexture:SetVertexColor(0.6, 0.6, 0.6)
+					if s.trackbg then
+						s.thumbbg:SetFrameLevel(s.trackbg:GetFrameLevel()+1)
+					end
+					dynamicScrollButtonVisibility(s.ScrollDownButton, s.thumbbg) -- DownButton handles the ThumbBG visibility
+				end
+			end
+		end
+	end
+
+	SkinTableAttributeDisplay(TableAttributeDisplay)
+	hooksecurefunc(TableInspectorMixin, "OnLoad", function(self)
+		if self and self.ScrollFrameArt and not self.skinned then
+			SkinTableAttributeDisplay(self)
+			self.skinned = true
+		end
+	end)
 end
 
-S:AddCallback("Misc", LoadSkin)
+S:AddCallback("SkinMisc", LoadSkin)

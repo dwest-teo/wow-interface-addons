@@ -329,16 +329,18 @@ local function ConstructMoverSizer(parent)
     mover.moving.data = data;
     local xOff, yOff;
     mover.selfPoint, mover.anchor, mover.anchorPoint, xOff, yOff = region:GetPoint(1);
+    xOff = xOff or 0;
+    yOff = yOff or 0;
     mover:ClearAllPoints();
     frame:ClearAllPoints();
     if(data.regionType == "group") then
       mover:SetWidth((region.trx - region.blx) * scale);
       mover:SetHeight((region.try - region.bly) * scale);
-      mover:SetPoint(mover.selfPoint, mover.anchor, mover.anchorPoint, (xOff + region.blx) * scale, (yOff + region.bly) * scale);
+      mover:SetPoint(mover.selfPoint or "CENTER", mover.anchor or UIParent, mover.anchorPoint or "CENTER", (xOff + region.blx) * scale, (yOff + region.bly) * scale);
     else
       mover:SetWidth(region:GetWidth() * scale);
       mover:SetHeight(region:GetHeight() * scale);
-      mover:SetPoint(mover.selfPoint, mover.anchor, mover.anchorPoint, xOff * scale, yOff * scale);
+      mover:SetPoint(mover.selfPoint or "CENTER", mover.anchor or UIParent, mover.anchorPoint or "CENTER", xOff * scale, yOff * scale);
     end
     frame:SetPoint("BOTTOMLEFT", mover, "BOTTOMLEFT", -8, -8);
     frame:SetPoint("TOPRIGHT", mover, "TOPRIGHT", 8, 8);
@@ -373,9 +375,9 @@ local function ConstructMoverSizer(parent)
         data.xOffset = dX / scale;
         data.yOffset = dY / scale;
       end
+      region:ResetPosition();
       WeakAuras.Add(data);
       WeakAuras.SetThumbnail(data);
-      region:SetPoint(self.selfPoint, self.anchor, self.anchorPoint, data.xOffset, data.yOffset);
       mover.selfPoint, mover.anchor, mover.anchorPoint, xOff, yOff = region:GetPoint(1);
       mover:ClearAllPoints();
       if(data.regionType == "group") then
@@ -395,7 +397,7 @@ local function ConstructMoverSizer(parent)
         end
       end
       AceConfigDialog:Open("WeakAuras", parent.container);
-      WeakAuras.Animate("display", data.id, "main", data.animation.main, WeakAuras.regions[data.id].region, false, nil, true);
+      WeakAuras.Animate("display", data, "main", data.animation.main, WeakAuras.regions[data.id].region, false, nil, true);
     end
 
     if(data.parent and db.displays[data.parent] and db.displays[data.parent].regionType == "dynamicgroup") then
@@ -427,9 +429,8 @@ local function ConstructMoverSizer(parent)
             data.width = region:GetWidth();
             data.height = region:GetHeight();
           end
+          region:ResetPosition();
           WeakAuras.Add(data);
-          region:ClearAllPoints();
-          region:SetPoint(rSelfPoint, rAnchor, rAnchorPoint, rXOffset, rYOffset);
           frame:ScaleCorners(region:GetWidth(), region:GetHeight());
           AceConfigDialog:Open("WeakAuras", parent.container);
         end);
@@ -439,6 +440,7 @@ local function ConstructMoverSizer(parent)
         local scale = region:GetEffectiveScale() / UIParent:GetEffectiveScale();
         mover.isMoving = false;
         region:StopMovingOrSizing();
+        region:ResetPosition();
         WeakAuras.Add(data);
         WeakAuras.SetThumbnail(data);
         if(data.parent) then
@@ -452,7 +454,7 @@ local function ConstructMoverSizer(parent)
         mover:SetWidth(region:GetWidth() * scale);
         mover:SetHeight(region:GetHeight() * scale);
         mover:SetPoint(mover.selfPoint, mover.anchor, mover.anchorPoint, xOff * scale, yOff * scale);
-        WeakAuras.Animate("display", data.id, "main", data.animation.main, WeakAuras.regions[data.id].region, false, nil, true);
+        WeakAuras.Animate("display", data, "main", data.animation.main, WeakAuras.regions[data.id].region, false, nil, true);
       end
 
       frame.bottomleft:SetScript("OnMouseDown", function() frame.startSizing("BOTTOMLEFT") end);

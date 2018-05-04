@@ -6,7 +6,7 @@ local DT = E:GetModule('DataTexts')
 local select = select
 local format, join = string.format, string.join
 --WoW API / Variables
-local EasyMenu = EasyMenu
+local L_EasyMenu = L_EasyMenu
 local GetActiveSpecGroup = GetActiveSpecGroup
 local GetLootSpecialization = GetLootSpecialization
 local GetNumSpecGroups = GetNumSpecGroups
@@ -23,13 +23,13 @@ local SELECT_LOOT_SPECIALIZATION = SELECT_LOOT_SPECIALIZATION
 local LOOT_SPECIALIZATION_DEFAULT = LOOT_SPECIALIZATION_DEFAULT
 
 --Global variables that we don't cache, list them here for the mikk's Find Globals script
--- GLOBALS: PlayerTalentFrame, LoadAddOn, 
+-- GLOBALS: PlayerTalentFrame, LoadAddOn
 
 local lastPanel, active
 local displayString = '';
 local activeString = join("", "|cff00FF00" , ACTIVE_PETS, "|r")
 local inactiveString = join("", "|cffFF0000", FACTION_INACTIVE, "|r")
-local menuFrame = CreateFrame("Frame", "LootSpecializationDatatextClickMenu", E.UIParent, "UIDropDownMenuTemplate")
+local menuFrame = CreateFrame("Frame", "LootSpecializationDatatextClickMenu", E.UIParent, "L_UIDropDownMenuTemplate")
 local menuList = {
 	{ text = SELECT_LOOT_SPECIALIZATION, isTitle = true, notCheckable = true },
 	{ notCheckable = true, func = function() SetLootSpecialization(0) end },
@@ -150,7 +150,7 @@ local function OnClick(self, button)
 					specList[index + 1] = nil
 				end
 			end
-			EasyMenu(specList, menuFrame, "cursor", -15, -7, "MENU", 2)
+			L_EasyMenu(specList, menuFrame, "cursor", -15, -7, "MENU", 2)
 		end
 	else
 		DT.tooltip:Hide()
@@ -167,7 +167,7 @@ local function OnClick(self, button)
 			end
 		end
 
-		EasyMenu(menuList, menuFrame, "cursor", -15, -7, "MENU", 2)
+		L_EasyMenu(menuList, menuFrame, "cursor", -15, -7, "MENU", 2)
 	end
 end
 
@@ -180,14 +180,4 @@ local function ValueColorUpdate()
 end
 E['valueColorUpdateFuncs'][ValueColorUpdate] = true
 
---[[
-	DT:RegisterDatatext(name, events, eventFunc, updateFunc, clickFunc, onEnterFunc)
-
-	name - name of the datatext (required)
-	events - must be a table with string values of event names to register
-	eventFunc - function that gets fired when an event gets triggered
-	updateFunc - onUpdate script target function
-	click - function to fire when clicking the datatext
-	onEnterFunc - function to fire OnEnter
-]]
-DT:RegisterDatatext('Talent/Loot Specialization',{"PLAYER_ENTERING_WORLD", "CHARACTER_POINTS_CHANGED", "PLAYER_TALENT_UPDATE", "ACTIVE_TALENT_GROUP_CHANGED", 'PLAYER_LOOT_SPEC_UPDATED'}, OnEvent, nil, OnClick, OnEnter)
+DT:RegisterDatatext('Talent/Loot Specialization',{"PLAYER_ENTERING_WORLD", "CHARACTER_POINTS_CHANGED", "PLAYER_TALENT_UPDATE", "ACTIVE_TALENT_GROUP_CHANGED", 'PLAYER_LOOT_SPEC_UPDATED'}, OnEvent, nil, OnClick, OnEnter, nil, L["Talent/Loot Specialization"])

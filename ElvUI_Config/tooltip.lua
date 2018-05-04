@@ -1,6 +1,9 @@
 local E, L, V, P, G = unpack(ElvUI); --Inport: Engine, Locales, PrivateDB, ProfileDB, GlobalDB
 local TT = E:GetModule('Tooltip')
 
+local _G = _G
+local GameTooltip = _G['GameTooltip']
+local GameTooltipStatusBar = _G['GameTooltipStatusBar']
 
 E.Options.args.tooltip = {
 	type = "group",
@@ -77,7 +80,7 @@ E.Options.args.tooltip = {
 						["BAGS_ONLY"] = L["Bags Only"],
 						["BANK_ONLY"] = L["Bank Only"],
 						["BOTH"] = L["Both"],
-						["NONE"] = L["None"],
+						["NONE"] = NONE,
 					},
 				},
 				colorAlpha = {
@@ -106,7 +109,7 @@ E.Options.args.tooltip = {
 							name = L["Font Outline"],
 							type = "select",
 							values = {
-								['NONE'] = L["None"],
+								['NONE'] = NONE,
 								['OUTLINE'] = 'OUTLINE',
 								['MONOCHROMEOUTLINE'] = 'MONOCROMEOUTLINE',
 								['THICKOUTLINE'] = 'THICKOUTLINE',
@@ -166,7 +169,6 @@ E.Options.args.tooltip = {
 						return t.r, t.g, t.b, t.a, d.r, d.g, d.b
 					end,
 					set = function(info, r, g, b)
-						E.db.tooltip.factionColors[ info[#info] ] = {}
 						local t = E.db.tooltip.factionColors[ info[#info] ]
 						t.r, t.g, t.b = r, g, b
 					end,
@@ -249,7 +251,11 @@ E.Options.args.tooltip = {
 					name = L["Height"],
 					type = 'range',
 					min = 1, max = 15, step = 1,
-					set = function(info, value) E.db.tooltip.healthBar.height = value; GameTooltipStatusBar:Height(value); end,
+					set = function(info, value) E.db.tooltip.healthBar.height = value;
+						if not GameTooltip:IsForbidden() then
+							GameTooltipStatusBar:Height(value);
+						end
+					end,
 				},
 				statusPosition = {
 					order = 2,
@@ -264,7 +270,16 @@ E.Options.args.tooltip = {
 					order = 3,
 					type = "toggle",
 					name = L["Text"],
-					set = function(info, value) E.db.tooltip.healthBar.text = value; if value then GameTooltipStatusBar.text:Show(); else GameTooltipStatusBar.text:Hide() end  end,
+					set = function(info, value)
+						E.db.tooltip.healthBar.text = value;
+						if not GameTooltip:IsForbidden() then
+							if value then
+								GameTooltipStatusBar.text:Show();
+							else
+								GameTooltipStatusBar.text:Hide()
+							end
+						end
+					end,
 				},
 				font = {
 					type = "select", dialogControl = 'LSM30_Font',
@@ -273,18 +288,22 @@ E.Options.args.tooltip = {
 					values = AceGUIWidgetLSMlists.font,
 					set = function(info, value)
 						E.db.tooltip.healthBar.font = value;
-						GameTooltipStatusBar.text:FontTemplate(E.LSM:Fetch("font", E.db.tooltip.healthBar.font), E.db.tooltip.healthBar.fontSize, E.db.tooltip.healthBar.fontOutline)
+						if not GameTooltip:IsForbidden() then
+							GameTooltipStatusBar.text:FontTemplate(E.LSM:Fetch("font", E.db.tooltip.healthBar.font), E.db.tooltip.healthBar.fontSize, E.db.tooltip.healthBar.fontOutline)
+						end
 					end,
 					disabled = function() return not E.db.tooltip.healthBar.text end,
 				},
 				fontSize = {
 					order = 5,
-					name = L["Font Size"],
+					name = FONT_SIZE,
 					type = "range",
 					min = 4, max = 500, step = 1,
 					set = function(info, value)
 						E.db.tooltip.healthBar.fontSize = value;
-						GameTooltipStatusBar.text:FontTemplate(E.LSM:Fetch("font", E.db.tooltip.healthBar.font), E.db.tooltip.healthBar.fontSize, E.db.tooltip.healthBar.fontOutline)
+						if not GameTooltip:IsForbidden() then
+							GameTooltipStatusBar.text:FontTemplate(E.LSM:Fetch("font", E.db.tooltip.healthBar.font), E.db.tooltip.healthBar.fontSize, E.db.tooltip.healthBar.fontOutline)
+						end
 					end,
 					disabled = function() return not E.db.tooltip.healthBar.text end,
 				},
@@ -293,14 +312,16 @@ E.Options.args.tooltip = {
 					name = L["Font Outline"],
 					type = "select",
 					values = {
-						['NONE'] = L["None"],
+						['NONE'] = NONE,
 						['OUTLINE'] = 'OUTLINE',
 						['MONOCHROMEOUTLINE'] = 'MONOCROMEOUTLINE',
 						['THICKOUTLINE'] = 'THICKOUTLINE',
 					},
 					set = function(info, value)
 						E.db.tooltip.healthBar.fontOutline = value;
-						GameTooltipStatusBar.text:FontTemplate(E.LSM:Fetch("font", E.db.tooltip.healthBar.font), E.db.tooltip.healthBar.fontSize, E.db.tooltip.healthBar.fontOutline)
+						if not GameTooltip:IsForbidden() then
+							GameTooltipStatusBar.text:FontTemplate(E.LSM:Fetch("font", E.db.tooltip.healthBar.font), E.db.tooltip.healthBar.fontSize, E.db.tooltip.healthBar.fontOutline)
+						end
 					end,
 					disabled = function() return not E.db.tooltip.healthBar.text end,
 				},

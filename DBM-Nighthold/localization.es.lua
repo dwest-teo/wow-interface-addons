@@ -11,6 +11,12 @@ L= DBM:GetModLocalization(1706)
 --------------------------
 L= DBM:GetModLocalization(1725)
 
+L:SetOptionLocalization({
+	InfoFrameBehavior	= "Mostrar en el marco de información",
+	TimeRelease			= "Jugadores afectados por Liberación temporal",
+	TimeBomb			= "Jugadores afectados por Bomba de relojería"
+})
+
 --------------
 -- Trilliax --
 --------------
@@ -61,14 +67,14 @@ L:SetOptionLocalization({
 	warnStarLow				= "Mostrar aviso especial cuando una esfera de plasma tenga la salud baja (15%)"
 })
 
-L:SetMiscLocalization({
-	RadarMessage			= "Usar el radar de distancia para buscar aliados sin perjuicio y el indicador en pantalla para evitar otros perjuicios (esta opción se mejorará en el futuro)"
-})
-
 ---------------------------
 -- Augur estelar Etraeus --
 ---------------------------
 L= DBM:GetModLocalization(1732)
+
+L:SetOptionLocalization({
+	ConjunctionYellFilter	= "Desactivar todos los demás mensajes de chat durante $spell:205408 y repetir el mensaje de tu signo estelar hasta que acabe la conjunción"
+})
 
 -----------------------------
 -- Gran magistrix Elisande --
@@ -86,14 +92,20 @@ L:SetOptionLocalization({
 })
 
 L:SetMiscLocalization({
-	noCLEU4EchoRings			= "¡Que las mareas del tiempo os ahoguen!",
-	noCLEU4EchoOrbs			= "Veréis que el tiempo puede ser muy volátil."
+	noCLEU4EchoRings		= "¡Que las mareas del tiempo os ahoguen!",
+	noCLEU4EchoOrbs			= "Veréis que el tiempo puede ser muy volátil.",
+	prePullRP				= "Vaticiné vuestra llegada, por supuesto. Los hilos del destino que os trajeron a este lugar; vuestros desesperados intentos por detener a la Legión..."
 })
 
 -------------
 -- Gul'dan --
 -------------
 L= DBM:GetModLocalization(1737)
+
+L:SetMiscLocalization({
+	mythicPhase3		= "Es hora de devolver el alma del cazador de demonios a su cuerpo...", --Incomplete until I get to see it in a video or by myself
+	prePullRP			= "Ah, sí, los héroes han llegado. Tan persistentes y seguros de sí mismos. ¡Pero vuestra arrogancia será vuestra perdición!"
+})
 
 ----------------------
 -- Enemigos menores --

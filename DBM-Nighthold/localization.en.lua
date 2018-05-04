@@ -70,14 +70,14 @@ L:SetOptionLocalization({
 	warnStarLow				= "Show special warning when Plasma Sphere is low (at ~25%)"
 })
 
-L:SetMiscLocalization({
-	RadarMessage			= "Use Radar to find a non debuff partner and HUD to avoid other debuffs. I hope to improve this function over time and provide more options than this."
-})
-
 ------------------
 -- Star Augur Etraeus --
 ------------------
 L= DBM:GetModLocalization(1732)
+
+L:SetOptionLocalization({
+	ConjunctionYellFilter	= "During $spell:205408, disable all other SAY messages and just spam the star sign message says instead until conjunction has ended"
+})
 
 ------------------
 -- Grand Magistrix Elisande --

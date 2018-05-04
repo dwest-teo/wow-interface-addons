@@ -193,7 +193,7 @@ local function LoadSkin()
 	EquipmentFlyoutFrame.NavigationFrame:SetTemplate("Transparent")
 	EquipmentFlyoutFrame.NavigationFrame:Point("TOPLEFT", EquipmentFlyoutFrameButtons, "BOTTOMLEFT", 0, -E.Border - E.Spacing)
 	EquipmentFlyoutFrame.NavigationFrame:Point("TOPRIGHT", EquipmentFlyoutFrameButtons, "BOTTOMRIGHT", 0, -E.Border - E.Spacing)
-	S:HandleNextPrevButton(EquipmentFlyoutFrame.NavigationFrame.PrevButton)
+	S:HandleNextPrevButton(EquipmentFlyoutFrame.NavigationFrame.PrevButton, nil, true)
 	S:HandleNextPrevButton(EquipmentFlyoutFrame.NavigationFrame.NextButton)
 
 	local function SkinItemFlyouts()
@@ -331,12 +331,11 @@ local function LoadSkin()
 		for i=1, #PAPERDOLL_SIDEBARS do
 			local tab = _G["PaperDollSidebarTab"..i]
 			if tab and not tab.backdrop then
+				tab.Icon:SetAllPoints()
 				tab.Highlight:SetColorTexture(1, 1, 1, 0.3)
-				tab.Highlight:Point("TOPLEFT", 3, -4)
-				tab.Highlight:Point("BOTTOMRIGHT", -1, 0)
+				tab.Highlight:SetAllPoints()
 				tab.Hider:SetColorTexture(0.4,0.4,0.4,0.4)
-				tab.Hider:Point("TOPLEFT", 3, -4)
-				tab.Hider:Point("BOTTOMRIGHT", -1, 0)
+				tab.Hider:SetAllPoints()
 				tab.TabBg:Kill()
 
 				if i == 1 then
@@ -351,17 +350,14 @@ local function LoadSkin()
 					end
 				end
 				tab:CreateBackdrop("Default")
-				tab.backdrop:Point("TOPLEFT", 1, -2)
-				tab.backdrop:Point("BOTTOMRIGHT", 1, -2)
 			end
 		end
 	end
 	hooksecurefunc("PaperDollFrame_UpdateSidebarTabs", FixSidebarTabCoords)
 
 	--Reputation
-	if E.wowbuild >= 23623 then --7.2
-		S:HandleCloseButton(CharacterFrame.ReputationTabHelpBox.CloseButton)
-	end
+	S:HandleCloseButton(CharacterFrame.ReputationTabHelpBox.CloseButton)
+
 	local function UpdateFactionSkins()
 		ReputationListScrollFrame:StripTextures()
 		ReputationFrame:StripTextures(true)
@@ -394,25 +390,24 @@ local function LoadSkin()
 	hooksecurefunc("ExpandFactionHeader", UpdateFactionSkins)
 	hooksecurefunc("CollapseFactionHeader", UpdateFactionSkins)
 
-	if E.wowbuild >= 23623 then --7.2
-		--Reputation Paragon Tooltip
-		local tooltip = ReputationParagonTooltip
-		local statusBar = ReputationParagonTooltipStatusBar.Bar
-		local reward = tooltip.ItemTooltip
-		local icon = reward.Icon
-		tooltip:SetTemplate("Transparent")
-		statusBar:StripTextures()
-		statusBar:SetStatusBarTexture(E["media"].normTex)
-		statusBar:CreateBackdrop("Transparent")
-		if icon then
-			S:HandleIcon(icon)
-			reward.IconBorder:SetTexture(nil)
-			reward.IconBorder:SetAlpha(0)
-		end
-		tooltip:HookScript("OnShow", function(self)
-			self:SetTemplate("Transparent")
+	--Reputation Paragon Tooltip
+	local tooltip = ReputationParagonTooltip
+	local reward = tooltip.ItemTooltip
+	local icon = reward.Icon
+	tooltip:SetTemplate("Transparent")
+	if icon then
+		S:HandleIcon(icon)
+		hooksecurefunc(reward.IconBorder, "SetVertexColor", function(self, r, g, b)
+			self:GetParent().backdrop:SetBackdropBorderColor(r, g, b)
+			self:SetTexture("")
+		end)
+		hooksecurefunc(reward.IconBorder, "Hide", function(self)
+			self:GetParent().backdrop:SetBackdropBorderColor(unpack(E.media.bordercolor))
 		end)
 	end
+	tooltip:HookScript("OnShow", function(self)
+		self:SetTemplate("Transparent")
+	end)
 
 	--Currency
 	TokenFrame:HookScript("OnShow", function()

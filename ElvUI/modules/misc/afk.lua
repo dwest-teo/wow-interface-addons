@@ -32,14 +32,15 @@ local PVEFrame_ToggleFrame = PVEFrame_ToggleFrame
 local RemoveExtraSpaces = RemoveExtraSpaces
 local Screenshot = Screenshot
 local SetCVar = SetCVar
+local UnitCastingInfo = UnitCastingInfo
 local UnitFactionGroup = UnitFactionGroup
 local UnitIsAFK = UnitIsAFK
-local CUSTOM_CLASS_COLORS = CUSTOM_CLASS_COLORS
 local DND = DND
 local RAID_CLASS_COLORS = RAID_CLASS_COLORS
 
 --Global variables that we don't cache, list them here for mikk's FindGlobals script
 -- GLOBALS: UIParent, PVEFrame, ElvUIAFKPlayerModel, ChatTypeInfo
+-- GLOBALS: CUSTOM_CLASS_COLORS
 
 local CAMERA_SPEED = 0.035
 local ignoreKeys = {
@@ -332,29 +333,21 @@ function AFK:Initialize()
 	self.AFKMode.bottom.model:SetSize(GetScreenWidth() * 2, GetScreenHeight() * 2) --YES, double screen size. This prevents clipping of models. Position is controlled with the helper frame.
 	self.AFKMode.bottom.model:SetCamDistanceScale(4.5) --Since the model frame is huge, we need to zoom out quite a bit.
 	self.AFKMode.bottom.model:SetFacing(6)
-	if E.wowbuild >= 23623 then --7.2
-		self.AFKMode.bottom.model:SetScript("OnUpdate", function(self)
-			local timePassed = GetTime() - self.startTime
-			if(timePassed > self.duration) and self.isIdle ~= true then
-				self:SetAnimation(0)
-				self.isIdle = true
-				AFK.animTimer = AFK:ScheduleTimer("LoopAnimations", self.idleDuration)
-			end
-		end)
-	else
-		self.AFKMode.bottom.model:SetScript("OnUpdateModel", function(self)
-			local timePassed = GetTime() - self.startTime
-			if(timePassed > self.duration) and self.isIdle ~= true then
-				self:SetAnimation(0)
-				self.isIdle = true
-				AFK.animTimer = AFK:ScheduleTimer("LoopAnimations", self.idleDuration)
-			end
-		end)
-	end
+	self.AFKMode.bottom.model:SetScript("OnUpdate", function(self)
+		local timePassed = GetTime() - self.startTime
+		if(timePassed > self.duration) and self.isIdle ~= true then
+			self:SetAnimation(0)
+			self.isIdle = true
+			AFK.animTimer = AFK:ScheduleTimer("LoopAnimations", self.idleDuration)
+		end
+	end)
 
 	self:Toggle()
 	self.isActive = false
 end
 
+local function InitializeCallback()
+	AFK:Initialize()
+end
 
-E:RegisterModule(AFK:GetName())
+E:RegisterModule(AFK:GetName(), InitializeCallback)

@@ -15,7 +15,7 @@ local IsAddOnLoaded = IsAddOnLoaded
 local GetCVarBool = GetCVarBool
 
 --Global variables that we don't cache, list them here for mikk's FindGlobals script
--- GLOBALS: ScriptErrorsFrame_OnError
+-- GLOBALS: ScriptErrorsFrame
 
 E.Skins = S
 S.addonsToLoad = {}
@@ -34,6 +34,15 @@ end
 function S:SetOriginalBackdrop()
 	if self.backdrop then self = self.backdrop end
 	self:SetBackdropBorderColor(unpack(E["media"].bordercolor))
+end
+
+function S:StatusBarColorGradient(bar, value, max, backdrop)
+    local current = (not max and value) or (value and max and max ~= 0 and value/max)
+    if not (bar and current) then return end
+    local r, g, b = E:ColorGradient(current, 0.8,0,0, 0.8,0.8,0, 0,0.8,0)
+    local bg = backdrop or bar.backdrop
+    if bg then bg:SetBackdropColor(r*0.25, g*0.25, b*0.25) end
+    bar:SetStatusBarColor(r, g, b)
 end
 
 function S:HandleButton(f, strip)
@@ -271,6 +280,38 @@ function S:HandleRotateButton(btn)
 	btn:GetNormalTexture():SetInside()
 	btn:GetPushedTexture():SetAllPoints(btn:GetNormalTexture())
 	btn:GetHighlightTexture():SetAllPoints(btn:GetNormalTexture())
+end
+
+-- Introduced in 7.3
+function S:HandleMaxMinFrame(frame)
+	assert(frame, "does not exist.")
+
+	for _, name in next, {"MaximizeButton", "MinimizeButton"} do
+		if frame then frame:StripTextures() end
+
+		local button = frame[name]
+		button:SetSize(16, 16)
+		button:ClearAllPoints()
+		button:SetPoint("CENTER")
+
+		button:SetNormalTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
+		button:SetPushedTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
+		button:SetHighlightTexture("Interface\\AddOns\\ElvUI\\media\\textures\\vehicleexit")
+
+		if not button.backdrop then
+			button:CreateBackdrop("Default", true)
+			button.backdrop:Point("TOPLEFT", button, 1, -1)
+			button.backdrop:Point("BOTTOMRIGHT", button, -1, 1)
+			button:HookScript('OnEnter', S.SetModifiedBackdrop)
+			button:HookScript('OnLeave', S.SetOriginalBackdrop)
+		end
+
+		if name == "MaximizeButton" then
+			button:GetNormalTexture():SetTexCoord(1, 1, 1, -1.2246467991474e-016, 1.1102230246252e-016, 1, 0, -1.144237745222e-017)
+			button:GetPushedTexture():SetTexCoord(1, 1, 1, -1.2246467991474e-016, 1.1102230246252e-016, 1, 0, -1.144237745222e-017)
+			button:GetHighlightTexture():SetTexCoord(1, 1, 1, -1.2246467991474e-016, 1.1102230246252e-016, 1, 0, -1.144237745222e-017)
+		end
+	end
 end
 
 function S:HandleEditBox(frame)
@@ -532,9 +573,11 @@ function S:HandleFollowerPage(follower, hasItems)
 	end
 
 	local xpbar = follower.followerTab.XPBar
-	xpbar:StripTextures()
-	xpbar:SetStatusBarTexture(E["media"].normTex)
-	xpbar:CreateBackdrop("Transparent")
+	if not xpbar.backdrop then
+		xpbar:StripTextures()
+		xpbar:SetStatusBarTexture(E["media"].normTex)
+		xpbar:CreateBackdrop("Transparent")
+	end
 end
 
 function S:HandleShipFollowerPage(followerTab)
@@ -669,9 +712,9 @@ function S:AddCallbackForAddon(addonName, eventName, loadFunc, forceLoad, bypass
 		self.addonCallbacks[addonName] = {["CallPriority"] = {}}
 	end
 	
-	if self.addonCallbacks[addonName][eventName] then
+	if self.addonCallbacks[addonName][eventName] or E.ModuleCallbacks[eventName] or E.InitialModuleCallbacks[eventName] then
 		--Don't allow a registered callback to be overwritten
-		E:Print("Invalid argument #2 to S:AddCallbackForAddon (event name is already registered, please use a unique event name)")
+		E:Print("Invalid argument #2 to S:AddCallbackForAddon (event name:", eventName, "is already registered, please use a unique event name)")
 		return
 	end
 
@@ -698,9 +741,9 @@ function S:AddCallback(eventName, loadFunc)
 		return
 	end
 
-	if self.nonAddonCallbacks[eventName] then
+	if self.nonAddonCallbacks[eventName] or E.ModuleCallbacks[eventName] or E.InitialModuleCallbacks[eventName] then
 		--Don't allow a registered callback to be overwritten
-		E:Print("Invalid argument #1 to S:AddCallback (event name is already registered, please use a unique event name)")
+		E:Print("Invalid argument #1 to S:AddCallback (event name:", eventName, "is already registered, please use a unique event name)")
 		return
 	end
 
@@ -738,7 +781,7 @@ function S:Initialize()
 			self.addonsToLoad[addon] = nil;
 			local _, catch = pcall(loadFunc)
 			if(catch and GetCVarBool('scriptErrors') == true) then
-				ScriptErrorsFrame_OnError(catch, false)
+				ScriptErrorsFrame:OnError(catch, false, false)
 			end
 		end
 	end
@@ -746,7 +789,7 @@ function S:Initialize()
 	for _, loadFunc in pairs(self.nonAddonsToLoad) do
 		local _, catch = pcall(loadFunc)
 		if(catch and GetCVarBool('scriptErrors') == true) then
-			ScriptErrorsFrame_OnError(catch, false)
+			ScriptErrorsFrame:OnError(catch, false, false)
 		end
 	end
 	wipe(self.nonAddonsToLoad)
@@ -754,4 +797,8 @@ end
 
 S:RegisterEvent('ADDON_LOADED')
 
-E:RegisterModule(S:GetName())
+local function InitializeCallback()
+	S:Initialize()
+end
+
+E:RegisterModule(S:GetName(), InitializeCallback)

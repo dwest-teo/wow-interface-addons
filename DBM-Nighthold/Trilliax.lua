@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod(1731, "DBM-Nighthold", nil, 786)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision(("$Revision: 16089 $"):sub(12, -3))
+mod:SetRevision(("$Revision: 16780 $"):sub(12, -3))
 mod:SetCreatureID(104288)
 mod:SetEncounterID(1867)
 mod:SetZone()
@@ -23,8 +23,6 @@ mod:RegisterEventsInCombat(
 	"UNIT_SPELLCAST_SUCCEEDED boss1"
 )
 
---TODO, do more videos with debug to determine if combat log order is valid for link partners
---TODO, annihilate timer for second Imprint
 --[[
 (ability.id = 207513 or ability.id = 206788 or ability.id = 207502 or ability.id = 214672 or ability.id = 206820) and type = "begincast" or
 (ability.id = 206560 or ability.id = 206557 or ability.id = 206559 or ability.id = 206641 or ability.id = 207630) and type = "cast" or 
@@ -83,13 +81,14 @@ local countdownAnnihilation			= mod:NewCountdown("AltTwo20", 207630)
 local countdownArcaneSlash			= mod:NewCountdown("Alt20", 206641, "Tank")
 
 local voiceArcaneSeepage			= mod:NewVoice(206488)--runaway
-local voiceArcaneSlash				= mod:NewVoice(206641)--tauntboss
+local voiceArcaneSlash				= mod:NewVoice(206641, "Tank", nil, 2)--tauntboss
 --Cleaner
 local voiceSterilize				= mod:NewVoice(208499)--scatter (runout better?)
 local voiceCleansingRage			= mod:NewVoice(206820)--aesoon
 --Maniac
 local voiceArcingBonds				= mod:NewVoice(208915)--linegather
 local voiceAnnihilation				= mod:NewVoice(207630)--stilldanger
+local voiceEchoDuder				= mod:NewVoice(214880)--bigmob
 
 --Caretaker
 local voiceTidyUp					= mod:NewVoice(207513)--mobsoon/watchstep
@@ -310,9 +309,11 @@ function mod:INSTANCE_ENCOUNTER_ENGAGE_UNIT()
 			if cid == 108144 then--Maniac Imprint
 				local name = GetSpellInfo(206557)
 				specWarnEchoDuder:Show(name)
+				voiceEchoDuder:Play("bigmob")
 			elseif cid == 108303 then--Caretaker Imprint
 				local name = GetSpellInfo(206560)
 				specWarnEchoDuder:Show(name)
+				voiceEchoDuder:Play("bigmob")
 				timerToxicSliceCD:Start(16, "echo")
 			end
 		end

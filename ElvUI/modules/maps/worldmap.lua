@@ -19,8 +19,9 @@ local WORLDMAP_WINDOWED_SIZE = WORLDMAP_WINDOWED_SIZE
 
 --Global variables that we don't cache, list them here for mikk's FindGlobals script
 -- GLOBALS: WorldMapFrame, WorldMapFrameSizeUpButton, WorldMapFrameSizeDownButton
--- GLOBALS: UIParent, CoordsHolder, WorldMapDetailFrame, DropDownList1, WORLD_MAP_MIN_ALPHA
+-- GLOBALS: UIParent, CoordsHolder, WorldMapDetailFrame, WORLD_MAP_MIN_ALPHA
 -- GLOBALS: NumberFontNormal, WORLDMAP_SETTINGS, BlackoutWorld, WorldMapScrollFrame
+-- GLOBALS: WorldMapTooltip, WorldMapCompareTooltip1, WorldMapCompareTooltip2
 
 local INVERTED_POINTS = {
 	["TOPLEFT"] = "BOTTOMLEFT",
@@ -50,8 +51,10 @@ function M:SetLargeWorldMap()
 		SetUIPanelAttribute(WorldMapFrame, "allowOtherPanels", true)
 	end
 
-	WorldMapFrameSizeUpButton:Hide()
-	WorldMapFrameSizeDownButton:Show()
+	if not (E.wowbuild >= 24904) then
+		WorldMapFrameSizeUpButton:Hide()
+		WorldMapFrameSizeDownButton:Show()
+	end
 
 	WorldMapFrame:ClearAllPoints()
 	WorldMapFrame:Point("CENTER", UIParent, "CENTER", 0, 100)
@@ -60,19 +63,25 @@ end
 
 function M:SetSmallWorldMap()
 	if InCombatLockdown() then return; end
-
-	WorldMapFrameSizeUpButton:Show()
-	WorldMapFrameSizeDownButton:Hide()
+	if not (E.wowbuild >= 24904) then
+		WorldMapFrameSizeUpButton:Show()
+		WorldMapFrameSizeDownButton:Hide()
+	end
 end
 
 function M:PLAYER_REGEN_ENABLED()
-	WorldMapFrameSizeDownButton:Enable()
-	WorldMapFrameSizeUpButton:Enable()
+	if not (E.wowbuild >= 24904) then
+		WorldMapFrameSizeDownButton:Enable()
+		WorldMapFrameSizeUpButton:Enable()
+	end
+
 end
 
 function M:PLAYER_REGEN_DISABLED()
-	WorldMapFrameSizeDownButton:Disable()
-	WorldMapFrameSizeUpButton:Disable()
+	if not (E.wowbuild >= 24904) then
+		WorldMapFrameSizeDownButton:Disable()
+		WorldMapFrameSizeUpButton:Disable()
+	end
 end
 
 local inRestrictedArea = false
@@ -93,8 +102,8 @@ end
 function M:UpdateCoords()
 	if (not WorldMapFrame:IsShown() or inRestrictedArea) then return end
 	local x, y = GetPlayerMapPosition("player")
-	x = E:Round(100 * x, 2)
-	y = E:Round(100 * y, 2)
+	x = x and E:Round(100 * x, 2) or 0
+	y = y and E:Round(100 * y, 2) or 0
 
 	if x ~= 0 and y ~= 0 then
 		CoordsHolder.playerCoords:SetText(PLAYER..":   "..x..", "..y)
@@ -176,4 +185,8 @@ function M:Initialize()
 	SetCVar("mapFade", (E.global.general.fadeMapWhenMoving == true and 1 or 0))
 end
 
-E:RegisterInitialModule(M:GetName())
+local function InitializeCallback()
+	M:Initialize()
+end
+
+E:RegisterInitialModule(M:GetName(), InitializeCallback)

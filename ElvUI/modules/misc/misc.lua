@@ -255,6 +255,7 @@ end
 
 function M:PLAYER_ENTERING_WORLD()
 	self:ForceCVars()
+	self:ToggleChatBubbleScript()
 end
 
 function M:Initialize()
@@ -275,4 +276,8 @@ function M:Initialize()
 	self:RegisterEvent('PLAYER_ENTERING_WORLD')
 end
 
-E:RegisterModule(M:GetName())
+local function InitializeCallback()
+	M:Initialize()
+end
+
+E:RegisterModule(M:GetName(), InitializeCallback)

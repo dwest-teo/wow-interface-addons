@@ -46,17 +46,12 @@ function UF:Configure_ClassBar(frame, cur)
 	--We don't want to modify the original frame.CLASSBAR_WIDTH value, as it bugs out when the classbar gains more buttons
 	local CLASSBAR_WIDTH = frame.CLASSBAR_WIDTH
 
-	local c = self.db.colors.classResources.bgColor
+	local color = self.db.colors.classResources.bgColor
 	bars.backdrop.ignoreUpdates = true
-	bars.backdrop.backdropTexture:SetVertexColor(c.r, c.g, c.b)
-	if(not E.PixelMode) then
-		c = E.db.general.bordercolor
-		if(self.thinBorders) then
-			bars.backdrop:SetBackdropBorderColor(0, 0, 0)
-		else
-			bars.backdrop:SetBackdropBorderColor(c.r, c.g, c.b)
-		end
-	end
+	bars.backdrop.backdropTexture:SetVertexColor(color.r, color.g, color.b)
+
+	color = E.db.unitframe.colors.borderColor
+	bars.backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
 
 	if frame.USE_MINI_CLASSBAR and not frame.CLASSBAR_DETACHED then
 		bars:ClearAllPoints()
@@ -120,10 +115,10 @@ function UF:Configure_ClassBar(frame, cur)
 	bars:Width(CLASSBAR_WIDTH)
 	bars:Height(frame.CLASSBAR_HEIGHT - ((frame.BORDER + frame.SPACING)*2))
 
-	if (frame.ClassBar == 'ClassIcons' or frame.ClassBar == 'Runes') then
+	if (frame.ClassBar == 'ClassPower' or frame.ClassBar == 'Runes') then
 
 		--This fixes issue with ComboPoints showing as active when they are not.
-		if frame.ClassBar == "ClassIcons" and not cur then
+		if frame.ClassBar == "ClassPower" and not cur then
 			cur = 0
 		end
 
@@ -134,11 +129,11 @@ function UF:Configure_ClassBar(frame, cur)
 
 			if i <= frame.MAX_CLASS_BAR then
 				bars[i].backdrop.ignoreUpdates = true
-				bars[i].backdrop.backdropTexture:SetVertexColor(c.r, c.g, c.b)
-				if(not E.PixelMode) then
-					c = E.db.general.bordercolor
-					bars[i].backdrop:SetBackdropBorderColor(c.r, c.g, c.b)
-				end
+				bars[i].backdrop.backdropTexture:SetVertexColor(color.r, color.g, color.b)
+				
+				color = E.db.unitframe.colors.borderColor
+				bars[i].backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
+
 				bars[i]:Height(bars:GetHeight())
 				if frame.MAX_CLASS_BAR == 1 then
 					bars[i]:SetWidth(CLASSBAR_WIDTH)
@@ -197,7 +192,7 @@ function UF:Configure_ClassBar(frame, cur)
 				end
 
 				--Fix missing backdrop colors on Combo Points when using Spaced style
-				if frame.ClassBar == "ClassIcons" then
+				if frame.ClassBar == "ClassPower" then
 					if frame.USE_MINI_CLASSBAR then
 						bars[i].bg:SetParent(bars[i].backdrop)
 					else
@@ -232,8 +227,8 @@ function UF:Configure_ClassBar(frame, cur)
 	end
 
 	if frame.USE_CLASSBAR then
-		if frame.ClassIcons and not frame:IsElementEnabled("ClassIcons") then
-			frame:EnableElement("ClassIcons")
+		if frame.ClassPower and not frame:IsElementEnabled("ClassPower") then
+			frame:EnableElement("ClassPower")
 		end
 		if frame.AdditionalPower and not frame:IsElementEnabled("AdditionalPower") then
 			frame:EnableElement("AdditionalPower")
@@ -245,8 +240,8 @@ function UF:Configure_ClassBar(frame, cur)
 			frame:EnableElement("Stagger")
 		end
 	else
-		if frame.ClassIcons and frame:IsElementEnabled("ClassIcons") then
-			frame:DisableElement("ClassIcons")
+		if frame.ClassPower and frame:IsElementEnabled("ClassPower") then
+			frame:DisableElement("ClassPower")
 		end
 		if frame.AdditionalPower and frame:IsElementEnabled("AdditionalPower") then
 			frame:DisableElement("AdditionalPower")
@@ -270,7 +265,7 @@ local function ToggleResourceBar(bars, overrideVisibility)
 	local height
 	if db.classbar then
 		height = db.classbar.height
-	elseif frame.AltPowerBar then
+	elseif frame.AlternativePower then
 		height = db.power.height
 	end
 
@@ -298,7 +293,7 @@ UF.ToggleResourceBar = ToggleResourceBar --Make available to combobar
 -------------------------------------------------------------
 function UF:Construct_ClassBar(frame)
 	local bars = CreateFrame("Frame", nil, frame)
-	bars:CreateBackdrop('Default', nil, nil, self.thinBorders)
+	bars:CreateBackdrop('Default', nil, nil, self.thinBorders, true)
 
 	local maxBars = max(UF['classMaxResourceBar'][E.myclass] or 0, MAX_COMBO_POINTS)
 	for i = 1, maxBars do
@@ -307,7 +302,7 @@ function UF:Construct_ClassBar(frame)
 		bars[i]:GetStatusBarTexture():SetHorizTile(false)
 		UF['statusbars'][bars[i]] = true
 
-		bars[i]:CreateBackdrop('Default', nil, nil, self.thinBorders)
+		bars[i]:CreateBackdrop('Default', nil, nil, self.thinBorders, true)
 		bars[i].backdrop:SetParent(bars)
 
 		bars[i].bg = bars:CreateTexture(nil, 'OVERLAY')
@@ -316,7 +311,8 @@ function UF:Construct_ClassBar(frame)
 	end
 
 	bars.PostUpdate = UF.UpdateClassBar
-	bars.UpdateTexture = function() return end --We don't use textures but statusbars, so prevent errors
+	bars.UpdateColor = E.noop --We handle colors on our own in Configure_ClassBar
+	bars.UpdateTexture = E.noop --We don't use textures but statusbars, so prevent errors
 
 	bars:SetScript("OnShow", ToggleResourceBar)
 	bars:SetScript("OnHide", ToggleResourceBar)
@@ -324,7 +320,7 @@ function UF:Construct_ClassBar(frame)
 	return bars
 end
 
-function UF:UpdateClassBar(cur, max, hasMaxChanged)
+function UF:UpdateClassBar(cur, max, hasMaxChanged, powerType)
 	local frame = self.origParent or self:GetParent()
 	local db = frame.db
 	if not db then return; end
@@ -368,7 +364,7 @@ end
 -------------------------------------------------------------
 function UF:Construct_DeathKnightResourceBar(frame)
 	local runes = CreateFrame("Frame", nil, frame)
-	runes:CreateBackdrop('Default', nil, nil, self.thinBorders)
+	runes:CreateBackdrop('Default', nil, nil, self.thinBorders, true)
 
 	for i = 1, UF['classMaxResourceBar'][E.myclass] do
 		runes[i] = CreateFrame("StatusBar", frame:GetName().."RuneButton"..i, runes)
@@ -376,7 +372,7 @@ function UF:Construct_DeathKnightResourceBar(frame)
 		runes[i]:SetStatusBarTexture(E['media'].blankTex)
 		runes[i]:GetStatusBarTexture():SetHorizTile(false)
 
-		runes[i]:CreateBackdrop('Default', nil, nil, self.thinBorders)
+		runes[i]:CreateBackdrop('Default', nil, nil, self.thinBorders, true)
 		runes[i].backdrop:SetParent(runes)
 
 		runes[i].bg = runes[i]:CreateTexture(nil, 'BORDER')
@@ -386,6 +382,7 @@ function UF:Construct_DeathKnightResourceBar(frame)
 	end
 
 	runes.PostUpdateVisibility = UF.PostVisibilityRunes
+	runes.UpdateColor = E.noop --We handle colors on our own in Configure_ClassBar
 	runes:SetScript("OnShow", ToggleResourceBar)
 	runes:SetScript("OnHide", ToggleResourceBar)
 
@@ -399,7 +396,7 @@ function UF:PostVisibilityRunes(enabled, stateChanged)
 		frame.ClassBar = "Runes"
 		frame.MAX_CLASS_BAR = #self
 	else
-		frame.ClassBar = "ClassIcons"
+		frame.ClassBar = "ClassPower"
 		frame.MAX_CLASS_BAR = MAX_COMBO_POINTS
 	end
 
@@ -506,7 +503,7 @@ function UF:PostVisibilityAdditionalPower(enabled, stateChanged)
 	if enabled then
 		frame.ClassBar = 'AdditionalPower'
 	else
-		frame.ClassBar = 'ClassIcons'
+		frame.ClassBar = 'ClassPower'
 		self.text:SetText()
 	end
 
@@ -525,7 +522,7 @@ end
 function UF:Construct_Stagger(frame)
 	local stagger = CreateFrame("Statusbar", nil, frame)
 	UF['statusbars'][stagger] = true
-	stagger:CreateBackdrop("Default",nil, nil, self.thinBorders)
+	stagger:CreateBackdrop("Default",nil, nil, self.thinBorders, true)
 	stagger.PostUpdate = UF.PostUpdateStagger
 	stagger.PostUpdateVisibility = UF.PostUpdateVisibilityStagger
 
@@ -552,7 +549,7 @@ function UF:PostUpdateVisibilityStagger(event, unit, isShown, stateChanged)
 	if(isShown) then
 		frame.ClassBar = 'Stagger'
 	else
-		frame.ClassBar = 'ClassIcons'
+		frame.ClassBar = 'ClassPower'
 	end
 
 	--Only update when necessary

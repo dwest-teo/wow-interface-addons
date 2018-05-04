@@ -125,7 +125,7 @@ function BUIP:UpdateProfessions()
 			local name, icon, rank, maxRank, _, _, skillLine, rankModifier = GetProfessionInfo(id)
 
 			if name and (rank < capRank or (not db.capped)) then
-				if db.choosePofessions[id] == true then
+				if E.private.dashboards.professions.choosePofessions[id] == true then
 					proHolder:Show()
 					proHolder:Height(((DASH_HEIGHT + (E.PixelMode and 1 or DASH_SPACING)) * (#BuiProfessions + 1)) + DASH_SPACING + (E.PixelMode and 0 or 2))
 					if ProfessionsMover then
@@ -274,4 +274,8 @@ function BUIP:Initialize()
 	hooksecurefunc(DT, 'LoadDataTexts', BUIP.UpdateProfessions)
 end
 
-E:RegisterModule(BUIP:GetName())
+local function InitializeCallback()
+	BUIP:Initialize()
+end
+
+E:RegisterModule(BUIP:GetName(), InitializeCallback)

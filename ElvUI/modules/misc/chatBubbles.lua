@@ -4,15 +4,18 @@ local CH = E:GetModule("Chat");
 
 --Cache global variables
 --Lua functions
-local select, unpack, type = select, unpack, type
+local select, unpack, type, pairs = select, unpack, type, pairs
 local strlower, find, format = strlower, string.find, string.format
 --WoW API / Variables
 local CreateFrame = CreateFrame
-local CUSTOM_CLASS_COLORS = CUSTOM_CLASS_COLORS
+local C_ChatBubbles_GetAllChatBubbles = C_ChatBubbles.GetAllChatBubbles
+local IsInInstance = IsInInstance
+local RemoveExtraSpaces = RemoveExtraSpaces
 local RAID_CLASS_COLORS = RAID_CLASS_COLORS
 
 --Global variables that we don't cache, list them here for mikk's FindGlobals script
--- GLOBALS: UIParent, WorldFrame
+-- GLOBALS: UIParent
+-- GLOBALS: CUSTOM_CLASS_COLORS
 
 function M:UpdateBubbleBorder()
 	if not self.text then return end
@@ -29,32 +32,35 @@ function M:UpdateBubbleBorder()
 		end
 	end
 
-	local classColorTable, lowerCaseWord, isFirstWord, rebuiltString, tempWord
-	local text = self.text:GetText()
-	for word in text:gmatch("[^%s]+") do
-		lowerCaseWord = word:lower()
-		lowerCaseWord = lowerCaseWord:gsub("%p", "")
+	if E.private.chat.enable and E.private.general.classColorMentionsSpeech then
+		local classColorTable, lowerCaseWord, isFirstWord, rebuiltString, tempWord, wordMatch, classMatch
+		local text = self.text:GetText()
+		if text and text:match("%s-[^%s]+%s*") then
+			for word in text:gmatch("%s-[^%s]+%s*") do
+				tempWord = word:gsub("^[%s%p]-([^%s%p]+)([%-]?[^%s%p]-)[%s%p]*$","%1%2")
+				lowerCaseWord = tempWord:lower()
 
-		if E.private.general.classColorMentionsSpeech then
-			if(CH.ClassNames[lowerCaseWord]) then
-				classColorTable = CUSTOM_CLASS_COLORS and CUSTOM_CLASS_COLORS[CH.ClassNames[lowerCaseWord]] or RAID_CLASS_COLORS[CH.ClassNames[lowerCaseWord]];
-				tempWord = word:gsub("%p", "")
-				word = word:gsub(tempWord, format("\124cff%.2x%.2x%.2x", classColorTable.r*255, classColorTable.g*255, classColorTable.b*255)..tempWord.."\124r")
-			elseif(CH.ClassNames[word]) then
-				classColorTable = CUSTOM_CLASS_COLORS and CUSTOM_CLASS_COLORS[CH.ClassNames[word]] or RAID_CLASS_COLORS[CH.ClassNames[word]];
-				word = word:gsub(word:gsub("%-","%%-"), format("\124cff%.2x%.2x%.2x", classColorTable.r*255, classColorTable.g*255, classColorTable.b*255)..word.."\124r")
+				classMatch = CH.ClassNames[lowerCaseWord]
+				wordMatch = classMatch and lowerCaseWord
+
+				if(wordMatch and not E.global.chat.classColorMentionExcludedNames[wordMatch]) then
+					classColorTable = CUSTOM_CLASS_COLORS and CUSTOM_CLASS_COLORS[classMatch] or RAID_CLASS_COLORS[classMatch];
+					word = word:gsub(tempWord:gsub("%-","%%-"), format("\124cff%.2x%.2x%.2x%s\124r", classColorTable.r*255, classColorTable.g*255, classColorTable.b*255, tempWord))
+				end
+
+				if not isFirstWord then
+					rebuiltString = word
+					isFirstWord = true
+				else
+					rebuiltString = format("%s%s", rebuiltString, word)
+				end
+			end
+
+			if rebuiltString ~= nil then
+				self.text:SetText(RemoveExtraSpaces(rebuiltString))
 			end
 		end
-
-		if not isFirstWord then
-			rebuiltString = word
-			isFirstWord = true
-		else
-			rebuiltString = format("%s %s", rebuiltString, word)
-		end
 	end
-
-	self.text:SetText(rebuiltString)
 end
 
 function M:SkinBubble(frame)
@@ -165,51 +171,36 @@ function M:SkinBubble(frame)
 	frame:HookScript('OnShow', M.UpdateBubbleBorder)
 	frame:SetFrameStrata("DIALOG") --Doesn't work currently in Legion due to a bug on Blizzards end
 	M.UpdateBubbleBorder(frame)
-	frame.isBubblePowered = true
+
+	frame.isSkinnedElvUI = true
 end
 
-function M:IsChatBubble(frame)
-	if not frame:IsForbidden() then
-		for i = 1, frame:GetNumRegions() do
-			local region = select(i, frame:GetRegions())
+local function ChatBubble_OnUpdate(self, elapsed)
+	if not M.BubbleFrame then return end
+	if not M.BubbleFrame.lastupdate then
+		M.BubbleFrame.lastupdate = -2 -- wait 2 seconds before hooking frames
+	end
 
-			if region.GetTexture and region:GetTexture() and type(region:GetTexture() == "string") then
-				if find(strlower(region:GetTexture()), "chatbubble%-background") then
-					return true
-				end
-			end
+	M.BubbleFrame.lastupdate = M.BubbleFrame.lastupdate + elapsed
+	if (M.BubbleFrame.lastupdate < .1) then return end
+	M.BubbleFrame.lastupdate = 0
+
+	for _, chatBubble in pairs(C_ChatBubbles_GetAllChatBubbles()) do
+		if not chatBubble.isSkinnedElvUI then
+			M:SkinBubble(chatBubble)
 		end
 	end
-	return false
 end
 
-local numChildren = 0
+function M:ToggleChatBubbleScript()
+	local _, instanceType = IsInInstance()
+	if instanceType == "none" and E.private.general.chatBubbles ~= "disabled" then
+		M.BubbleFrame:SetScript('OnUpdate', ChatBubble_OnUpdate)
+	else
+		M.BubbleFrame:SetScript('OnUpdate', nil)
+	end
+end
+
 function M:LoadChatBubbles()
-	if E.private.general.bubbles == false then
-		E.private.general.chatBubbles = 'disabled'
-		E.private.general.bubbles = nil
-	end
-
-	if E.private.general.chatBubbles == 'disabled' then return end
-
-	local frame = CreateFrame('Frame')
-	frame.lastupdate = -2 -- wait 2 seconds before hooking frames
-
-	frame:SetScript('OnUpdate', function(self, elapsed)
-		self.lastupdate = self.lastupdate + elapsed
-		if (self.lastupdate < .1) then return end
-		self.lastupdate = 0
-
-		local count = WorldFrame:GetNumChildren()
-		if(count ~= numChildren) then
-			for i = numChildren + 1, count do
-				local frame = select(i, WorldFrame:GetChildren())
-				
-				if M:IsChatBubble(frame) then
-					M:SkinBubble(frame)
-				end
-			end
-			numChildren = count
-		end
-	end)
+	self.BubbleFrame = CreateFrame('Frame')
 end

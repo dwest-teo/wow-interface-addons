@@ -1,11 +1,6 @@
 local E, L, DF = unpack(select(2, ...)) -- Import Functions/Constants, Config, Locales
-
-
 local _, ns = ...
 local oUF = ns.oUF or oUF
-
-local SymbiosisName = GetSpellInfo(110309)
-local CleanseName = GetSpellInfo(4987)
 
 local addon = {}
 ns.oUF_RaidDebuffs = addon
@@ -18,7 +13,7 @@ local debuff_data = {}
 addon.DebuffData = debuff_data
 
 
-addon.ShowDispelableDebuff = true
+addon.ShowDispellableDebuff = true
 addon.FilterDispellableDebuff = true
 addon.MatchBySpellName = false
 
@@ -146,14 +141,6 @@ local function CheckSpec(self, event, levels)
 	end
 end
 
-local function CheckSymbiosis()
-	if GetSpellInfo(SymbiosisName) == CleanseName then
-		DispellFilter.Disease = true
-	else
-		DispellFilter.Disease = false
-	end
-end
-
 local function formatTime(s)
 	if s > 60 then
 		return format('%dm', s/60), s%60
@@ -259,7 +246,7 @@ local function Update(self, event, unit)
 		if (not name) then break end
 		
 		--we coudln't dispell if the unit its charmed, or its not friendly
-		if addon.ShowDispelableDebuff and (self.RaidDebuffs.showDispellableDebuff ~= false) and debuffType and (not isCharmed) and (not canAttack) then
+		if addon.ShowDispellableDebuff and (self.RaidDebuffs.showDispellableDebuff ~= false) and debuffType and (not isCharmed) and (not canAttack) then
 		
 			if addon.FilterDispellableDebuff then						
 				DispellPriority[debuffType] = (DispellPriority[debuffType] or 0) + addon.priority --Make Dispell buffs on top of Boss Debuffs
@@ -276,7 +263,18 @@ local function Update(self, event, unit)
 			end
 		end
 
-		priority = debuff_data[addon.MatchBySpellName and name or spellId] and debuff_data[addon.MatchBySpellName and name or spellId].priority
+		local debuff
+		if self.RaidDebuffs.onlyMatchSpellID then
+			debuff = debuff_data[spellId]
+		else
+			if debuff_data[spellId] then
+				debuff = debuff_data[spellId]
+			else
+				debuff = debuff_data[name]
+			end
+		end
+
+		priority = debuff and debuff.priority
 		if priority and not blackList[spellId] and (priority > _priority) then
 			_priority, _name, _icon, _count, _dtype, _duration, _endTime, _spellId = priority, name, icon, count, debuffType, duration, expirationTime, spellId
 		end
@@ -312,9 +310,6 @@ local function Enable(self)
 	--Need to run these always
 	self:RegisterEvent("PLAYER_TALENT_UPDATE", CheckSpec)
 	self:RegisterEvent("CHARACTER_POINTS_CHANGED", CheckSpec)
-	if playerClass == "DRUID" then
-		self:RegisterEvent("SPELLS_CHANGED", CheckSymbiosis)
-	end
 end
 
 local function Disable(self)
@@ -324,9 +319,6 @@ local function Disable(self)
 	end
 	self:UnregisterEvent("PLAYER_TALENT_UPDATE", CheckSpec)
 	self:UnregisterEvent("CHARACTER_POINTS_CHANGED", CheckSpec)
-	if playerClass == "DRUID" then
-		self:UnregisterEvent("SPELLS_CHANGED", CheckSymbiosis)
-	end	
 end
 
 oUF:AddElement('RaidDebuffs', Update, Enable, Disable)

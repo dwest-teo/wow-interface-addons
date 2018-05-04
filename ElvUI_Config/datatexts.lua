@@ -3,9 +3,18 @@ local DT = E:GetModule('DataTexts')
 
 local datatexts = {}
 
+local _G = _G
+local tonumber = tonumber
+local pairs = pairs
+local type = type
+local NONE = NONE
+local DELETE = DELETE
+local HideLeftChat = HideLeftChat
+local HideRightChat = HideRightChat
+
 function DT:PanelLayoutOptions()
-	for name, _ in pairs(DT.RegisteredDataTexts) do
-		datatexts[name] = name
+	for name, data in pairs(DT.RegisteredDataTexts) do
+		datatexts[name] = data.localizedName or L[name]
 	end
 	datatexts[''] = NONE
 
@@ -125,6 +134,19 @@ local function CreateCustomCurrencyOptions(currencyID)
 						DT:UpdateCustomCurrencySettings(currency.NAME, "USE_TOOLTIP", value)
 					end,
 				},
+				displayInMainTooltip = {
+					order = 6,
+					type = "toggle",
+					name = L["Display In Main Tooltip"],
+					desc = L["If enabled, then this currency will be displayed in the main Currencies datatext tooltip."],
+					get = function(info) return E.global.datatexts.customCurrencies[currencyID].DISPLAY_IN_MAIN_TOOLTIP end,
+					set = function(info, value)
+						--Save new value
+						E.global.datatexts.customCurrencies[currencyID].DISPLAY_IN_MAIN_TOOLTIP = value
+						--Update internal value
+						DT:UpdateCustomCurrencySettings(currency.NAME, "DISPLAY_IN_MAIN_TOOLTIP", value)
+					end,
+				},
 			},
 		}
 	end
@@ -185,34 +207,43 @@ E.Options.args.datatexts = {
 								E:GetModule('Layout'):SetDataPanelStyle()
 							end,
 						},
-						noCombatClick = {
+						panelBackdrop = {
 							order = 5,
+							name = L["Backdrop"],
+							type = 'toggle',
+							set = function(info, value)
+								E.db.datatexts[ info[#info] ] = value
+								E:GetModule('Layout'):SetDataPanelStyle()
+							end,
+						},
+						noCombatClick = {
+							order = 6,
 							type = "toggle",
 							name = L["Block Combat Click"],
 							desc = L["Blocks all click events while in combat."],
 						},
 						noCombatHover = {
-							order = 6,
+							order = 7,
 							type = "toggle",
 							name = L["Block Combat Hover"],
 							desc = L["Blocks datatext tooltip from showing in combat."],
 						},
 						goldFormat = {
-							order = 7,
+							order = 8,
 							type = 'select',
 							name = L["Gold Format"],
 							desc = L["The display format of the money text that is shown in the gold datatext and its tooltip."],
 							values = {
 								['SMART'] = L["Smart"],
 								['FULL'] = L["Full"],
-								['SHORT'] = L["Short"],
+								['SHORT'] = SHORT,
 								['SHORTINT'] = L["Short (Whole Numbers)"],
 								['CONDENSED'] = L["Condensed"],
 								['BLIZZARD'] = L["Blizzard Style"],
 							},
 						},
 						goldCoins = {
-							order = 8,
+							order = 9,
 							type = 'toggle',
 							name = L["Show Coins"],
 							desc = L["Use coin icons instead of colored text."],
@@ -233,7 +264,7 @@ E.Options.args.datatexts = {
 						},
 						fontSize = {
 							order = 2,
-							name = L["Font Size"],
+							name = FONT_SIZE,
 							type = "range",
 							min = 4, max = 212, step = 1,
 						},
@@ -243,7 +274,7 @@ E.Options.args.datatexts = {
 							desc = L["Set the font outline."],
 							type = "select",
 							values = {
-								['NONE'] = L["None"],
+								['NONE'] = NONE,
 								['OUTLINE'] = 'OUTLINE',
 								['MONOCHROMEOUTLINE'] = 'MONOCROMEOUTLINE',
 								['THICKOUTLINE'] = 'THICKOUTLINE',
@@ -378,12 +409,12 @@ E.Options.args.datatexts = {
 		currencies = {
 			order = 5,
 			type = "group",
-			name = "Currencies", --Name of datatext, which isn't localized
+			name = CURRENCY,
 			args = {
 				header = {
 					order = 1,
 					type = "header",
-					name = "Currencies",
+					name = CURRENCY,
 				},
 				displayedCurrency = {
 					order = 2,
@@ -411,12 +442,12 @@ E.Options.args.datatexts = {
 		time = {
 			order = 6,
 			type = "group",
-			name = "Time", --Name of datatext, which isn't localized
+			name = L["Time"],
 			args = {
 				header = {
 					order = 1,
 					type = "header",
-					name = "Time",
+					name = L["Time"],
 				},
 				time24 = {
 					order = 2,

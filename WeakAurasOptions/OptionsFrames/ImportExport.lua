@@ -23,11 +23,14 @@ local function ConstructImportExport(frame)
   input:SetWidth(400);
   input.button:Hide();
   input.frame:SetClipsChildren(true);
+  -- WORKAROUND around WoW 7.3 misplacing the cursor
+  input.editBox:SetIgnoreParentScale(true);
   group:AddChild(input);
 
   local close = CreateFrame("Button", nil, group.frame, "UIPanelButtonTemplate");
   close:SetScript("OnClick", function() group:Close() end);
   close:SetPoint("BOTTOMRIGHT", -27, 13);
+  close:SetFrameLevel(close:GetFrameLevel() + 1)
   close:SetHeight(20);
   close:SetWidth(100);
   close:SetText(L["Done"])

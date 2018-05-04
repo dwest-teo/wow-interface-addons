@@ -1,0 +1,12 @@
+## Interface: 70200
+## Author: Atwood
+## Version: 1.2
+## Title: |cff1784d1ElvUI|r |cff4beb2cCustomMedia|r 
+## Notes: Fonts and Textures
+## RequiredDeps: ElvUI
+
+ElvUI_CustomMedia.lua
+ 
+ 
+## X-Tukui-ProjectID: 326
+## X-Tukui-ProjectFolders: ElvUI_CustomMedia

@@ -1,15 +1,15 @@
-﻿--[[
+--[[
 Name: LibTourist-3.0
-Revision: $Rev: 190 $
+Revision: $Rev: 197 $
 Author(s): Odica (maintainer), originally created by ckknight and Arrowmaster
-Documentation: http://www.wowace.com/addons/libtourist-3-0/
+Documentation: https://www.wowace.com/projects/libtourist-3-0/pages/api-reference
 SVN: svn://svn.wowace.com/wow/libtourist-3-0/mainline/trunk
 Description: A library to provide information about zones and instances.
 License: MIT
 ]]
 
 local MAJOR_VERSION = "LibTourist-3.0"
-local MINOR_VERSION = 90000 + tonumber(("$Revision: 190 $"):match("(%d+)"))
+local MINOR_VERSION = 90000 + tonumber(("$Revision: 197 $"):match("(%d+)"))
 
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub") end
 
@@ -33,7 +33,8 @@ end
 local BZ = {}
 local BZR = {}
 
-local playerLevel = 1
+local playerLevel = UnitLevel("player")
+trace("INIT: Player Level = "..tostring(playerLevel))
 
 local isAlliance, isHorde, isNeutral
 do
@@ -54,6 +55,7 @@ local The_Maelstrom = "The Maelstrom"
 local Pandaria = "Pandaria"
 local Draenor = "Draenor"
 local BrokenIsles = "Broken Isles"
+local Argus = "Argus"
 
 local X_Y_ZEPPELIN = "%s - %s Zeppelin"
 local X_Y_BOAT = "%s - %s Boat"
@@ -114,11 +116,35 @@ local entrancePortals_x = {}
 local entrancePortals_y = {}
 
 local zoneIDtoContinentID = {}
+local continentZoneToMapID = {}
+
+local zoneMapIDs = {}
+local zoneMapIDs_rev = {}
 
 -- HELPER AND LOOKUP FUNCTIONS -------------------------------------------------------------
 
+local function UpdateCachedLegionZoneLevels()
+	-- Because the cache for highs and lows is initialized before the player level is known, update the values on PLAYER_LEVEL_UP
+	-- which fires directly after initialization. Is also assures the cache is being updated when the player levels up during play
+	local legionZoneLevel = Tourist:GetLegionZoneLevel()
+	for k in Tourist:IterateBrokenIsles() do
+		if types[k] ~= "Instance" and types[k] ~= "Battleground" and types[k] ~= "Arena" and types[k] ~= "Complex" and types[k] ~= "City" and types[k] ~= "Continent" then
+			-- Exception for Suramar and Broken Shore (which are fixed at lvl 110)
+			if k ~= BZ["Suramar"] and k ~= BZ["Broken Shore"] then
+				lows[k] = legionZoneLevel
+				highs[k] = legionZoneLevel
+				trace("Level for "..tostring(k).." is "..tostring(legionZoneLevel))
+			else
+				trace("Level for "..tostring(k).." is "..tostring(lows[k]).." (fixed)")
+			end
+		end
+	end
+end
+
 local function PLAYER_LEVEL_UP(self, level)
-	playerLevel = level or UnitLevel("player")
+	playerLevel = UnitLevel("player")
+	trace("PLAYER_LEVEL_UP: Player Level = "..tostring(playerLevel))
+	
 	for k in pairs(recZones) do
 		recZones[k] = nil
 	end
@@ -128,8 +154,8 @@ local function PLAYER_LEVEL_UP(self, level)
 	for k in pairs(cost) do
 		cost[k] = nil
 	end
-	
-	UpdateCachedLegionZoneLevels(level)	
+
+	UpdateCachedLegionZoneLevels()
 	
 	for zone in pairs(lows) do
 		if not self:IsHostile(zone) then
@@ -153,21 +179,8 @@ local function PLAYER_LEVEL_UP(self, level)
 	end
 end
 
-function UpdateCachedLegionZoneLevels()
-	-- Because the cache for highs and lows is initialized before the player level is known, update the values on PLAYER_LEVEL_UP
-	-- which fires directly after initialization. Is also assures the cache is being updated when the player levels up during play
-	local legionZoneLevel = Tourist:GetLegionZoneLevel()
-	for k in Tourist:IterateBrokenIsles() do
-		if types[k] ~= "Instance" and types[k] ~= "Battleground" and types[k] ~= "Arena" and types[k] ~= "Complex" and types[k] ~= "City" and types[k] ~= "Continent" then
-			-- Exception for Suramar (which is fixed at lvl 110)
-			if k ~= BZ["Suramar"] then
-				lows[k] = legionZoneLevel
-				highs[k] = legionZoneLevel
-				trace("Level for "..tostring(k).." is "..tostring(legionZoneLevel))
-			end
-		end
-	end
-end
+
+
 
 -- Public alternative for GetMapContinents, removes the map IDs that were added to its output in WoW 6.0
 function Tourist:GetMapContinentsAlt()
@@ -231,8 +244,12 @@ local function GetMapZonesAltLocal(continentID)
 			-- If the index is out of bounds, the continent map is returned -> exit the loop
 			break 
 		end 
-		-- Add area IDs to lookup table
+		-- Add area IDs to lookup tables
 		zoneIDtoContinentID[zoneAreaID] = continentID
+		if not continentZoneToMapID[continentID] then
+			continentZoneToMapID[continentID] = {}
+		end
+		continentZoneToMapID[continentID][i] = zoneAreaID
 		-- Get the localized zone name and store it
 		zones[i] = GetMapNameByID(zoneAreaID)
 	end
@@ -319,7 +336,7 @@ function Tourist:GetBattlePetLevel(zone)
 	return battlepet_lows[zone], battlepet_highs[zone]
 end
 
--- WoW Legions: all zones scale to the player's level between 100 and 110
+-- WoW Legions: most zones scale to the player's level between 100 and 110
 function Tourist:GetLegionZoneLevel()
 	local playerLvl = playerLevel
 
@@ -1424,6 +1441,52 @@ function Tourist:GetTexture(zone)
 	return textures[zone]
 end
 
+function Tourist:GetZoneMapID(zone)
+	return zoneMapIDs[zone]
+end
+
+-- Returns the MapAreaID for a given continent ID and zone Index (the index of the zone within the continent)
+function Tourist:GetMapAreaIDByContinentZone(continentID, zoneIndex)
+	if continentID and continentZoneToMapID[continentID] then
+		return continentZoneToMapID[continentID][zoneIndex]
+	else
+		return nil
+	end
+end
+
+-- Returns the MapAreaID of a zone based on the texture name
+function Tourist:GetZoneMapIDFromTexture(texture)
+	if not texture then
+		return -1
+	end
+	local zone = textures_rev[texture]
+	if zone then
+		return zoneMapIDs[zone]
+	else
+		-- Might be phased terrain, look for "_terrain<number>" postfix
+		local pos1 = string.find(texture, "_terrain")
+		if pos1 then
+			-- Remove the postfix from the texture name and try again
+			texture = string.sub(texture, 0, pos1 - 1)
+			zone = textures_rev[texture]
+			if zone then
+				return zoneMapIDs[zone]
+			end
+		end
+		-- Might be tiered terrain (garrison), look for "_tier<number>" postfix
+		local pos2 = string.find(texture, "_tier")
+		if pos2 then
+			-- Remove the postfix from the texture name and try again
+			texture = string.sub(texture, 0, pos2 - 1)
+			zone = textures_rev[texture]
+			if zone then
+				return zoneMapIDs[zone]
+			end
+		end
+	end
+	return nil
+end
+
 function Tourist:GetZoneFromTexture(texture)
 	if not texture then
 		return "Azeroth"
@@ -1996,7 +2059,7 @@ local MapIdLookupTable = {
 	[1039] = "Icecrown Citadel",
 	[1040] = "Netherlight Temple",
 	[1041] = "Halls of Valor",
-	[1042] = "Maw of Souls",
+	[1042] = "Helmouth Cliffs",
 	[1043] = "The Naglfar",
 	[1044] = "The Wandering Isle",
 	[1045] = "Vault of the Wardens",
@@ -2050,6 +2113,60 @@ local MapIdLookupTable = {
 	[1102] = "The Arcway",
 	[1104] = "The Oculus",
 	[1105] = "Scarlet Monastery",
+	[1114] = "Trial of Valor",
+	[1115] = "Karazhan",
+	[1116] = "Pit of Saron",
+	[1121] = "Broken Shore",
+	[1125] = "Broken Shore",
+	[1127] = "Wailing Caverns",
+	[1129] = "Cave of the Bloodtotem",
+	[1130] = "Stratholme",
+	[1131] = "The Eye of Eternity",
+	[1132] = "Halls of Valor",
+	[1135] = "Krokuun",
+    [1136] = "Coldridge Valley",
+    [1137] = "The Deadmines",
+	[1139] = "Arathi Basin",
+	[1140] = "Battle for Blackrock Mountain",
+	[1142] = "The Maelstrom",
+    [1143] = "Gnomeregan",
+	[1144] = "Shado-Pan Showdown",
+	[1146] = "Cathedral of Eternal Night",
+	[1147] = "Tomb of Sargeras",
+	[1148] = "Throne of the Four Winds",
+	[1149] = "Assault on Broken Shore",
+	[1151] = "The Ruby Sanctum",
+	[1152] = "Mardum, the Shattered Abyss",
+	[1156] = "Stormheim",
+	[1157] = "Azsuna",
+	[1158] = "Val'sharah",
+	[1159] = "Highmountain",
+	[1160] = "The Lost Glacier",
+	[1161] = "Stormstout Brewery",
+	[1164] = "Fields of the Eternal Hunt",
+	[1165] = "Mardum, the Shattered Abyss",
+	[1166] = "The Eye of Eternity",
+    [1170] = "Mac'Aree",
+    [1171] = "Antoran Wastes",
+    [1172] = "Hall of Communion",
+    [1173] = "Arcatraz",
+    [1174] = "Azuremyst Isle",
+    [1177] = "The Deaths of Chromie",
+    [1178] = "The Seat of the Triumvirate",
+    [1184] = "Argus",
+    [1188] = "Antorus, the Burning Throne",
+    [1190] = "Invasion Point: Aurinor",
+    [1191] = "Invasion Point: Bonich",
+    [1192] = "Invasion Point: Cen'gar",
+    [1193] = "Invasion Point: Naigtal",
+    [1194] = "Invasion Point: Sangua",
+    [1195] = "Invasion Point: Val",
+    [1196] = "Greater Invasion Point: Pit Lord Vilemus",
+    [1197] = "Greater Invasion Point: Mistress Alluradel",
+    [1198] = "Greater Invasion Point: Matron Folnuna",
+    [1199] = "Greater Invasion Point: Inquisitor Meto",
+    [1200] = "Greater Invasion Point: Sotanathor",
+    [1201] = "Greater Invasion Point: Occularus",
 }
 
 local zoneTranslation = {
@@ -2758,6 +2875,11 @@ do
 		continent = BrokenIsles,
 	}
 
+	zones[BZ["Argus"]] = {
+		type = "Continent",
+		continent = Argus,
+	}
+	
 	-- TRANSPORTS ---------------------------------------------------------------
 
 	zones[transports["STORMWIND_BOREANTUNDRA_BOAT"]] = {
@@ -4302,7 +4424,7 @@ do
 		paths = BZ["Tirisfal Glades"],
 		groupSize = 5,
 		type = "Instance",
-		entrancePortal = { BZ["Tirisfal Glades"], 84.88, 30.63 },  -- TODO: check
+		entrancePortal = { BZ["Tirisfal Glades"], 84.9, 35.3 },
 	}
 
 	-- Instances Graveyard and Cathedral have been merged into instance Scarlet Monastery (MoP)
@@ -4336,7 +4458,7 @@ do
 		paths = BZ["Tirisfal Glades"],
 		groupSize = 5,
 		type = "Instance",
-		entrancePortal = { BZ["Tirisfal Glades"], 84.88, 30.63 },  -- TODO: check
+		entrancePortal = { BZ["Tirisfal Glades"], 85.3, 32.1 },
 	}
 
 	zones[BZ["Uldaman"]] = {
@@ -7401,13 +7523,13 @@ do
 	
 	
 	-- Legion zones --------------------------
-	
+
 	zones[BZ["Broken Shore"]] = {
-		low = Tourist:GetLegionZoneLevel(),
-		high = Tourist:GetLegionZoneLevel(),
+		low = 110,
+		high = 110,
 		continent = BrokenIsles,
-		paths = {
-			[BZ["Suramar"]] = true,
+		instances = {
+			[BZ["Cathedral of Eternal Night"]] = true,
 		},
 		fishing_min = 950,
 		battlepet_low = 25,
@@ -7494,7 +7616,7 @@ do
 		continent = BrokenIsles,
 		instances = {
 			[BZ["Halls of Valor"]] = true,
-			[BZ["Maw of Souls"]] = true, 
+			[BZ["Helmouth Cliffs"]] = true, 
 		},
 		paths = {
 			[BZ["Suramar"]] = true,
@@ -7505,6 +7627,27 @@ do
 		battlepet_high = 25,
 	}
 	
+	-- Patch 7.3 zones
+	zones[BZ["Krokuun"]] = {
+		low = 110,
+		high = 110,
+		continent = Argus,
+	}
+	
+	zones[BZ["Antoran Wastes"]] = {
+		low = 110,
+		high = 110,
+		continent = Argus,
+	}
+	
+	zones[BZ["Mac'Aree"]] = {
+		low = 110,
+		high = 110,
+		continent = Argus,
+		instances = {
+			[BZ["The Seat of the Triumvirate"]] = true,
+		},
+	}
 	
 	-- Legion cities --------------------------
 
@@ -7603,7 +7746,6 @@ do
 		paths = BZ["Val'sharah"],
 		groupMinSize = 10,
 		groupMaxSize = 30,
-		altGroupSize = 20,
 		type = "Instance",
 		entrancePortal = { BZ["Val'sharah"], 57.1, 39.9 }, 
 	}
@@ -7628,7 +7770,7 @@ do
 		entrancePortal = { BZ["Stormheim"], 68.3, 66.2 }, 
 	}	
 	
-	zones[BZ["Maw of Souls"]] = {
+	zones[BZ["Helmouth Cliffs"]] = {
 		low = 110,
 		high = 110,
 		continent = BrokenIsles,
@@ -7665,7 +7807,6 @@ do
 		paths = BZ["Suramar"],
 		groupMinSize = 10,
 		groupMaxSize = 30,
-		altGroupSize = 20,
 		type = "Instance",
 		entrancePortal = { BZ["Suramar"], 43, 62 }, 
 	}
@@ -7681,6 +7822,41 @@ do
 		type = "Instance",
 		entrancePortal = { BZ["Dalaran"].." ("..BZ["Broken Isles"]..")", 66.78, 68.19 },
 	}
+
+	-- Patch 7.2 dungeon
+	zones[BZ["Cathedral of Eternal Night"]] = {
+		low = 110,
+		high = 110,
+		continent = BrokenIsles,
+		paths = BZ["Broken Shore"],
+		groupSize = 5,
+		type = "Instance",
+		entrancePortal = { BZ["Broken Shore"], 63, 18 },
+	}			
+	
+	
+	-- Patch 7.3 dungeon
+	zones[BZ["The Seat of the Triumvirate"]] = {
+		low = 110,
+		high = 110,
+		continent = Argus,
+		paths = BZ["Mac'Aree"],
+		groupSize = 5,
+		type = "Instance",
+		entrancePortal = { BZ["Mac'Aree"], 22.3, 56.1 }, 
+	}	
+	
+	-- Patch 7.3 raid
+	zones[BZ["Antorus, the Burning Throne"]] = {
+		low = 110,
+		high = 110,
+		continent = Argus,
+		paths = BZ["Antoran Wastes"],
+		groupMinSize = 10,
+		groupMaxSize = 30,
+		type = "Instance",
+		--entrancePortal = { BZ["Antoran Wastes"], 0, 0 }, TODO
+	}
 	
 --------------------------------------------------------------------------------------------------------
 --                                                CORE                                                --
@@ -7695,6 +7871,8 @@ do
 		if zones[continentName] then
 			-- Get map texture name
 			zones[continentName].texture = GetMapInfo()
+			-- Get MapID
+			zones[continentName].zoneMapID = GetCurrentMapAreaID()
 			
 			local _, cLeft, cTop, cRight, cBottom = GetCurrentMapZone()
 			-- Calculate size in yards
@@ -7813,6 +7991,8 @@ do
 								
 					-- Get zone texture filename
 					zones[zoneName].texture = GetMapInfo()
+					-- Get zone mapID
+					zones[zoneName].zoneMapID = GetCurrentMapAreaID()
 				else
 					trace("|r|cffff4422! -- Tourist:|r TODO: Add zone "..tostring(zoneName))
 				end
@@ -7856,6 +8036,10 @@ do
 		zoneComplexes[k] = v.complexes
 		if v.texture then
 			textures_rev[v.texture] = k
+		end
+		zoneMapIDs[k] = v.zoneMapID
+		if v.zoneMapID then
+			zoneMapIDs_rev[v.zoneMapID] = k
 		end
 		if v.entrancePortal then
 			entrancePortals_zone[k] = v.entrancePortal[1]

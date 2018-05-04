@@ -8,7 +8,7 @@ local L			= mod:GetLocalizedStrings()
 
 mod:RemoveOption("HealthFrame")
 
-mod:SetRevision(("$Revision: 48 $"):sub(12, -3))
+mod:SetRevision(("$Revision: 68 $"):sub(12, -3))
 mod:SetZone(DBM_DISABLE_ZONE_DETECTION)
 
 mod:RegisterEvents(
@@ -99,29 +99,37 @@ function mod:ShowFlagCarrier()
 			self.FlagCarrierFrame2Text:SetAllPoints(self.FlagCarrierFrame2)
 			self.FlagCarrierFrame2Text:SetJustifyH("LEFT")
 		end
-		self.FlagCarrierFrame1:Show()
-		self.FlagCarrierFrame2:Show()
+		if self.FlagCarrierFrame1 then
+			self.FlagCarrierFrame1:Show()
+		end
+		if self.FlagCarrierFrame2 then
+			self.FlagCarrierFrame2:Show()
+		end
 	end
 end
 
 function mod:CreateFlagCarrierButton()
 	if not self.Options.ShowFlagCarrier then return end
-	if not self.FlagCarrierFrame1Button then
+	if AlwaysUpFrame1 and not self.FlagCarrierFrame1Button then
 		self.FlagCarrierFrame1Button = CreateFrame("Button", nil, nil, "SecureActionButtonTemplate")
 		self.FlagCarrierFrame1Button:SetHeight(15)
 		self.FlagCarrierFrame1Button:SetWidth(150)
 		self.FlagCarrierFrame1Button:SetAttribute("type", "macro")
 		self.FlagCarrierFrame1Button:SetPoint("LEFT", "AlwaysUpFrame1", "RIGHT", 28, 4)
 	end
-	if not self.FlagCarrierFrame2Button then
+	if AlwaysUpFrame2 and not self.FlagCarrierFrame2Button then
 		self.FlagCarrierFrame2Button = CreateFrame("Button", nil, nil, "SecureActionButtonTemplate")
 		self.FlagCarrierFrame2Button:SetHeight(15)
 		self.FlagCarrierFrame2Button:SetWidth(150)
 		self.FlagCarrierFrame2Button:SetAttribute("type", "macro")
 		self.FlagCarrierFrame2Button:SetPoint("LEFT", "AlwaysUpFrame2", "RIGHT", 28, 4)
 	end
-	self.FlagCarrierFrame1Button:Show()
-	self.FlagCarrierFrame2Button:Show()
+	if self.FlagCarrierFrame1Button then
+		self.FlagCarrierFrame1Button:Show()
+	end
+	if self.FlagCarrierFrame2Button then
+		self.FlagCarrierFrame2Button:Show()
+	end
 end
 
 function mod:HideFlagCarrier()
@@ -135,10 +143,10 @@ end
 
 function mod:CheckFlagCarrier()
 	if not UnitAffectingCombat("player") then
-		if FlagCarrier[1] and self.FlagCarrierFrame1 then
+		if FlagCarrier[1] and self.FlagCarrierFrame1 and self.FlagCarrierFrame1Button then
 			self.FlagCarrierFrame1Button:SetAttribute("macrotext", "/targetexact " .. FlagCarrier[1])
 		end
-		if FlagCarrier[2] and self.FlagCarrierFrame2 then
+		if FlagCarrier[2] and self.FlagCarrierFrame2 and self.FlagCarrierFrame2Button then
 			self.FlagCarrierFrame2Button:SetAttribute("macrotext", "/targetexact " .. FlagCarrier[2])
 		end
 	end
@@ -229,7 +237,9 @@ do
 							self:AddMsg(L.InfoErrorText)
 						end
 					else
-						self.FlagCarrierFrame2Button:SetAttribute( "macrotext", "/targetexact " .. nickLong )
+						if FlagCarrierFrame2Button then
+							self.FlagCarrierFrame2Button:SetAttribute( "macrotext", "/targetexact " .. nickLong )
+						end
 					end
 
 				elseif mSide == (L.Horde or FACTION_HORDE) then
@@ -242,7 +252,9 @@ do
 							self:AddMsg(L.InfoErrorText)
 						end
 					else
-						self.FlagCarrierFrame1Button:SetAttribute( "macrotext", "/targetexact " .. nickLong )
+						if self.FlagCarrierFrame1Button then
+							self.FlagCarrierFrame1Button:SetAttribute( "macrotext", "/targetexact " .. nickLong )
+						end
 					end
 				end
 

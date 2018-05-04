@@ -2,7 +2,7 @@
 
 The MIT License (MIT)
 
-Copyright (c) 2010-2016 Mark Rogaski
+Copyright (c) 2010-2017 Mark Rogaski
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -141,27 +141,6 @@ function GwConfig:load()
         return estr
     end
     
-    local function trim(s)
-        return string.gsub(s, '^%s*(.-)%s*$', '%1')
-    end
-
-    local function get_gm_officer_note()
-        if not gw.IsOfficer() then
-            return
-        end
-
-        local n = GetNumGuildMembers();
-        local name, rank, note
-        for i = 1, n do
-            name, _, rank, _, _, _, _, note = GetGuildRosterInfo(i);
-            if rank == 0 then
-                gw.Debug(GW_LOG_INFO, 'parsing officer note for %s.', name);
-                return note;
-            end
-        end
-        return
-    end
-
     local xlat = {}                     -- Translation table for string substitution.
 
     -- Abort if current configuration is valid
@@ -222,7 +201,7 @@ function GwConfig:load()
                 -- Groom configuration entries.
                 local field = {}
                 for i, v in ipairs({ strsplit(':', buffer) }) do
-                    field[i] = trim(v)
+                    field[i] = strtrim(v)
                 end
 
                 if field[1] == 'c' then
@@ -282,7 +261,7 @@ function GwConfig:load()
 
     -- Officer note
     if GreenWall.ochat then
-        local note = get_gm_officer_note()
+        local note = gw.GetGMOfficerNote()
         if note and note ~= '' then
             local cname, cpass = string.match(note, 'GW:?a:([%w_]*):([%w_]*)')
             if cname and cname ~= '' then

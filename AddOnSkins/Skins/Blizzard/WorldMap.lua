@@ -41,10 +41,6 @@ function AS:Blizzard_WorldMap()
 		Button.Text:SetPoint('CENTER', Button)
 	end
 
-	WorldMapFrameSizeDownButton:SetPoint('RIGHT', WorldMapFrameCloseButton, 'LEFT', -1, 0)
-	WorldMapFrameSizeDownButton.Text:SetText('▼')
-	WorldMapFrameSizeUpButton.Text:SetText('▲')
-
 	local rewardFrames = {
 		['MoneyFrame'] = true,
 		['HonorFrame'] = true,
@@ -81,6 +77,8 @@ function AS:Blizzard_WorldMap()
 	AS:SkinNextPrevButton(WorldMapFrame.UIElementsFrame.OpenQuestPanelButton)
 	AS:SkinNextPrevButton(WorldMapFrame.UIElementsFrame.CloseQuestPanelButton)
 
+	AS:SkinMaxMinFrame(WorldMapFrame.BorderFrame.MaximizeMinimizeFrame)
+
 	local function HandleTooltipStatusBar()
 		local bar = _G["WorldMapTaskTooltipStatusBar"].Bar
 		local label = bar.Label
@@ -102,24 +100,24 @@ function AS:Blizzard_WorldMap()
 		AS:StripTextures(QuestMapFrame.DetailsFrame.RewardsFrame)
 	end
 
-    AS:SkinFrame(WorldMapFrame.UIElementsFrame.OpenQuestPanelButton)
-    WorldMapFrame.UIElementsFrame.OpenQuestPanelButton.Text = WorldMapFrame.UIElementsFrame.OpenQuestPanelButton:CreateFontString(nil, 'OVERLAY')
-    WorldMapFrame.UIElementsFrame.OpenQuestPanelButton.Text:SetFont('Interface\\AddOns\\AddOnSkins\\Media\\Fonts\\Arial.ttf', 12)
-    WorldMapFrame.UIElementsFrame.OpenQuestPanelButton.Text:SetText('►')
-    WorldMapFrame.UIElementsFrame.OpenQuestPanelButton.Text:SetPoint('CENTER', WorldMapFrame.UIElementsFrame.OpenQuestPanelButton)
+	AS:SkinFrame(WorldMapFrame.UIElementsFrame.OpenQuestPanelButton)
+	WorldMapFrame.UIElementsFrame.OpenQuestPanelButton.Text = WorldMapFrame.UIElementsFrame.OpenQuestPanelButton:CreateFontString(nil, 'OVERLAY')
+	WorldMapFrame.UIElementsFrame.OpenQuestPanelButton.Text:SetFont('Interface\\AddOns\\AddOnSkins\\Media\\Fonts\\Arial.ttf', 12)
+	WorldMapFrame.UIElementsFrame.OpenQuestPanelButton.Text:SetText('►')
+	WorldMapFrame.UIElementsFrame.OpenQuestPanelButton.Text:SetPoint('CENTER', WorldMapFrame.UIElementsFrame.OpenQuestPanelButton)
 
-    AS:SkinFrame(WorldMapFrame.UIElementsFrame.CloseQuestPanelButton)
-    WorldMapFrame.UIElementsFrame.CloseQuestPanelButton.Text = WorldMapFrame.UIElementsFrame.CloseQuestPanelButton:CreateFontString(nil, 'OVERLAY')
-    WorldMapFrame.UIElementsFrame.CloseQuestPanelButton.Text:SetFont('Interface\\AddOns\\AddOnSkins\\Media\\Fonts\\Arial.ttf', 12)
-    WorldMapFrame.UIElementsFrame.CloseQuestPanelButton.Text:SetText('◄')
-    WorldMapFrame.UIElementsFrame.CloseQuestPanelButton.Text:SetPoint('CENTER', WorldMapFrame.UIElementsFrame.CloseQuestPanelButton)
+	AS:SkinFrame(WorldMapFrame.UIElementsFrame.CloseQuestPanelButton)
+	WorldMapFrame.UIElementsFrame.CloseQuestPanelButton.Text = WorldMapFrame.UIElementsFrame.CloseQuestPanelButton:CreateFontString(nil, 'OVERLAY')
+	WorldMapFrame.UIElementsFrame.CloseQuestPanelButton.Text:SetFont('Interface\\AddOns\\AddOnSkins\\Media\\Fonts\\Arial.ttf', 12)
+	WorldMapFrame.UIElementsFrame.CloseQuestPanelButton.Text:SetText('◄')
+	WorldMapFrame.UIElementsFrame.CloseQuestPanelButton.Text:SetPoint('CENTER', WorldMapFrame.UIElementsFrame.CloseQuestPanelButton)
 
-    AS:SkinButton(WorldMapFrame.UIElementsFrame.TrackingOptionsButton)
-    WorldMapFrame.UIElementsFrame.TrackingOptionsButton.Background:SetAlpha(0)
-    WorldMapFrame.UIElementsFrame.TrackingOptionsButton.IconOverlay:SetAlpha(0)
-    WorldMapFrame.UIElementsFrame.TrackingOptionsButton.Button.Border:SetAlpha(0)
-    WorldMapFrame.UIElementsFrame.TrackingOptionsButton.Button.Shine:SetAlpha(0)
-    WorldMapFrame.UIElementsFrame.TrackingOptionsButton.Button:SetHighlightTexture('')
+	AS:SkinButton(WorldMapFrame.UIElementsFrame.TrackingOptionsButton)
+	WorldMapFrame.UIElementsFrame.TrackingOptionsButton.Background:SetAlpha(0)
+	WorldMapFrame.UIElementsFrame.TrackingOptionsButton.IconOverlay:SetAlpha(0)
+	WorldMapFrame.UIElementsFrame.TrackingOptionsButton.Button.Border:SetAlpha(0)
+	WorldMapFrame.UIElementsFrame.TrackingOptionsButton.Button.Shine:SetAlpha(0)
+	WorldMapFrame.UIElementsFrame.TrackingOptionsButton.Button:SetHighlightTexture('')
 end
 
 AS:RegisterSkin('Blizzard_WorldMap', AS.Blizzard_WorldMap)

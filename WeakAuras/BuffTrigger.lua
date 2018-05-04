@@ -4,55 +4,57 @@ This file contains the "aura" trigger for buffs and debuffs.
 It registers the BuffTrigger table for the trigger type "aura" and has the following API:
 
 Add(data)
-  Adds an aura, setting up internal data structures for all buff triggers.
+Adds an aura, setting up internal data structures for all buff triggers.
 
 LoadDisplay(id)
-  Loads the aura id, enabling all buff triggers in the aura.
+Loads the aura id, enabling all buff triggers in the aura.
 
 UnloadDisplay(id)
-  Unloads the aura id, disabling all buff triggers in the aura.
+Unloads the aura id, disabling all buff triggers in the aura.
 
 UnloadAll()
-  Unloads all auras, disabling all buff triggers.
+Unloads all auras, disabling all buff triggers.
 
 ScanAll()
-  Updates all triggers by checking all triggers.
+Updates all triggers by checking all triggers.
 
 Delete(id)
-  Removes all data for aura id.
+Removes all data for aura id.
 
 Rename(oldid, newid)
-  Updates all data for aura oldid to use newid.
+Updates all data for aura oldid to use newid.
 
 Modernize(data)
-  Updates all buff triggers in data.
+Updates all buff triggers in data.
 
 #####################################################
 # Helper functions mainly for the WeakAuras Options #
 #####################################################
 
 CanGroupShowWithZero(data, triggernum)
-  Returns whether the first trigger could be shown without any affected group members.
-  If that is the case no automatic icon can be determined. Only used by the options dialog.
+Returns whether the first trigger could be shown without any affected group members.
+If that is the case no automatic icon can be determined. Only used by the options dialog.
 
 CanHaveDuration(data, triggernum)
-  Returns whether the trigger can have a duration.
+Returns whether the trigger can have a duration.
 
 CanHaveAuto(data, triggernum)
-  Returns whether the icon can be automatically selected.
+Returns whether the icon can be automatically selected.
 
 CanHaveClones(data, triggernum)
-  Returns whether the trigger can have clones.
+Returns whether the trigger can have clones.
 
 CanHaveTooltip(data, triggernum)
-  Returns the type of tooltip to show for the trigger.
+Returns the type of tooltip to show for the trigger.
 
 GetNameAndIcon(data, triggernum)
-  Returns the name and icon to show in the options.
+Returns the name and icon to show in the options.
 
 GetAdditionalProperties(data, triggernum)
-  Returns the tooltip text for additional properties.
+Returns the tooltip text for additional properties.
 
+GetTriggerConditions(data, triggernum)
+Returns the potential conditions for a trigger
 ]]--
 
 
@@ -96,8 +98,8 @@ do
     if (
       data.ownOnly == true  and WeakAuras.myGUID ~= acEntry.casterGUID or
       data.ownOnly == false and WeakAuras.myGUID == acEntry.casterGUID
-    ) then
-    return false;
+      ) then
+      return false;
     end
 
     -- Test StackCount
@@ -287,8 +289,8 @@ function WeakAuras.SetAuraVisibility(id, triggernum, cloneId, inverse, active, u
   local show = false
   if(active ~= nil) then
     if not(inverse and UnitExists(unit)) then
-     show = true;
-   end
+      show = true;
+    end
   elseif(inverse and UnitExists(unit)) then
     show = true;
   end
@@ -368,7 +370,7 @@ function WeakAuras.SetAuraVisibility(id, triggernum, cloneId, inverse, active, u
     return true;
   end
   return false;
- end
+end
 
 --- Calls GetSpellInfo on trigger data to return aura name and icon.
 -- @param trigger
@@ -497,7 +499,7 @@ function WeakAuras.ScanAuras(unit)
                 -- Updated
                 aura_scan_cache[unit][filter].up_to_date = index;
 
-                -- Use cached data instead
+              -- Use cached data instead
               else
                 -- Fetch cached aura data
                 local current_aura = aura_scan_cache[unit][filter][index];
@@ -534,7 +536,7 @@ function WeakAuras.ScanAuras(unit)
                   end
                   active = true;
                   cloneIdList[cloneId] = true;
-                  -- Simply show display (show)
+                -- Simply show display (show)
                 else
                   if (WeakAuras.SetAuraVisibility(id, triggernum, nil, data.inverse, true, unit, duration, expirationTime, name, icon, count, index, spellId, unitCaster)) then
                     updateTriggerState = true;
@@ -560,7 +562,7 @@ function WeakAuras.ScanAuras(unit)
               updateTriggerState = true;
             end
 
-          -- Not using full aura scan
+            -- Not using full aura scan
           else
             -- Reset clone list
             if groupcloneToUpdate then wipe(groupcloneToUpdate); end
@@ -569,6 +571,9 @@ function WeakAuras.ScanAuras(unit)
             end
 
             -- Check all selected auras (for one trigger)
+
+            local bestDuration, bestExpirationTime, bestName, bestIcon, bestCount, bestCasGUID, bestSpellId, bestUnitCaster;
+
             for index, checkname in pairs(data.names) do
               -- Fetch aura data
               name, _, icon, count, _, duration, expirationTime, unitCaster, isStealable, _, spellId = UnitAura(unit, checkname, nil, filter);
@@ -597,26 +602,45 @@ function WeakAuras.ScanAuras(unit)
                 active = true;
                 WeakAuras.SetDynamicIconCache(name, spellId, icon);
 
-                -- Update aura cache (and clones)
-                if(aura_object and not data.specificUnit) then
-                  aura_object:AssertAura(id, uGUID, duration, expirationTime, name, icon, count, casGUID, spellId, unitCaster);
-                  if(data.groupclone) then
-                    groupcloneToUpdate[uGUID] = GetUnitName(unit, true);
-                  end
-                -- Update visibility (show)
-                else
-                  if (WeakAuras.SetAuraVisibility(id, triggernum, nil, data.inverse, true, unit, duration, expirationTime, name, icon, count, nil, spellId, unitCaster)) then
-                    updateTriggerState = true;
-                  end
-                  break;
+                if (not bestExpirationTime or expirationTime > bestExpirationTime) then
+                  bestDuration = duration;
+                  bestExpirationTime = expirationTime;
+                  bestName = name;
+                  bestIcon = icon;
+                  bestCount = count;
+                  bestCasGUID = casGUID;
+                  bestSpellId = spellId;
+                  bestUnitCaster = unitCaster;
                 end
+              end
+            end
 
-              -- Aura does not conform to trigger
-              elseif(aura_object and not data.specificUnit) then
-                -- Update aura cache (and clones)
-                 aura_object:DeassertAura(id, uGUID);
+            -- Update aura cache (and clones)
+            if (active) then
+              if(aura_object and not data.specificUnit) then
+                aura_object:AssertAura(id, uGUID, bestDuration, bestExpirationTime, bestName, bestIcon, bestCount, bestCasGUID, bestSpellId, bestUnitCaster);
                 if(data.groupclone) then
                   groupcloneToUpdate[uGUID] = GetUnitName(unit, true);
+                end
+              else
+                if (WeakAuras.SetAuraVisibility(id, triggernum, nil, data.inverse, true, unit, bestDuration, bestExpirationTime, bestName, bestIcon, bestCount, nil, bestSpellId, bestUnitCaster)) then
+                  updateTriggerState = true;
+                end
+              end
+            else
+              if(aura_object and not data.specificUnit) then
+                -- Update aura cache (and clones)
+                aura_object:DeassertAura(id, uGUID);
+                if(data.groupclone) then
+                  groupcloneToUpdate[uGUID] = GetUnitName(unit, true);
+                end
+              else
+                local nameFromTrigger, iconFromTrigger;
+                if (data.inverse) then
+                  nameFromTrigger, iconFromTrigger = GetNameAndIconFromTrigger(data);
+                end
+                if (WeakAuras.SetAuraVisibility(id, triggernum, nil, data.inverse, nil, unit, 0, math.huge, nameFromTrigger, iconFromTrigger)) then
+                  updateTriggerState = true;
                 end
               end
             end
@@ -670,7 +694,7 @@ function WeakAuras.ScanAuras(unit)
                       else
                         name = name:sub(0, -3);
                       end
-                    -- Process unaffected players
+                      -- Process unaffected players
                     elseif(data.name_info == "nonplayers") then
                       local unaffected = aura_object:GetUnaffected(id, data);
                       local num = 0;
@@ -698,13 +722,13 @@ function WeakAuras.ScanAuras(unit)
                     end
                   end
 
-                -- Not satisfying count
+                  -- Not satisfying count
                 else
                   -- Update clones
                   if(data.groupclone) then
                     WeakAuras.SetAllStatesHidden(id, triggernum);
                     updateTriggerState = true;
-                    -- Update display visibility (hide)
+                  -- Update display visibility (hide)
                   else
                     local nameFromTrigger, iconFromTrigger;
                     if (data.inverse) then
@@ -715,16 +739,6 @@ function WeakAuras.ScanAuras(unit)
                     end
                   end
                 end
-              end
-
-            -- Update display visibility (hide)
-            elseif not(active) then
-              local nameFromTrigger, iconFromTrigger;
-              if (data.inverse) then
-                nameFromTrigger, iconFromTrigger = GetNameAndIconFromTrigger(data);
-              end
-              if (WeakAuras.SetAuraVisibility(id, triggernum, nil, data.inverse, nil, unit, 0, math.huge, nameFromTrigger, iconFromTrigger)) then
-                updateTriggerState = true;
               end
             end
           end
@@ -805,25 +819,24 @@ end);
 
 do
   local pendingTracks = {};
-
   local UIDsfromGUID = {};
   local GUIDfromUID = {};
 
   function WeakAuras.ReleaseUID(UID)
     if(GUIDfromUID[UID]) then
       if(UIDsfromGUID[GUIDfromUID[UID]] and UIDsfromGUID[GUIDfromUID[UID]][UID]) then
-      UIDsfromGUID[GUIDfromUID[UID]][UID] = nil;
+        UIDsfromGUID[GUIDfromUID[UID]][UID] = nil;
       else
-      -- If this code is reached, it means there was some kind of coordination error between the two lists
-      -- This shouldn't ever happen, but it is recoverable
-      -- Search through the whole UIDsfromGUID table and remove all instances of UID
-      for GUID,UIDs in pairs(UIDsfromGUID) do
-        for iUID,v in pairs(UIDs) do
-        if(iUID == UID or iUID == UID) then
-          UIDs[iUID] = nil;
+        -- If this code is reached, it means there was some kind of coordination error between the two lists
+        -- This shouldn't ever happen, but it is recoverable
+        -- Search through the whole UIDsfromGUID table and remove all instances of UID
+        for GUID,UIDs in pairs(UIDsfromGUID) do
+          for iUID,v in pairs(UIDs) do
+            if(iUID == UID or iUID == UID) then
+              UIDs[iUID] = nil;
+            end
+          end
         end
-        end
-      end
       end
     end
     GUIDfromUID[UID] = nil;
@@ -862,67 +875,67 @@ do
   -- @param GUID
   -- @return boolean
   local function updateRegion(id, data, triggernum, GUID)
-     local auradata = data.GUIDs[GUID];
-     local triggerState = WeakAuras.GetTriggerStateForTrigger(id, triggernum);
-     triggerState[GUID] = triggerState[GUID] or {};
-     local state = triggerState[GUID];
-     if (state.progressType ~= "timed") then
-       state.progressType = "timed";
-       state.changed = true;
-     end
+    local auradata = data.GUIDs[GUID];
+    local triggerState = WeakAuras.GetTriggerStateForTrigger(id, triggernum);
+    triggerState[GUID] = triggerState[GUID] or {};
+    local state = triggerState[GUID];
+    if (state.progressType ~= "timed") then
+      state.progressType = "timed";
+      state.changed = true;
+    end
 
-     if(auradata and auradata.unitName) then
-       if (state.show ~= true) then
-         state.show = true;
-         state.changed = true;
-       end
+    if(auradata and auradata.unitName) then
+      if (state.show ~= true) then
+        state.show = true;
+        state.changed = true;
+      end
 
-       if (state.expirationTime ~= auradata.expirationTime) then
-         state.resort = state.expirationTime ~= auradata.expirationTime;
-         state.expirationTime = auradata.expirationTime;
-         state.changed = true;
-       end
+      if (state.expirationTime ~= auradata.expirationTime) then
+        state.resort = state.expirationTime ~= auradata.expirationTime;
+        state.expirationTime = auradata.expirationTime;
+        state.changed = true;
+      end
 
-       if (state.duration ~= auradata.duration) then
-         state.duration = auradata.duration;
-         state.changed = true;
-       end
+      if (state.duration ~= auradata.duration) then
+        state.duration = auradata.duration;
+        state.changed = true;
+      end
 
-       if (state.autoHide ~= true) then
-         state.autoHide = true;
-         state.changed = true;
-       end
+      if (state.autoHide ~= true) then
+        state.autoHide = true;
+        state.changed = true;
+      end
 
-       if (state.name ~= auradata.unitName) then
-         state.name = auradata.unitName;
-         state.changed = true;
-       end
+      if (state.name ~= auradata.unitName) then
+        state.name = auradata.unitName;
+        state.changed = true;
+      end
 
-       local icon = auradata.icon or WeakAuras.GetDynamicIconCache(auradata.name) or "Interface\\Icons\\INV_Misc_QuestionMark";
-       if (state.icon ~= icon) then
-         state.icon = icon;
-         state.changed = true;
-       end
+      local icon = auradata.icon or WeakAuras.GetDynamicIconCache(auradata.name) or "Interface\\Icons\\INV_Misc_QuestionMark";
+      if (state.icon ~= icon) then
+        state.icon = icon;
+        state.changed = true;
+      end
 
-       if (state.stacks ~= auradata.count) then
-         state.stacks = auradata.count;
-         state.changed  = true;
-       end
+      if (state.stacks ~= auradata.count) then
+        state.stacks = auradata.count;
+        state.changed  = true;
+      end
 
-       if (state.unitCaster ~= auradata.unitCaster) then
-         state.unitCaster = auradata.unitCaster;
-         state.changed = true;
-       end
+      if (state.unitCaster ~= auradata.unitCaster) then
+        state.unitCaster = auradata.unitCaster;
+        state.changed = true;
+      end
 
-       if (state.GUID ~= GUID) then
-         state.GUID = GUID;
-         state.changed = true;
-       end
-     else
-       if (state.show ~= false) then
-         state.show = false;
-         state.changed = true;
-       end
+      if (state.GUID ~= GUID) then
+        state.GUID = GUID;
+        state.changed = true;
+      end
+    else
+      if (state.show ~= false) then
+        state.show = false;
+        state.changed = true;
+      end
     end
 
     if (state.changed) then
@@ -931,75 +944,74 @@ do
     return false;
   end
 
-
   local function updateSpell(spellName, unit, destGUID)
-   if (not loaded_auras[spellName]) then return end;
-   for id, triggers in pairs(loaded_auras[spellName]) do
-    local updateTriggerState = false;
-    for triggernum, data in pairs(triggers) do
-      local filter = data.debuffType..(data.ownOnly and "|PLAYER" or "");
-      local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, nameplateShowPersonal, spellId = UnitAura(unit, spellName, nil, filter);
-      if(name and (data.spellId == nil or data.spellId == spellId)) then
-        data.GUIDs = data.GUIDs or {};
-        data.GUIDs[destGUID] = data.GUIDs[destGUID] or {};
-        data.GUIDs[destGUID].name = spellName;
-        data.GUIDs[destGUID].unitName = GetUnitName(unit, true);
-        data.GUIDs[destGUID].duration = duration;
-        data.GUIDs[destGUID].expirationTime = expirationTime;
-        data.GUIDs[destGUID].icon = icon;
-        data.GUIDs[destGUID].count = count;
-        data.GUIDs[destGUID].unitCaster = unitCaster and UnitName(unitCaster);
-        data.GUIDs[destGUID].spellId = spellId;
-        updateTriggerState = updateRegion(id, data, triggernum, destGUID) or updateTriggerState;
+    if (not loaded_auras[spellName]) then return end;
+    for id, triggers in pairs(loaded_auras[spellName]) do
+      local updateTriggerState = false;
+      for triggernum, data in pairs(triggers) do
+        local filter = data.debuffType..(data.ownOnly and "|PLAYER" or "");
+        local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, nameplateShowPersonal, spellId = UnitAura(unit, spellName, nil, filter);
+        if(name and (data.spellId == nil or data.spellId == spellId)) then
+          data.GUIDs = data.GUIDs or {};
+          data.GUIDs[destGUID] = data.GUIDs[destGUID] or {};
+          data.GUIDs[destGUID].name = spellName;
+          data.GUIDs[destGUID].unitName = GetUnitName(unit, true);
+          data.GUIDs[destGUID].duration = duration;
+          data.GUIDs[destGUID].expirationTime = expirationTime;
+          data.GUIDs[destGUID].icon = icon;
+          data.GUIDs[destGUID].count = count;
+          data.GUIDs[destGUID].unitCaster = unitCaster and UnitName(unitCaster);
+          data.GUIDs[destGUID].spellId = spellId;
+          updateTriggerState = updateRegion(id, data, triggernum, destGUID) or updateTriggerState;
+        end
+      end
+      if (updateTriggerState) then
+        WeakAuras.UpdatedTriggerState(id);
       end
     end
-    if (updateTriggerState) then
-      WeakAuras.UpdatedTriggerState(id);
-    end
-   end
   end
 
   local function combatLog(_, message, _, _, sourceName, _, _, destGUID, destName, _, _, spellId, spellName, _, auraType, amount)
     if(loaded_auras[spellName]) then
       if(message == "SPELL_AURA_APPLIED" or message == "SPELL_AURA_REFRESH" or message == "SPELL_AURA_APPLIED_DOSE" or message == "SPELL_AURA_REMOVED_DOSE") then
-      local unit = WeakAuras.GetUID(destGUID);
-      if(unit) then
-        updateSpell(spellName, unit, destGUID);
-      else
-        for id, triggers in pairs(loaded_auras[spellName]) do
-          local updateTriggerState = false;
-          for triggernum, data in pairs(triggers) do
-            if((not data.ownOnly) or UnitIsUnit(sourceName or "", "player")) then
-            pendingTracks[destGUID] = pendingTracks[destGUID] or {};
-            pendingTracks[destGUID][spellName] = true;
+        local unit = WeakAuras.GetUID(destGUID);
+        if(unit) then
+          updateSpell(spellName, unit, destGUID);
+        else
+          for id, triggers in pairs(loaded_auras[spellName]) do
+            local updateTriggerState = false;
+            for triggernum, data in pairs(triggers) do
+              if((not data.ownOnly) or UnitIsUnit(sourceName or "", "player")) then
+                pendingTracks[destGUID] = pendingTracks[destGUID] or {};
+                pendingTracks[destGUID][spellName] = true;
 
-            data.GUIDs = data.GUIDs or {};
-            data.GUIDs[destGUID] = data.GUIDs[destGUID] or {};
-            data.GUIDs[destGUID].name = spellName;
-            data.GUIDs[destGUID].unitName = destName;
-            local icon = spellId and select(3, GetSpellInfo(spellId));
-            if (message == "SPELL_AURA_APPLIED_DOSE" or message == "SPELL_AURA_REMOVED_DOSE") then
-              -- Shouldn't affect duration/expirationTime nor icon
-              data.GUIDs[destGUID].duration = data.GUIDs[destGUID].duration or 0;
-              data.GUIDs[destGUID].expirationTime = data.GUIDs[destGUID].expirationTime or math.huge;
-              data.GUIDs[destGUID].icon = data.GUIDs[destGUID].icon or icon;
-            else
-              data.GUIDs[destGUID].duration = 0;
-              data.GUIDs[destGUID].expirationTime = math.huge;
-              data.GUIDs[destGUID].icon = icon;
-            end
-            data.GUIDs[destGUID].count = amount or 0;
-            data.GUIDs[destGUID].spellId = spellId;
-            data.GUIDs[destGUID].unitCaster = sourceName and UnitName(sourceName);
+                data.GUIDs = data.GUIDs or {};
+                data.GUIDs[destGUID] = data.GUIDs[destGUID] or {};
+                data.GUIDs[destGUID].name = spellName;
+                data.GUIDs[destGUID].unitName = destName;
+                local icon = spellId and select(3, GetSpellInfo(spellId));
+                if (message == "SPELL_AURA_APPLIED_DOSE" or message == "SPELL_AURA_REMOVED_DOSE") then
+                  -- Shouldn't affect duration/expirationTime nor icon
+                  data.GUIDs[destGUID].duration = data.GUIDs[destGUID].duration or 0;
+                  data.GUIDs[destGUID].expirationTime = data.GUIDs[destGUID].expirationTime or math.huge;
+                  data.GUIDs[destGUID].icon = data.GUIDs[destGUID].icon or icon;
+                else
+                  data.GUIDs[destGUID].duration = 0;
+                  data.GUIDs[destGUID].expirationTime = math.huge;
+                  data.GUIDs[destGUID].icon = icon;
+                end
+                data.GUIDs[destGUID].count = amount or 0;
+                data.GUIDs[destGUID].spellId = spellId;
+                data.GUIDs[destGUID].unitCaster = sourceName and UnitName(sourceName);
 
-            updateTriggerState = updateRegion(id, data, triggernum, destGUID) or updateTriggerState;
+                updateTriggerState = updateRegion(id, data, triggernum, destGUID) or updateTriggerState;
+              end
             end
-          end
-          if (updateTriggerState) then
-            WeakAuras.UpdatedTriggerState(id);
+            if (updateTriggerState) then
+              WeakAuras.UpdatedTriggerState(id);
+            end
           end
         end
-      end
       elseif(message == "SPELL_AURA_REMOVED") then
         for id, triggers in pairs(loaded_auras[spellName]) do
           local updateTriggerState = false;
@@ -1150,7 +1162,7 @@ do
         scheduled_scans[unit][fireTime] = nil;
         WeakAuras.ScanAuras(unit);
       end
-      scheduled_scans[unit][fireTime] = timer:ScheduleTimer(doScan, fireTime - GetTime() + 0.1);
+      scheduled_scans[unit][fireTime] = timer:ScheduleTimerFixed(doScan, fireTime - GetTime() + 0.1);
     end
   end
 end
@@ -1163,13 +1175,13 @@ local function LoadAura(id, triggernum, data)
   local unit;
   if(data.specificUnit) then
     if(data.unit:lower():sub(0,4) == "boss") then
-    specificBosses[data.unit] = true;
-    unit = "boss";
+      specificBosses[data.unit] = true;
+      unit = "boss";
     elseif(data.unit:lower():sub(0,5) == "arena") then
-    unit = "arena";
+      unit = "arena";
     else
-    specificUnits[data.unit] = true;
-    unit = "group";
+      specificUnits[data.unit] = true;
+      unit = "group";
     end
   elseif(data.unit == "multi") then
     unit = data.name
@@ -1226,23 +1238,23 @@ frame:SetScript("OnEvent", function (frame, event, arg1, arg2, ...)
   elseif(event == "UNIT_AURA") then
     if(
       loaded_auras[arg1]
-    or (
+      or (
       loaded_auras["group"]
       and (
       arg1:sub(0, 4) == "raid"
       or arg1:sub(0, 5) == "party"
       or arg1 == "player"
       )
-    )
-    or (
+      )
+      or (
       loaded_auras["boss"]
       and arg1:sub(0,4) == "boss"
-    )
-    or (
+      )
+      or (
       loaded_auras["arena"]
       and arg1:sub(0,5) == "arena"
-    )
-    ) then
+      )
+      ) then
       -- This throttles aura scans to only happen at most once per frame per unit
       if not(aura_scan_cooldowns[arg1]) then
         aura_scan_cooldowns[arg1] = true;
@@ -1306,7 +1318,7 @@ function BuffTrigger.Add(data)
   auras[id] = nil;
 
   for triggernum=0,(data.numTriggers or 9) do
-    local trigger, untrigger;
+    local trigger, untrigger; -- luacheck: ignore
     if(triggernum == 0) then
       trigger = data.trigger;
       data.untrigger = data.untrigger or {};
@@ -1358,27 +1370,27 @@ function BuffTrigger.Add(data)
           scanFunc = function(name, tooltip, isStealable, spellId, debuffClass)
             if (
               (
-                (not trigger.use_name) or (
-                trigger.name and trigger.name ~= "" and (
-                  trigger.name_operator == "==" and name == trigger.name
-                  or trigger.name_operator == "find('%s')" and name:find(trigger.name)
-                  or trigger.name_operator == "match('%s')" and name:match(trigger.name)
-                )
-                )
+              (not trigger.use_name) or (
+              trigger.name and trigger.name ~= "" and (
+              trigger.name_operator == "==" and name == trigger.name
+              or trigger.name_operator == "find('%s')" and name:find(trigger.name)
+              or trigger.name_operator == "match('%s')" and name:match(trigger.name)
+              )
+              )
               )
               and (
-                (not trigger.use_tooltip) or (
-                trigger.tooltip and trigger.tooltip ~= "" and (
-                  trigger.tooltip_operator == "==" and tooltip == trigger.tooltip
-                  or trigger.tooltip_operator == "find('%s')" and tooltip:find(trigger.tooltip)
-                  or trigger.tooltip_operator == "match('%s')" and tooltip:match(trigger.tooltip)
-                )
-                )
+              (not trigger.use_tooltip) or (
+              trigger.tooltip and trigger.tooltip ~= "" and (
+              trigger.tooltip_operator == "==" and tooltip == trigger.tooltip
+              or trigger.tooltip_operator == "find('%s')" and tooltip:find(trigger.tooltip)
+              or trigger.tooltip_operator == "match('%s')" and tooltip:match(trigger.tooltip)
+              )
+              )
               )
               and ((not trigger.use_stealable) or isStealable)
               and ((not trigger.use_spellId) or spellId == tonumber(trigger.spellId))
               and ((not trigger.use_debuffClass) or debuffClass == trigger.debuffClass)
-            ) then
+              ) then
               return true;
             else
               return false;
@@ -1424,7 +1436,7 @@ end
 --- Updates old data to the new format.
 -- @param data
 function BuffTrigger.Modernize(data)
-  -- Nothing for now
+-- Nothing for now
 end
 
 --- Returns whether the first trigger could be shown without any affected group members.
@@ -1503,7 +1515,6 @@ function BuffTrigger.CanHaveAuto(data, triggernum)
   return false;
 end
 
-
 --- Returns whether the trigger can have clones.
 -- @param data
 -- @param triggernum
@@ -1516,8 +1527,8 @@ function BuffTrigger.CanHaveClones(data, triggernum)
     trigger = data.additional_triggers[triggernum].trigger;
   end
   return (trigger.fullscan and trigger.autoclone)
-          or (trigger.unit == "group" and trigger.groupclone)
-          or (trigger.unit == "multi");
+    or (trigger.unit == "group" and trigger.groupclone)
+    or (trigger.unit == "multi");
 end
 
 ---Returns the type of tooltip to show for the trigger.
@@ -1664,6 +1675,35 @@ function BuffTrigger.GetAdditionalProperties(data, triggernum)
   ret = ret .. "|cFFFF0000%unitCaster|r -" .. L["Caster"] .. "\n";
 
   return ret;
+end
+
+function BuffTrigger.GetTriggerConditions(data, triggernum)
+  local result = {};
+  result["unitCaster"] = {
+    display = L["Caster"],
+    type = "string",
+  }
+
+  result["expirationTime"] = {
+    display = L["Remaining Duration"],
+    type = "timer",
+  }
+  result["duration"] = {
+    display = L["Total Duration"],
+    type = "number",
+  }
+
+  result["stacks"] = {
+    display = L["Stacks"],
+    type = "number"
+  }
+
+  result["name"] = {
+    display = L["Name"],
+    type = "string"
+  }
+
+  return result;
 end
 
 function BuffTrigger.CreateFallbackState(data, triggernum, state)

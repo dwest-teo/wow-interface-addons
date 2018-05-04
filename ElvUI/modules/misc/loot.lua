@@ -19,12 +19,11 @@ local GetLootSlotInfo = GetLootSlotInfo
 local GetLootSlotLink = GetLootSlotLink
 local GetNumLootItems = GetNumLootItems
 local GiveMasterLoot = GiveMasterLoot
-local HandleModifiedItemClick = HandleModifiedItemClick
 local IsFishingLoot = IsFishingLoot
 local IsModifiedClick = IsModifiedClick
-local Lib_ToggleDropDownMenu = Lib_ToggleDropDownMenu
-local Lib_UIDropDownMenu_AddButton = Lib_UIDropDownMenu_AddButton
-local Lib_UIDropDownMenu_CreateInfo = Lib_UIDropDownMenu_CreateInfo
+local L_ToggleDropDownMenu = L_ToggleDropDownMenu
+local L_UIDropDownMenu_AddButton = L_UIDropDownMenu_AddButton
+local L_UIDropDownMenu_CreateInfo = L_UIDropDownMenu_CreateInfo
 local LootSlotHasItem = LootSlotHasItem
 local MasterLooterFrame_UpdatePlayers = MasterLooterFrame_UpdatePlayers
 local ResetCursor = ResetCursor
@@ -39,33 +38,33 @@ local TEXTURE_ITEM_QUEST_BANG = TEXTURE_ITEM_QUEST_BANG
 --Global variables that we don't cache, list them here for mikk's FindGlobals script
 -- GLOBALS: GameTooltip, LootFrame, LootSlot, GroupLootDropDown, UISpecialFrames
 -- GLOBALS: UIParent, GameFontNormalLeft, MasterLooterFrame_Show, MASTER_LOOTER
--- GLOBALS: ASSIGN_LOOT, REQUEST_ROLL
+-- GLOBALS: ASSIGN_LOOT, REQUEST_ROLL, HandleModifiedItemClick
 
 --This function is copied from FrameXML and modified to use DropDownMenu library function calls
 --Using the regular DropDownMenu code causes taints in various places.
 local function GroupLootDropDown_Initialize()
-	local info = Lib_UIDropDownMenu_CreateInfo();
+	local info = L_UIDropDownMenu_CreateInfo();
 	info.isTitle = 1;
 	info.text = MASTER_LOOTER;
 	info.fontObject = GameFontNormalLeft;
 	info.notCheckable = 1;
-	Lib_UIDropDownMenu_AddButton(info);
+	L_UIDropDownMenu_AddButton(info);
 
-	info = Lib_UIDropDownMenu_CreateInfo();
+	info = L_UIDropDownMenu_CreateInfo();
 	info.notCheckable = 1;
 	info.text = ASSIGN_LOOT;
 	info.func = MasterLooterFrame_Show;
-	Lib_UIDropDownMenu_AddButton(info);
+	L_UIDropDownMenu_AddButton(info);
 	info.text = REQUEST_ROLL;
 	info.func = function() DoMasterLootRoll(LootFrame.selectedSlot); end;
-	Lib_UIDropDownMenu_AddButton(info);
+	L_UIDropDownMenu_AddButton(info);
 end
 
 --Create the new group loot dropdown frame and initialize it
-local ElvUIGroupLootDropDown = CreateFrame("Frame", "ElvUIGroupLootDropDown", UIParent, "Lib_UIDropDownMenuTemplate")
+local ElvUIGroupLootDropDown = CreateFrame("Frame", "ElvUIGroupLootDropDown", UIParent, "L_UIDropDownMenuTemplate")
 ElvUIGroupLootDropDown:SetID(1)
 ElvUIGroupLootDropDown:Hide()
-Lib_UIDropDownMenu_Initialize(ElvUIGroupLootDropDown, nil, "MENU");
+L_UIDropDownMenu_Initialize(ElvUIGroupLootDropDown, nil, "MENU");
 ElvUIGroupLootDropDown.initialize = GroupLootDropDown_Initialize;
 
 local coinTextureIDs = {
@@ -223,7 +222,7 @@ function M:LOOT_CLOSED()
 end
 
 function M:OPEN_MASTER_LOOT_LIST()
-	Lib_ToggleDropDownMenu(1, nil, ElvUIGroupLootDropDown, lootFrame.slots[ss], 0, 0)
+	L_ToggleDropDownMenu(1, nil, ElvUIGroupLootDropDown, lootFrame.slots[ss], 0, 0)
 end
 
 function M:UPDATE_MASTER_LOOT_LIST()

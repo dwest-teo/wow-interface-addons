@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod(1761, "DBM-Nighthold", nil, 786)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision(("$Revision: 16089 $"):sub(12, -3))
+mod:SetRevision(("$Revision: 16780 $"):sub(12, -3))
 mod:SetCreatureID(104528)--109042
 mod:SetEncounterID(1886)
 mod:SetZone()
@@ -23,9 +23,6 @@ mod:RegisterEventsInCombat(
 	"UNIT_HEALTH target focus mouseover"
 )
 
---TODO. see how many CoN go out and auto assign soakers for it. Redo icons accordingly, maybe some auto assigning helper stuff
---TODO, adjust 15% on stars if it's too low/high. 25% was used on algalon for reference
---TODO, auto marking spheres?
 --[[
 (target.id = 109040 or target.id = 109038 or target.id = 109041) and type = "death" or 
 (ability.id = 218438 or ability.id = 223034 or ability.id = 218774 or ability.id = 218927 or ability.id = 216830 or ability.id = 216877 or ability.id = 218148 or ability.id = 223219) and type = "begincast" 
@@ -76,10 +73,10 @@ local timerSolarCollapseCD			= mod:NewNextTimer(35, 218148, nil, nil, nil, 3)
 --Stage 2: Nightosis
 mod:AddTimerLine(SCENARIO_STAGE:format(2))
 local timerPlasmaSpheresCD			= mod:NewNextTimer(55, 218774, 104923, nil, nil, 1)--"Summon Balls" short text
-local timerFlareCD					= mod:NewNextTimer(8.5, 218806, nil, "Melee", nil, 5, nil, DBM_CORE_TANK_ICON)--Exception to 35, 40, 50 rule
+local timerFlareCD					= mod:NewCDTimer(8.5, 218806, nil, "Melee", nil, 5, nil, DBM_CORE_TANK_ICON)--Exception to 35, 40, 50 rule
 --Stage 3: Pure Forms
 mod:AddTimerLine(SCENARIO_STAGE:format(3))
-local timerToxicSporesCD			= mod:NewNextTimer(8.5, 219049, nil, nil, nil, 3)--Exception to 35, 40, 50 rule
+local timerToxicSporesCD			= mod:NewCDTimer(8, 219049, nil, nil, nil, 3)--Exception to 35, 40, 50 rule
 local timerGraceOfNatureCD			= mod:NewNextTimer(48, 218927, nil, "Tank", nil, 5, nil, DBM_CORE_TANK_ICON)--48-51
 local timerCoNCD					= mod:NewNextTimer(50, 218809, nil, nil, nil, 3)
 mod:AddTimerLine(PLAYER_DIFFICULTY6)
@@ -106,7 +103,7 @@ local voiceSolarCollapse			= mod:NewVoice(218148)--watchstep
 
 --Stage 3: Pure Forms
 local voiceGraceOfNature			= mod:NewVoice(218927, "Tank")--bossout
-local voiceCoN						= mod:NewVoice(218809)--mmX
+local voiceCoN						= mod:NewVoice(218809)--targetyou
 
 mod:AddRangeFrameOption(8, 218807)
 mod:AddSetIconOption("SetIconOnFetter", 218304, true)
@@ -342,10 +339,9 @@ function mod:SPELL_AURA_APPLIED(args)
 		if args:IsPlayer() then
 			specWarnCoN:Show(self:IconNumToString(number))
 			yellCoN:Yell(self:IconNumToString(number), number, number)
-			voiceCoN:Play("mm"..number)
+			voiceCoN:Play("targetyou")
 			if self.Options.RangeFrame then
 				DBM.RangeCheck:Show(8, noCoN, nil, nil, true)
-				DBM:AddMsg(L.RadarMessage)
 			end
 		end
 		if self.Options.SetIconOnCoN then
@@ -367,7 +363,7 @@ function mod:SPELL_AURA_APPLIED(args)
 		if args:IsPlayer() then
 			yellParasiticFetter:Yell()
 		end
-		if self:CheckNearby(20, args.destName) and self:AntiSpam(2, 3) then
+		if self:CheckNearby(20, args.destName) and self:AntiSpam(2, 3.5) then
 			specWarnParasiticFetter:Show(args.destName)
 			voiceParasiticFetter:Play("runaway")
 		else
@@ -514,7 +510,7 @@ function mod:SPELL_AURA_REMOVED(args)
 			self:SetIcon(args.destName, 0)
 		end
 	elseif spellId == 218304 then
-		if self:AntiSpam(5, 2) and not UnitDebuff("player", args.spellName) then
+		if self:AntiSpam(5, 4) and not UnitDebuff("player", args.spellName) then
 			specWarnLasher:Show()
 			voiceLasher:Play("killmob")
 		end

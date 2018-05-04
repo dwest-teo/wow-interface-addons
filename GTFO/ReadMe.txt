@@ -1211,3 +1211,61 @@ Change Log:
 
 4.42.8
 * Updated for patch 7.2
+
+4.42.9
+* Added Legion spells for Cathedral of the Night
+
+4.42.10
+* Added Legion spells for The Broken Isles (world)
+* Added Legion spells for Nighthold
+
+4.42.11
+* Added Legion spells for The Broken Isles (world)
+* Added Legion spells for Nighthold
+
+4.42.12
+* Added Legion spells for The Broken Isles (world)
+* Added Legion spells for Tomb of Sargeras
+
+4.42.13
+* Added Legion spells for Tomb of Sargeras
+
+4.42.14
+* Added Legion spells for The Broken Isles (world)
+* Added Legion spells for Tomb of Sargeras
+
+4.42.15
+* Added Legion spells for The Broken Isles (world)
+* Added Legion spells for Tomb of Sargeras
+
+4.42.16
+* Added Legion spells for The Broken Isles (world)
+* Added Legion spells for Tomb of Sargeras
+
+4.42.17
+* Fixed Legion spells for Tomb of Sargeras
+
+4.42.18
+* Removed trivial flags for Black Temple (Timewalking)
+
+4.43
+* Updated for patch 7.3
+
+4.43.1
+* Added Legion spells for Argus
+
+4.43.2
+* Added Legion spells for Argus
+
+4.43.3
+* Added Legion spells for Argus
+* Added Legion spells for Seat of the Triumvirate
+* Added Legion spells for Tomb of Sargeras
+
+4.43.4
+* Added Legion spells for Argus
+* Added Legion spells for Tomb of Sargeras
+
+4.43.5
+* Added Legion spells for Argus
+* Added Legion spells for Tomb of Sargeras

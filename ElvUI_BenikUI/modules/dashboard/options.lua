@@ -148,8 +148,8 @@ local function UpdateTokenOptions()
 					type = 'toggle',
 					name = '|T'..icon..':18|t '..(tname:gsub(' '..PROFESSIONS_ARCHAEOLOGY..' ', ' ')), -- remove 'Archaeology' from the name, to shorten the options a bit.
 					desc = L['Enable/Disable ']..tname,
-					get = function(info) return E.db.dashboards.tokens.chooseTokens[id] end,
-					set = function(info, value) E.db.dashboards.tokens.chooseTokens[id] = value; BUIT:UpdateTokens(); end,
+					get = function(info) return E.private.dashboards.tokens.chooseTokens[id] end,
+					set = function(info, value) E.private.dashboards.tokens.chooseTokens[id] = value; BUIT:UpdateTokens(); end,
 					disabled = function() return not isDiscovered end,
 				}
 			end
@@ -179,8 +179,8 @@ local function UpdateProfessionOptions()
 					type = 'toggle',
 					name = '|T'..icon..':18|t '..pname,
 					desc = L['Enable/Disable ']..pname,
-					get = function(info) return E.db.dashboards.professions.choosePofessions[id] end,
-					set = function(info, value) E.db.dashboards.professions.choosePofessions[id] = value; BUIP:UpdateProfessions(); end,
+					get = function(info) return E.private.dashboards.professions.choosePofessions[id] end,
+					set = function(info, value) E.private.dashboards.professions.choosePofessions[id] = value; BUIP:UpdateProfessions(); end,
 				}			
 			end
 		end
@@ -403,7 +403,7 @@ local function dashboardsTable()
 					},
 					mouseover = {
 						order = 4,
-						name = L['Mouse Over']..BUI.NewSign,
+						name = L['Mouse Over'],
 						desc = L['The frame is not shown unless you mouse over the frame.'],
 						type = 'toggle',
 						disabled = function() return not E.db.dashboards.tokens.enableTokens end,
@@ -527,7 +527,7 @@ local function dashboardsTable()
 					},
 					mouseover = {
 						order = 4,
-						name = L['Mouse Over']..BUI.NewSign,
+						name = L['Mouse Over'],
 						desc = L['The frame is not shown unless you mouse over the frame.'],
 						type = 'toggle',
 						disabled = function() return not E.db.dashboards.professions.enableProfessions end,

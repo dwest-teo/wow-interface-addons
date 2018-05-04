@@ -33,6 +33,7 @@ P['benikui'] = {
 		['benikuiStyle'] = true,
 		['hideStyle'] = false,
 		['shadows'] = false,
+		['auras'] = true,
 		['loginMessage'] = true,
 		['splashScreen'] = true,
 	},
@@ -258,7 +259,7 @@ P['benikuiDatabars'] = {
 	['experience'] = {
 		['enable'] = true,
 		['buiStyle'] = true,
-		['buttonStyle'] = "DEFAULT",
+		['buttonStyle'] = "TRANSPARENT",
 		['color'] = {
 			['default'] = true,
 			['xp'] = { r = 0, g = 0.4, b = 1, a = .8 },
@@ -274,7 +275,7 @@ P['benikuiDatabars'] = {
 	['reputation'] = {
 		['enable'] = true,
 		['buiStyle'] = true,
-		['buttonStyle'] = "DEFAULT",
+		['buttonStyle'] = "TRANSPARENT",
 		['autotrack'] = false,
 		['color'] = {
 			['default'] = true,
@@ -309,7 +310,7 @@ P['benikuiDatabars'] = {
 	['honor'] = {
 		['enable'] = true,
 		['buiStyle'] = true,
-		['buttonStyle'] = "DEFAULT",
+		['buttonStyle'] = "TRANSPARENT",
 		['color'] = {
 			['default'] = true,
 			['hn'] = {r = .941, g = .447, b = .254, a = .8 },
@@ -347,11 +348,6 @@ P['dashboards'] = {
 		['zeroamount'] = false,
 		['weekly'] = true,
 		['flash'] = false,
-		['chooseTokens'] = {
-			[1220] = true, -- Order Resources
-			[1273] = true, -- Seal of Broken Fate
-			[1155] = true, -- Ancient Mana
-		},
 	},
 	
 	['professions'] = {
@@ -360,14 +356,6 @@ P['dashboards'] = {
 		['mouseover'] = false,
 		['width'] = 150,
 		['capped'] = false,
-		['choosePofessions'] = {
-			[5] = true,
-			[6] = true,
-			[7] = true,
-			[8] = true,
-			[9] = true,
-			[10] = true,
-		},
 	},
 
 	['dashfont'] = {

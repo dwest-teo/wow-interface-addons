@@ -17,11 +17,11 @@ local UnitIsUnit = UnitIsUnit
 local UnitDetailedThreatSituation = UnitDetailedThreatSituation
 local GetThreatStatusColor = GetThreatStatusColor
 local RAID_CLASS_COLORS = RAID_CLASS_COLORS
-local CUSTOM_CLASS_COLORS = CUSTOM_CLASS_COLORS
 local UNKNOWN = UNKNOWN
 
 --Global variables that we don't cache, list them here for mikk's FindGlobals script
 -- GLOBALS: RightChatDataPanel, LeftChatDataPanel, ElvUF, UIParent
+-- GLOBALS: CUSTOM_CLASS_COLORS
 
 E.Threat = THREAT
 THREAT.list = {};
@@ -154,4 +154,8 @@ function THREAT:Initialize()
 	self:ToggleEnable()
 end
 
-E:RegisterModule(THREAT:GetName())
+local function InitializeCallback()
+	THREAT:Initialize()
+end
+
+E:RegisterModule(THREAT:GetName(), InitializeCallback)

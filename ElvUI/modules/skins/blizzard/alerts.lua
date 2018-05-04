@@ -138,10 +138,10 @@ local function LoadSkin()
 
 		frame.glow:Kill()
 		frame.shine:Kill()
-		_G[frame:GetName().."EmblemBorder"]:Kill()
+		frame.EmblemBorder:Kill()
 
 		-- Icon border
-		local EmblemIcon = _G[frame:GetName().."EmblemIcon"]
+		local EmblemIcon = frame.EmblemIcon
 		if not EmblemIcon.b then
 			EmblemIcon.b = CreateFrame("Frame", nil, frame)
 			EmblemIcon.b:SetTemplate("Default")
@@ -638,6 +638,33 @@ local function LoadSkin()
 		end
 	end
 
+	local function SkinNewPetAlert(frame)
+		frame:SetAlpha(1)
+		if not frame.hooked then hooksecurefunc(frame, "SetAlpha", forceAlpha);frame.hooked = true end
+
+		frame.Background:Kill()
+		frame.IconBorder:Kill()
+
+		frame.Icon:SetMask("")
+		frame.Icon:SetTexCoord(unpack(E.TexCoords))
+		frame.Icon:SetDrawLayer("BORDER", 5)
+
+		-- Icon border
+		if not frame.Icon.b then
+			frame.Icon.b = CreateFrame("Frame", nil, frame)
+			frame.Icon.b:SetTemplate("Default")
+			frame.Icon.b:SetPoint("TOPLEFT", frame.Icon, "TOPLEFT", -2, 2)
+			frame.Icon.b:SetPoint("BOTTOMRIGHT", frame.Icon, "BOTTOMRIGHT", 2, -2)
+			frame.Icon:SetParent(frame.Icon.b)
+		end
+
+		if not frame.backdrop then
+			frame:CreateBackdrop("Transparent")
+			frame.backdrop:Point('TOPLEFT', frame.Icon.b, 'TOPLEFT', -8, 8)
+			frame.backdrop:Point('BOTTOMRIGHT', frame.Icon.b, 'BOTTOMRIGHT', 180, -8)
+		end
+	end
+
 	--[[ HOOKS ]]--
 	-- Achievements
 	hooksecurefunc(AchievementAlertSystem, "setUpFunction", SkinAchievementAlert)
@@ -669,6 +696,9 @@ local function LoadSkin()
 	hooksecurefunc(DigsiteCompleteAlertSystem, "setUpFunction", SkinDigsiteCompleteAlert)
 	hooksecurefunc(NewRecipeLearnedAlertSystem, "setUpFunction", SkinNewRecipeLearnedAlert)
 
+	-- Pets/Mounts
+	hooksecurefunc(NewPetAlertSystem, "setUpFunction", SkinNewPetAlert)
+	hooksecurefunc(NewMountAlertSystem, "setUpFunction", SkinNewPetAlert)
 
 	--[[ STATIC SKINNING ]]--
 	--Bonus Roll Money

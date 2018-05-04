@@ -1,4 +1,4 @@
---[[ $Id$ ]]
+--[[ $Id: CallbackHandler-1.0.lua 1131 2015-06-04 07:29:24Z nevcairiel $ ]]
 local MAJOR, MINOR = "CallbackHandler-1.0", 6
 local CallbackHandler = LibStub:NewLibrary(MAJOR, MINOR)
 
@@ -60,14 +60,12 @@ end})
 --------------------------------------------------------------------------
 -- CallbackHandler:New
 --
---   target            - target object to embed public APIs in
---   RegisterName      - name of the callback registration API, default "RegisterCallback"
---   UnregisterName    - name of the callback unregistration API, default "UnregisterCallback"
---   UnregisterAllName - name of the API to unregister all callbacks, default "UnregisterAllCallbacks". false == don't publish this API.
+--	target			- target object to embed public APIs in
+--	RegisterName	  - name of the callback registration API, default "RegisterCallback"
+--	UnregisterName	- name of the callback unregistration API, default "UnregisterCallback"
+--	UnregisterAllName - name of the API to unregister all callbacks, default "UnregisterAllCallbacks". false == don't publish this API.
 
-function CallbackHandler:New(target, RegisterName, UnregisterName, UnregisterAllName, OnUsed, OnUnused)
-	-- TODO: Remove this after beta has gone out
-	assert(not OnUsed and not OnUnused, "ACE-80: OnUsed/OnUnused are deprecated. Callbacks are now done to registry.OnUsed and registry.OnUnused")
+function CallbackHandler:New(target, RegisterName, UnregisterName, UnregisterAllName)
 
 	RegisterName = RegisterName or "RegisterCallback"
 	UnregisterName = UnregisterName or "UnregisterCallback"
@@ -94,7 +92,7 @@ function CallbackHandler:New(target, RegisterName, UnregisterName, UnregisterAll
 		registry.recurse = oldrecurse
 
 		if registry.insertQueue and oldrecurse==0 then
-			-- Something in one of our callbacks wanted to register more callbacks; they got queued
+			-- Something in one of our callbacks wanted to register more callbacks they got queued
 			for eventname,callbacks in pairs(registry.insertQueue) do
 				local first = not rawget(events, eventname) or not next(events[eventname])	-- test for empty before. not test for one member after. that one member may have been overwritten.
 				for self,func in pairs(callbacks) do
@@ -111,9 +109,9 @@ function CallbackHandler:New(target, RegisterName, UnregisterName, UnregisterAll
 	end
 
 	-- Registration of a callback, handles:
-	--   self["method"], leads to self["method"](self, ...)
-	--   self with function ref, leads to functionref(...)
-	--   "addonId" (instead of self) with function ref, leads to functionref(...)
+	--	self["method"], leads to self["method"](self, ...)
+	--	self with function ref, leads to functionref(...)
+	--	"addonId" (instead of self) with function ref, leads to functionref(...)
 	-- all with an optional arg, which, if present, gets passed as first argument (after self if present)
 	target[RegisterName] = function(self, eventname, method, ... --[[actually just a single arg]])
 		if type(eventname) ~= "string" then
